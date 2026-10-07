@@ -6,7 +6,7 @@
 ![status](https://img.shields.io/badge/status-설계%20단계-lightgrey)
 ![python](https://img.shields.io/badge/Python-3.12-3776AB)
 ![fastapi](https://img.shields.io/badge/FastAPI-backend-009688)
-![mariadb](https://img.shields.io/badge/MariaDB-10.11%20LTS-003545)
+![mariadb](https://img.shields.io/badge/MariaDB-11.4%20LTS-003545)
 ![nextjs](https://img.shields.io/badge/Next.js-frontend-000000)
 
 국민연금 가입 사업장 데이터와 DART 공시로 회사의 **인원 추이 · 입퇴사율 · 추정 연봉**을 보여줍니다. 여기에 **채용공고**(사람인 API)와 **회사 근처 역세권 전월세 시세**를 연결해, 지원부터 출근 이후의 생활비까지 한 화면에서 판단할 수 있게 합니다.
@@ -28,6 +28,7 @@ LLM·RAG 같은 AI 기능 없이 **데이터 수집 → 정제 → DB 모델링 
 - [프로젝트 구조](#프로젝트-구조)
 - [시작하기](#시작하기)
 - [로드맵](#로드맵)
+- [팀](#팀)
 - [한계와 면책](#한계와-면책)
 
 ---
@@ -36,7 +37,7 @@ LLM·RAG 같은 AI 기능 없이 **데이터 수집 → 정제 → DB 모델링 
 
 구직자가 회사를 판단할 때 쓰는 정보는 대부분 **채용공고**(회사가 쓴 글)와 **익명 리뷰**(개인 경험)입니다.
 
-반면 국민연금공단은 사업장별 가입자 수, 신규 취득자, 상실자, 고지금액을 **매월 공개**하고, DART에는 재무제표가 있으며, 국토교통부는 전월세 실거래가를 공개합니다. 근거가 될 공식 데이터는 이미 있지만 그대로 쓰기는 어렵습니다.
+반면 국민연금공단은 사업장별 가입자 수, 신규 취득자, 상실자, 고지금액을 **매월 공개**하고, DART에는 재무제표가 있으며, 서울시는 전월세 실거래가를 공개합니다. 근거가 될 공식 데이터는 이미 있지만 그대로 쓰기는 어렵습니다.
 
 | 공공데이터의 문제 | 이 프로젝트의 해결 |
 |---|---|
@@ -114,7 +115,7 @@ flowchart LR
   subgraph Sources[데이터 출처]
     NPS[국민연금<br/>사업장 CSV]
     DART[OpenDART]
-    RENT[국토부<br/>전월세 실거래가]
+    RENT[서울시<br/>전월세가 정보]
     STN[도시철도<br/>역사 표준데이터]
     JUSO[주소정보누리집<br/>좌표 API]
     SRM[사람인 API]
@@ -124,14 +125,14 @@ flowchart LR
     COL[수집 · 정제<br/>멱등 적재]
   end
 
-  subgraph DB[MariaDB 10.11]
+  subgraph DB[MariaDB 11.4]
     RAW[(raw)]
     CORE[(core<br/>정규화 테이블)]
     MART[(mart<br/>집계 테이블)]
   end
 
   API[FastAPI<br/>읽기 전용 REST]
-  WEB[Next.js<br/>+ 카카오맵 또는 네이버 지도]
+  WEB[Next.js<br/>+ 네이버 지도]
 
   NPS & DART & RENT & STN & JUSO & SRM --> COL
   COL --> RAW --> CORE --> MART
@@ -152,13 +153,13 @@ flowchart LR
 | | rapidfuzz | 국민연금 · DART · 사람인 회사명 유사도 매칭 |
 | | pyproj | 좌표계 변환 (UTM-K → WGS84 경위도) |
 | | APScheduler | 월 1회 · 일 1회 배치 스케줄링 |
-| DB | MariaDB 10.11 LTS (InnoDB) | 윈도 함수 · CTE, 파티셔닝, 생성 컬럼, SPATIAL 인덱스 |
+| DB | MariaDB 11.4 LTS (InnoDB) | 윈도 함수 · CTE, 파티셔닝, 생성 컬럼, SPATIAL 인덱스 |
 | | Alembic | 스키마 마이그레이션 |
 | 백엔드 | FastAPI, uvicorn, Pydantic v2 | REST API, 파라미터 검증, 자동 문서 |
 | | SQLAlchemy 2.0 (async) + asyncmy | DB 연결. 통계 쿼리는 SQL을 직접 작성 |
 | 프론트엔드 | Next.js, Recharts | 검색 · 상세 · 비교 화면, 그래프 |
-| | 카카오맵 SDK 또는 네이버 지도 SDK (선택 예정) | 지도, 핀, 팝업 |
-| 테스트 | pytest, testcontainers(MariaDB), locust | 단위 · SQL 회귀 · API · 성능 테스트 |
+| | 네이버 지도 Web Dynamic Map (react-naver-maps) | 지도, 핀, 팝업 |
+| 테스트 | pytest, locust, GitHub Actions 서비스 컨테이너(MariaDB 11.4) | 단위 · SQL 회귀 · API · 성능 테스트 |
 | 배포 | Railway, Vercel, GitHub Actions | API · 배치 · DB, 프론트엔드, CI |
 
 ---
@@ -169,16 +170,15 @@ flowchart LR
 |---|---|---|---|
 | 국민연금 가입 사업장 내역 | 국민연금공단 (공공데이터포털) | 월 | 인원 추이, 입퇴사율, 추정 연봉 |
 | OpenDART 고유번호 · 기업개황 · 주요계정 | 금융감독원 | 수시 | 회사 매칭, 재무 지표 |
-| 연립다세대 · 오피스텔 전월세 실거래가 | 국토교통부 (공공데이터포털) | 월 | 역세권 전월세 시세 |
+| [서울시 부동산 전월세가 정보](https://data.seoul.go.kr/dataList/OA-21276/S/1/datasetView.do) | 서울특별시 (서울 열린데이터광장) | 일 | 역세권 전월세 시세 |
 | 전국도시철도역사정보 표준데이터 | 국가철도공단 | 연 | 역 위치 |
 | 도로명주소 검색 · 좌표제공 API | 행정안전부 주소정보누리집 | 수시 | 주소 → 좌표 (저장 허용) |
 | 전월세전환율 | 한국부동산원 R-ONE | 월 | 보증금 → 월세 환산 |
-| 법정동 코드 | 행정표준코드관리시스템 | 수시 | 시군구 코드 |
 | 채용공고 검색 API | 사람인 | 일 1회 배치 | 채용 현황, 채용 신호 |
 
 **이용 조건 메모**
 
-- **좌표 저장:** 카카오 · 네이버 · 브이월드 지오코딩 결과는 실시간 사용만 허용되므로, **저장하는 좌표는 주소정보누리집에서만** 가져옵니다. 카카오 · 네이버 지도는 화면 표시에만 씁니다.
+- **좌표 저장:** 카카오 · 네이버 · 브이월드 지오코딩 결과는 실시간 사용만 허용되므로, **저장하는 좌표는 주소정보누리집에서만** 가져옵니다. 네이버 지도는 화면 표시에만 씁니다(Dynamic Map, 선택적으로 검색창용 Geocoding).
 - **사람인 API:** 1일 500회 한도, 출처 표시 필수, 재판매 · 유료화 금지 조건을 따릅니다. 공고는 요약과 원문 링크만 표시하고 본문은 저장하지 않습니다.
 - 모든 출처는 서비스 화면 하단과 `/meta/methodology`에 표시합니다.
 
@@ -277,7 +277,7 @@ worth-joining/
 ├─ sql/                  # mart 갱신 SQL
 ├─ web/                  # Next.js
 ├─ tests/                # pytest (unit, sql, api)
-├─ docker-compose.yml    # 로컬 MariaDB
+├─ docker-compose.yml    # 선택: Docker로 로컬 DB를 띄울 때
 └─ .env.example
 ```
 
@@ -287,7 +287,7 @@ worth-joining/
 
 > 구현 전 단계라 아래는 예정된 실행 방법입니다.
 
-**필요한 것:** Python 3.12, Node.js 20+, Docker
+**필요한 것:** Python 3.12, Node.js 20+, MariaDB 11.4 (Docker는 선택)
 
 **1. 환경 변수**
 
@@ -297,22 +297,33 @@ cp .env.example .env
 
 ```dotenv
 DATABASE_URL=mysql+asyncmy://user:password@localhost:3306/worth_joining
-DATA_GO_KR_SERVICE_KEY=   # 공공데이터포털 (국토부 실거래가 등)
+TEST_DATABASE_URL=mysql+asyncmy://user:password@localhost:3306/worth_joining_test
+DB_SSL_VERIFY=false       # 로컬 11.4 자동 인증서 검증 여부
+DATA_GO_KR_SERVICE_KEY=   # 공공데이터포털
+SEOUL_OPENDATA_KEY=       # 서울 열린데이터광장 (전월세가 정보)
 OPENDART_API_KEY=         # OpenDART
 JUSO_SEARCH_KEY=          # 주소정보누리집 검색 API
 JUSO_COORD_KEY=           # 주소정보누리집 좌표제공 API
 SARAMIN_ACCESS_KEY=       # 사람인 API (승인 후)
-NEXT_PUBLIC_MAP_KEY=      # 카카오맵 또는 네이버 지도 (도메인 등록 필요)
+NEXT_PUBLIC_NAVER_MAP_CLIENT_ID=   # 네이버 클라우드 플랫폼 Maps Client ID (도메인 등록 필요)
 ```
 
 API 키는 저장소에 올리지 않습니다. `.env`는 `.gitignore`에 포함합니다.
 
 **2. DB와 스키마**
 
+설치된 MariaDB 11.4에 DB를 만든 뒤 스키마를 적용합니다.
+
+```sql
+CREATE DATABASE worth_joining      CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE worth_joining_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
 ```bash
-docker compose up -d mariadb
 alembic upgrade head
 ```
+
+Docker를 쓴다면 `docker compose up -d mariadb`로 대신할 수 있습니다.
 
 **3. 데이터 적재**
 
@@ -338,21 +349,40 @@ pytest
 
 ## 로드맵
 
-- [ ] **1~5주: 회사 체력 (MVP)**
+> 기간: 2026-10-02 ~ 2026-10-21 (4인 팀)
+
+- [x] **10/02~10/07: 기획 · 설계** (요구사항, SPEC, 화면 시안)
+- [ ] **10/08~10/16: 회사 체력 MVP 개발 · 배포**
   - [ ] 데이터 프로파일링, ERD 확정
   - [ ] 국민연금 적재 파이프라인, 과거 월 백필
   - [ ] mart SQL (월별 지표, 요약 · 백분위)
   - [ ] FastAPI 엔드포인트, 테스트
   - [ ] DART 연동 · 매칭, 배포
   - [ ] 채용공고 바로가기 링크
-- [ ] **확장: 역세권 전월세 (+3주)**
+- [ ] **10/19~10/21: 회사 비교 · 지도, 검증 · 문서화, `v1.0.0`**
+- [ ] **이후 과제: 역세권 전월세**
   - [ ] 서울 전월세 24개월 수집, 월 단위 파티션
   - [ ] 주소정보누리집 좌표 변환, 역별 시세 집계
   - [ ] 회사 ↔ 역 연결, 주거비 부담률 API
-- [ ] **확장: 채용 정보 연계 (+2주, 사람인 API 승인 후)**
+- [ ] **이후 과제: 채용 정보 연계 (사람인 API 승인 후)**
   - [ ] 일 1회 공고 수집, 회사 매칭
   - [ ] 채용 신호, 제시 연봉 비교
-- [ ] 지도 SDK 선택 (카카오맵 / 네이버 지도)
+
+
+---
+
+## 팀
+
+4인 팀 프로젝트입니다.
+
+| 트랙 | 담당 | 역할 |
+|---|---|---|
+| T1 데이터 파이프라인 | [이름](https://github.com/) | 수집 · 정제 · 매칭 · 지오코딩 |
+| T2 DB · SQL | [이름](https://github.com/) | 스키마 · mart SQL · 공간 SQL · 성능 |
+| T3 백엔드 · 운영 | [이름](https://github.com/) | FastAPI · CI · 배포 · 채용 연계 |
+| T4 프론트엔드 | [이름](https://github.com/) | 화면 · 차트 · 지도 |
+
+협업 규칙(브랜치, PR, 키 관리)은 [SPEC.md 12장](./SPEC.md#12-팀-운영-4인)을 따릅니다.
 
 ---
 
@@ -362,7 +392,7 @@ pytest
 - **입퇴사 수치:** 국민연금 신규 · 상실 인원은 연속된 두 달을 비교해 산출한 값이라 실제 입퇴사와 다를 수 있습니다.
 - **공개 범위:** 법인은 가입자 3인 이상, 개인사업장은 10인 이상만 공개되어 소규모 사업장은 빠집니다.
 - **회사 매칭:** 상호 기반 매칭이라 동명 회사를 잘못 연결할 수 있으며, 매칭 방식과 신뢰도를 화면에 표시합니다.
-- **전월세 시세:** 신고된 실거래가 기준이라 현재 매물 호가와 다를 수 있습니다. 단독 · 다가구는 제외됩니다.
+- **전월세 시세:** 서울시가 공개하는 신고된 계약 기준이라 현재 매물 호가와 다를 수 있습니다. 실시간 매물 정보는 제공하지 않습니다. 단독 · 다가구는 제외됩니다.
 - **채용 신호:** 통계로 추정한 **가능성**이며 회사의 실제 채용 사유를 뜻하지 않습니다.
 - 이 서비스의 정보는 참고용이며, 투자 · 법률 · 고용 판단의 근거로 단독 사용해서는 안 됩니다.
 
