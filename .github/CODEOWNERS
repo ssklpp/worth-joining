@@ -1,0 +1,10 @@
+# 디렉터리별 담당자 (SPEC 12.3). 트랙 배정(TC-01)이 끝나면 각 줄을 담당자 계정으로 바꾼다.
+/pipeline/     @ssklpp
+/migrations/   @ssklpp
+/sql/          @ssklpp
+/tests/sql/    @ssklpp
+/app/          @ssklpp
+/.github/      @ssklpp
+/web/          @ssklpp
+/SPEC.md       @ssklpp
+/docs/         @ssklpp
