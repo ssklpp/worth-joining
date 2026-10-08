@@ -16,10 +16,10 @@
 | [TS-002](#ts-002-alembicini-한글-주석으로-unicodedecodeerror) | 2026-10-08 | DB · 마이그레이션 | `alembic.ini` 한글 주석으로 `UnicodeDecodeError` | 해결 | #6 |
 | [TS-003](#ts-003-uvicornexe-실행이-애플리케이션-제어-정책에-막힘) | 2026-10-08 | 로컬 환경 | `uvicorn.exe` 실행이 애플리케이션 제어 정책에 막힘 | 우회 | — |
 | [TS-004](#ts-004-테스트가-없을-때-pytest-종료-코드-5) | 2026-10-08 | 테스트 | 테스트가 없을 때 `pytest` 종료 코드 5 | 해결 | #6 |
-| [TS-005](#ts-005-github-actions-node-20-지원-종료-ubuntu-latest-변경-경고) | 2026-10-08 | CI | Node 20 지원 종료 · `ubuntu-latest` 변경 경고 | 해결 | #6 |
+| [TS-005](#ts-005-github-actions-node-20-지원-종료--ubuntu-latest-변경-경고) | 2026-10-08 | CI | Node 20 지원 종료 · `ubuntu-latest` 변경 경고 | 해결 | #6 |
 | [TS-006](#ts-006-git-설치-후에도-명령을-찾지-못함) | 2026-10-08 | 로컬 환경 | git 설치 후에도 `git`, `npx skills`가 git을 찾지 못함 | 해결 | — |
 | [TS-007](#ts-007-headless-edge-스크린샷이-저장되지-않음) | 2026-10-08 | 문서 · 도구 | headless Edge 스크린샷이 저장되지 않음 | 해결 | — |
-| [TS-008](#ts-008-claude-code가-pr-병합-보호-규칙-변경을-거부함) | 2026-10-08 | 협업 도구 | Claude Code가 PR 병합 · 보호 규칙 변경을 거부함 | 우회 | — |
+| [TS-008](#ts-008-claude-code가-pr-병합--보호-규칙-변경을-거부함) | 2026-10-08 | 협업 도구 | Claude Code가 PR 병합 · 보호 규칙 변경을 거부함 | 우회 | — |
 | [TS-009](#ts-009-git-lf--crlf-변환-경고) | 2026-10-08 | Git | `LF will be replaced by CRLF` 경고 | 보류 | — |
 
 ---
