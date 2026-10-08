@@ -1,0 +1,18 @@
+# 선택 사항: 로컬에 MariaDB 11.4를 설치하지 않았을 때만 쓴다(SPEC Phase 0).
+# docker compose up -d 후 .env의 계정을 wj / password로 맞춘다.
+services:
+  mariadb:
+    image: mariadb:11.4
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: worth_joining
+      MARIADB_USER: wj
+      MARIADB_PASSWORD: password
+    command: --local-infile=1 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports: ["3306:3306"]
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+volumes:
+  mariadb-data:
