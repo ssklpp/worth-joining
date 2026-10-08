@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 다닐만한가(Worth Joining)는 공공데이터(국민연금 사업장 내역, OpenDART, 서울시 전월세 실거래가, 사람인 채용공고)로 회사의 인원 추이 · 입퇴사율 · 추정 연봉을 보여주는 구직자용 웹 서비스다. 4인 팀, 기간은 2026-10-02 ~ 2026-10-21이고 MVP 배포 목표는 10/16이다.
 
-지금 저장소에는 **기획 문서만 있고 코드는 아직 없다.** `SPEC.md`가 구현 지시서이며 다른 문서와 충돌하면 SPEC을 따른다. 무엇이든 만들기 전에 먼저 읽는다.
+**Phase 0(저장소 구조, 설정, `/health`, Alembic 골격, CI)까지 끝났다.** 기능 코드와 마이그레이션 리비전은 아직 없다. `SPEC.md`가 구현 지시서이며 다른 문서와 충돌하면 SPEC을 따른다. 무엇이든 만들기 전에 먼저 읽는다.
 - `SPEC.md`: 기술 스택, 저장소 구조, DDL(5장), 계산 규칙(6장), 핵심 SQL(7장), API 계약(8장), 화면(9장), 단계별 진행과 완료 조건(10장), 팀 운영 규칙(12장)
 - `docs/01_project_overview.md`, `README.md`: 개요와 범위
 - `docs/02_requirements.md`: 요구사항 ID, 우선순위(P0~P3), Task ID(10장, 예: `T1-04`)
@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docs/04_database_design.md`: ERD, 테이블 관계, SPEC에 없는 DDL 제안, DB 설계 문제점(D1~D9)
 - `docs/05_api_spec.md`: API 구조 · 엔드포인트 · SPEC 밖 후보, 외부 API와 키(4장: 발급 · 보관 · `.env.example` · 한도 · 호출 원칙), API 문제점(A1~A7)
 - `docs/06_architecture.md`: 전체 구조, 데이터 흐름, 최종 기술 스택, 배포, 아키텍처 문제점(R1~R7)과 전체 우선순위표. 이 문서들의 "제안"은 SPEC에 반영되기 전까지 확정이 아니다
+- `docs/troubleshooting.md`: 겪은 에러 · 버그 · 환경 문제와 해결 방법(TS-NNN). 에러가 나면 먼저 여기서 찾는다
 
 **SPEC.md는 약 950줄(약 27k 토큰)이라 전체를 읽지 않는다.** 먼저 `Grep "^##+ " SPEC.md`로 장 위치를 확인하고, 필요한 장만 줄 범위(offset/limit)로 읽는다. 장별 대략의 시작 줄은 아래와 같다(문서가 수정되면 바뀔 수 있다).
 
@@ -29,9 +30,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 10 | 진행 단계 (Phase 0~11과 완료 조건) | 660 |
 | 11 · 12 | 하지 않는 것 · 팀 운영 | 848 · 860 |
 
-## 명령어 (예정. SPEC 3장 · 10장 참고)
+## 명령어 (SPEC 3장 · 10장 참고. pipeline · web은 예정)
+
+Windows에서 `.venv\Scripts\*.exe` 실행이 막히면 `python -m <도구>`로 실행한다(troubleshooting TS-003).
 
 ```bash
+python -m venv .venv && pip install -e ".[dev]"   # 최초 1회
 alembic upgrade head                         # 스키마 적용 (DB: worth_joining, worth_joining_test)
 python -m pipeline.nps.load --ym 202608      # 국민연금 한 달치 적재 (멱등)
 python -m pipeline.refresh_mart              # sql/q1 → q2를 한 트랜잭션으로 실행
@@ -42,7 +46,7 @@ pytest                                       # 전체 테스트
 pytest tests/sql/test_x.py::test_name        # 단일 테스트
 ```
 
-필요한 것: Python 3.12, Node 20+, MariaDB 11.4(로컬 설치. Docker는 선택). `.env.example`을 `.env`로 복사해 쓴다. 로컬에서는 `DB_SSL_VERIFY=false`로 둔다. 11.4는 서버 인증서를 자동 생성하고 클라이언트가 기본으로 검증하기 때문이다. 적재기가 `LOAD DATA LOCAL INFILE`을 쓰므로 서버와 클라이언트 연결 양쪽에서 `local_infile`을 켜야 한다. API 키가 비어 있는 수집기는 실패하지 않고 경고 로그를 남긴 뒤 건너뛴다.
+필요한 것: Python 3.12, Node 20+, MariaDB 11.4(로컬 설치. Docker는 선택). `.env.example`을 `.env`로 복사해 쓴다. 로컬에서는 `DB_SSL_VERIFY=false`로 둔다. 이때 `app/core/db.py`는 TLS 없이 접속한다(Windows asyncmy 문제, TS-001). 새 DB 접속 코드도 `connect_args()`를 재사용한다. 적재기가 `LOAD DATA LOCAL INFILE`을 쓰므로 서버와 클라이언트 연결 양쪽에서 `local_infile`을 켜야 한다. API 키가 비어 있는 수집기는 실패하지 않고 경고 로그를 남긴 뒤 건너뛴다.
 
 ## 아키텍처
 
@@ -99,4 +103,5 @@ pytest tests/sql/test_x.py::test_name        # 단일 테스트
 - 트랙별 담당 영역: T1 `pipeline/`, T2 `migrations/` · `sql/` · `tests/sql/`, T3 `app/` · `tests/api/` · `.github/`, T4 `web/`. 마이그레이션은 T2가 관리하므로 병합 전에 `alembic heads`가 정확히 1개인지 확인한다. API 계약 변경은 별도 PR로 하고 T4의 리뷰를 받는다.
 - 테스트는 실제 API 키 없이 `tests/fixtures/`(국민연금 축소 CSV, DART · 전월세 · 사람인 응답 샘플)로 돌아가야 한다. `tests/conftest.py`는 세션마다 테스트 DB를 비우고 `alembic upgrade head`를 한 번 실행하며, 테스트마다 트랜잭션을 롤백한다.
 - 결정 사항은 `docs/decisions/NNN-제목.md`에 기록한다.
+- 에러 · 버그 · 환경 문제를 해결하면 `docs/troubleshooting.md`에 TS 항목(증상 · 원인 · 해결 · 재발 방지)과 목록 한 줄을 추가하고, 해결 PR 본문에 TS 번호를 적는다. 문서 끝의 양식을 따른다.
 - ponytail 스킬(코드 최소화)을 쓰더라도 SPEC이 정한 구조(`repositories/`, `services/`, 3계층 DB, Alembic)와 위 테스트 규칙(`tests/fixtures/`, SPEC의 회귀 테스트 목록)은 줄이지 않는다. 이것들은 요청된 사항이다.

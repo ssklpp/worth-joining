@@ -56,7 +56,7 @@ worth-joining/
 ├─ migrations/
 ├─ web/
 ├─ tests/  unit/  sql/  api/  fixtures/
-├─ docs/              # 01_project_overview, 02_requirements, 03_ui_design, 04_database_design, 05_api_spec, 06_architecture, profiling, matching, explain, performance, validation, runbook, decisions/
+├─ docs/              # 01_project_overview, 02_requirements, 03_ui_design, 04_database_design, 05_api_spec, 06_architecture, profiling, matching, explain, performance, validation, runbook, troubleshooting, decisions/
 ├─ .github/workflows/ci.yml
 ├─ .github/CODEOWNERS
 ├─ .github/pull_request_template.md
