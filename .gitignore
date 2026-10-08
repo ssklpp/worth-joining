@@ -1,0 +1,22 @@
+# 비밀 정보
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node / Next.js
+node_modules/
+.next/
+
+# 원본 데이터 (SPEC Phase 1: data/raw/는 커밋하지 않는다)
+data/
+
+# Claude Code 개인 설정
+.claude/settings.local.json
