@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  test:
+  test:  # main ruleset의 필수 검사 이름. 바꾸면 ruleset도 함께 바꾼다(docs/decisions/001)
     runs-on: ubuntu-24.04  # latest가 10/19부터 Ubuntu 26으로 바뀌어 기간 중 고정
     services:
       mariadb:
