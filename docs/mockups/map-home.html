@@ -1,0 +1,958 @@
+<title>다닐만한가 회사 지도</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* 레이아웃: 지도가 메인. 왼쪽 패널(목록 → 회사 상세 → 비교)과 오른쪽 지도. 회사 상세는 건강검진 결과지 형식을 그대로 패널에 담는다 */
+:root {
+  --paper: #F6F8FA;      /* 바탕 */
+  --surface: #FFFFFF;    /* 패널, 지도 면 */
+  --ink: #1E2A36;        /* 본문 */
+  --muted: #5A6A79;      /* 보조 글자 */
+  --rule: #DCE3EA;       /* 구분선, 도로 */
+  --band: #D8E6E1;       /* 업종 중간 50% */
+  --pen: #1D5CB8;        /* 이 회사 값, 지도 태그 */
+  --pen-soft: #C9DAF3;   /* 이 회사 값의 범위 */
+  --water: #E1ECF5;      /* 강 */
+  --caution: #8A5F0F;    /* 참고 글자 */
+  --caution-bg: #FBF3E2; /* 참고 바탕 */
+  --shadow: rgba(30, 42, 54, .14);
+  --font: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  --fs-xs: 12px; --fs-s: 13px; --fs-m: 15px; --fs-l: 17px; --fs-xl: 21px; --fs-xxl: 26px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111920; --surface: #18222B; --ink: #E3EAF0; --muted: #93A3B2; --rule: #2A3743;
+    --band: #2B4A42; --pen: #7FB0FF; --pen-soft: #27426B; --water: #1A2A38;
+    --caution: #E2B65E; --caution-bg: #2C2516; --shadow: rgba(0, 0, 0, .45); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111920; --surface: #18222B; --ink: #E3EAF0; --muted: #93A3B2; --rule: #2A3743;
+  --band: #2B4A42; --pen: #7FB0FF; --pen-soft: #27426B; --water: #1A2A38;
+  --caution: #E2B65E; --caution-bg: #2C2516; --shadow: rgba(0, 0, 0, .45); color-scheme: dark;
+}
+
+html, body { height: 100%; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font); font-size: var(--fs-m); line-height: 1.6; }
+h1, h2, h3 { margin: 0; line-height: 1.3; text-wrap: balance; }
+h1 { font-size: var(--fs-xxl); font-weight: 700; }
+h2 { font-size: var(--fs-l); font-weight: 600; }
+h3 { font-size: var(--fs-m); font-weight: 600; }
+p { margin: 0; }
+a { color: var(--pen); }
+button, select, input { font: inherit; }
+:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
+.muted { color: var(--muted); }
+.small { font-size: var(--fs-s); }
+.num { font-variant-numeric: tabular-nums; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- 앱 틀 ---------- */
+.app { height: 100%; display: grid; grid-template-rows: auto auto minmax(0, 1fr); padding-inline: 16px; padding-block: 0 16px; box-sizing: border-box; }
+.mockbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding-block: 8px; font-size: var(--fs-s); color: var(--muted); border-bottom: 1px dashed var(--rule); }
+.mockbar label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; padding-block: 12px; }
+.brand { font-size: var(--fs-l); font-weight: 700; color: var(--ink); text-decoration: none; }
+.search { flex: 1 1 220px; max-width: 320px; }
+.search input { width: 100%; box-sizing: border-box; font-size: var(--fs-s); padding: 7px 10px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); color: var(--ink); }
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: var(--fs-s); }
+.filters label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.filters select { font-size: var(--fs-s); color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 5px 8px; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.seg button { font-size: var(--fs-s); padding: 4px 10px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.check input { accent-color: var(--pen); }
+
+.body { --panel-w: 360px; display: grid; grid-template-columns: var(--panel-w) minmax(0, 1fr); gap: 16px; min-height: 0; }
+.app[data-mode="detail"] .body, .app[data-mode="compare"] .body { --panel-w: 460px; }
+.panel { min-height: 0; overflow-y: auto; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; }
+.pane { padding: 18px 20px 24px; display: flex; flex-direction: column; gap: 22px; }
+
+/* ---------- 지도 ---------- */
+.map { position: relative; min-height: 0; overflow: hidden; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; touch-action: none; cursor: grab; }
+.map.dragging { cursor: grabbing; }
+.map svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.w-bg { fill: var(--surface); }
+.w-water { fill: var(--water); }
+.w-road { stroke: var(--rule); stroke-width: 9; stroke-linecap: round; fill: none; }
+.w-road.minor { stroke-width: 4; }
+.ov-km { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.ov-ring { fill: var(--rule); fill-opacity: .6; }
+.layer { position: absolute; inset: 0; pointer-events: none; }
+.stn { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 4px; font-size: var(--fs-xs); color: var(--muted); white-space: nowrap; }
+.stn i { width: 9px; height: 9px; border: 2px solid var(--ink); background: var(--surface); box-sizing: border-box; flex: none; }
+.stn span { text-shadow: 0 0 3px var(--surface), 0 0 3px var(--surface); }
+.mk { position: absolute; left: 0; top: 0; pointer-events: auto; z-index: 1; }
+.mk button { position: relative; display: inline-flex; align-items: baseline; gap: 4px; font-size: var(--fs-xs); font-weight: 600; font-variant-numeric: tabular-nums; padding: 2px 8px; border-radius: 12px; background: var(--surface); color: var(--pen); border: 1.5px solid var(--pen); white-space: nowrap; cursor: pointer; box-shadow: 0 1px 3px var(--shadow); }
+.mk button::after { content: ""; position: absolute; left: 50%; bottom: -5px; width: 7px; height: 7px; background: inherit; border-right: inherit; border-bottom: inherit; transform: translateX(-50%) rotate(45deg); }
+.mk.approx button { border-style: dashed; }
+.mk.small button { color: var(--muted); border-color: var(--muted); }
+.mk-name { display: none; color: var(--ink); font-weight: 500; }
+.mk.on, .mk:hover, .mk:focus-within, .mk.sel { z-index: 3; }
+.mk.on .mk-name, .mk:hover .mk-name, .mk:focus-within .mk-name, .mk.sel .mk-name { display: inline; }
+.mk.sel button { background: var(--pen); color: var(--surface); border-style: solid; border-color: var(--pen); }
+.mk.sel .mk-name { color: var(--surface); }
+.map-ctrl { position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px; }
+.map-ctrl button { min-width: 34px; height: 34px; padding: 0 8px; font-size: var(--fs-s); font-weight: 600; color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; cursor: pointer; box-shadow: 0 1px 3px var(--shadow); }
+.map-legend { position: absolute; right: 12px; bottom: 12px; display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; font-size: var(--fs-xs); color: var(--muted); background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; }
+.map-legend span { display: flex; align-items: center; gap: 6px; }
+.lg-tag { width: 22px; height: 12px; border: 1.5px solid var(--pen); border-radius: 6px; box-sizing: border-box; }
+.lg-tag.dash { border-style: dashed; }
+.lg-tag.dim { border-color: var(--muted); }
+.lg-stn { width: 9px; height: 9px; border: 2px solid var(--ink); box-sizing: border-box; margin-inline: 6px; }
+.tray { position: absolute; left: 12px; bottom: 12px; max-width: calc(100% - 200px); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; box-shadow: 0 1px 3px var(--shadow); font-size: var(--fs-s); }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 10px; border: 1px solid var(--rule); border-radius: 12px; }
+.chip button { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 4px; font-size: var(--fs-s); }
+.btn { display: inline-flex; align-items: center; font-size: var(--fs-s); font-weight: 600; padding: 6px 12px; border-radius: 4px; cursor: pointer; text-decoration: none; border: 1px solid var(--ink); }
+.btn-solid { background: var(--ink); color: var(--paper); }
+.btn-solid:disabled { opacity: .45; cursor: default; }
+.btn-line { background: transparent; color: var(--ink); }
+.btn-line[aria-pressed="true"] { border-color: var(--pen); color: var(--pen); }
+.btn-back { align-self: flex-start; border: 0; background: none; padding: 0; color: var(--muted); font-size: var(--fs-s); cursor: pointer; text-decoration: underline; }
+.btn-quiet { border: 0; background: none; padding: 0; color: var(--pen); font-size: var(--fs-s); cursor: pointer; text-decoration: underline; }
+
+/* ---------- 목록 ---------- */
+.list-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; }
+.list-head select { font-size: var(--fs-s); color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 4px 6px; }
+.items { list-style: none; margin: 0; padding: 0; }
+.item { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 4px; padding: 12px 4px; background: none; border: 0; border-top: 1px solid var(--rule); color: var(--ink); cursor: pointer; }
+.items li:last-child .item { border-bottom: 1px solid var(--rule); }
+.item:hover, .item.on { background: var(--paper); }
+.it-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.it-name { font-weight: 600; }
+.it-jobs { font-size: var(--fs-xs); color: var(--pen); font-weight: 600; white-space: nowrap; }
+.it-sub { font-size: var(--fs-xs); color: var(--muted); }
+.it-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: var(--fs-s); font-variant-numeric: tabular-nums; }
+.it-metrics span { display: flex; flex-direction: column; }
+.it-metrics i { font-style: normal; font-size: var(--fs-xs); color: var(--muted); }
+.empty { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+
+/* ---------- 상세 (결과지) ---------- */
+.block { display: flex; flex-direction: column; gap: 12px; }
+.head { display: flex; flex-direction: column; gap: 2px; }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; margin: 0; }
+.facts dt { font-size: var(--fs-xs); color: var(--muted); }
+.facts dd { margin: 0; font-weight: 500; font-size: var(--fs-s); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sheet { border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px 4px; display: flex; flex-direction: column; gap: 8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--fs-xs); color: var(--muted); align-items: center; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.sw-band { width: 18px; height: 10px; background: var(--band); border-radius: 2px; }
+.sw-median { width: 2px; height: 12px; background: var(--muted); }
+.sw-pen { width: 10px; height: 10px; border-radius: 50%; background: var(--pen); }
+.sw-tail { width: 16px; border-top: 2px dashed var(--pen); }
+.sw-box { width: 18px; height: 10px; border: 2px solid var(--ink); border-radius: 2px; box-sizing: border-box; }
+.sw-soft { width: 18px; height: 7px; background: var(--pen-soft); border-radius: 4px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name verdict" "value value" "pos pos"; gap: 2px 12px; padding-block: 12px; border-top: 1px solid var(--rule); }
+.r-name { grid-area: name; font-weight: 600; }
+.r-verdict { grid-area: verdict; text-align: right; display: flex; flex-direction: column; font-size: var(--fs-s); }
+.r-verdict span { color: var(--muted); font-size: var(--fs-xs); }
+.r-value { grid-area: value; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.r-value strong { font-size: var(--fs-xl); font-weight: 600; font-variant-numeric: tabular-nums; }
+.r-value span { font-size: var(--fs-xs); color: var(--muted); }
+.r-pos { grid-area: pos; min-width: 0; margin-top: 4px; }
+.note { font-size: var(--fs-s); color: var(--caution); background: var(--caution-bg); padding: 6px 10px; border-radius: 4px; }
+.row .note { grid-column: 1 / -1; margin-top: 6px; }
+.track { position: relative; height: 26px; }
+.track .base { position: absolute; left: 0; right: 0; top: 12px; height: 2px; background: var(--rule); }
+.track .band { position: absolute; top: 5px; height: 16px; background: var(--band); border-radius: 3px; }
+.track .soft { position: absolute; top: 9px; height: 8px; background: var(--pen-soft); border-radius: 4px; }
+.track .box { position: absolute; top: 2px; height: 22px; border: 2px solid var(--ink); border-radius: 3px; box-sizing: border-box; }
+.track .median { position: absolute; top: 2px; width: 2px; height: 22px; margin-left: -1px; background: var(--muted); }
+.track .tail { position: absolute; top: 12px; border-top: 2px dashed var(--pen); }
+.track .marker { position: absolute; top: 5px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--pen); border: 3px solid var(--surface); box-sizing: border-box; }
+.axis { display: flex; justify-content: space-between; font-size: var(--fs-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.jobs { list-style: none; margin: 0; padding: 0; }
+.job { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding-block: 10px; border-top: 1px solid var(--rule); font-size: var(--fs-s); }
+.job:last-child { border-bottom: 1px solid var(--rule); }
+.job-title { font-weight: 600; font-size: var(--fs-m); }
+.job-meta { color: var(--muted); }
+.job-dl { text-align: right; font-variant-numeric: tabular-nums; }
+.job-pay { font-variant-numeric: tabular-nums; }
+.job a { text-align: right; }
+.pay-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 12px; margin: 0; }
+.pay-facts dt { font-size: var(--fs-xs); color: var(--muted); }
+.pay-facts dd { margin: 0; font-weight: 600; font-size: var(--fs-s); font-variant-numeric: tabular-nums; }
+.st { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name rent" "burden burden" "note note"; gap: 4px 12px; padding-block: 12px; border-top: 1px solid var(--rule); }
+.st:last-child { border-bottom: 1px solid var(--rule); }
+.st-name { grid-area: name; display: flex; flex-direction: column; }
+.st-name span, .st-rent span { font-size: var(--fs-xs); color: var(--muted); }
+.st-rent { grid-area: rent; text-align: right; display: flex; flex-direction: column; font-variant-numeric: tabular-nums; }
+.st-rent strong { font-weight: 600; }
+.st-burden { grid-area: burden; min-width: 0; font-size: var(--fs-s); font-variant-numeric: tabular-nums; }
+.st .note { grid-area: note; }
+
+.chart { overflow-x: auto; }
+.chart svg { display: block; width: 100%; min-width: 380px; height: auto; }
+svg text { font-family: var(--font); }
+.c-grid { stroke: var(--rule); stroke-width: 1; fill: none; }
+.c-ax { fill: var(--muted); font-size: 11px; }
+.c-line { stroke: var(--pen); stroke-width: 2.5; fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.c-dot { fill: var(--pen); }
+.c-gap { fill: var(--caution-bg); }
+.c-gaplabel { fill: var(--caution); font-size: 11px; }
+.c-end { fill: var(--ink); font-size: 13px; font-weight: 600; }
+.l1 { stroke: var(--pen); stroke-width: 2.5; fill: none; }
+.l2 { stroke: var(--ink); stroke-width: 2.5; fill: none; stroke-dasharray: 8 5; }
+.l3 { stroke: var(--muted); stroke-width: 2.5; fill: none; stroke-dasharray: 2 4; stroke-linecap: round; }
+.c-endlabel { font-size: 12px; font-weight: 600; fill: var(--ink); }
+.cmp-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: var(--fs-s); }
+.cmp-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cmp-legend svg { width: 28px; height: 8px; }
+
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: var(--fs-s); font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-weight: 500; color: var(--muted); }
+td.missing { text-align: left; color: var(--caution); }
+.credit, .sources { font-size: var(--fs-xs); color: var(--muted); }
+.sources ul { margin: 4px 0 0; padding-left: 1.2em; }
+
+/* ---------- 좁은 화면: 지도 위, 패널 아래 ---------- */
+@media (max-width: 760px) {
+  html, body { height: auto; }
+  .app { height: auto; display: flex; flex-direction: column; }
+  .body { display: flex; flex-direction: column; }
+  .map { order: -1; height: 56vh; min-height: 320px; }
+  .panel { overflow: visible; }
+  .tray { max-width: calc(100% - 24px); bottom: auto; top: 12px; right: 58px; left: 12px; }
+  .map-legend { display: none; }
+}
+</style>
+
+<div class="app" id="app" data-mode="list">
+  <div class="mockbar">
+    <p>디자인 시안입니다. 회사, 역, 공고, 숫자는 모두 가상입니다.</p>
+    <label><input type="checkbox" id="noExt"> 사람인과 전월세 연동 전 화면으로 보기</label>
+  </div>
+
+  <header class="top">
+    <a class="brand" href="#">다닐만한가</a>
+    <form class="search" id="searchForm" role="search">
+      <label class="sr-only" for="q">회사 이름으로 찾기</label>
+      <input id="q" type="search" placeholder="회사 이름이나 사업자번호 앞 6자리" autocomplete="off">
+    </form>
+    <div class="filters">
+      <label>업종 <select id="indSel"><option>응용 소프트웨어 개발 및 공급업</option></select></label>
+      <label>지역 <select id="regSel"><option value="gangnam">서울 강남구</option><option value="seoul">서울 전체</option></select></label>
+      <div class="seg" role="group" aria-label="지도에 표시할 값" id="metricSeg">
+        <button type="button" data-metric="growth" aria-pressed="true">12개월 증감</button>
+        <button type="button" data-metric="quit" aria-pressed="false">퇴사율</button>
+        <button type="button" data-metric="salary" aria-pressed="false">추정 연봉</button>
+        <button type="button" data-metric="jobs" aria-pressed="false" class="ext">공고 수</button>
+      </div>
+      <label class="check ext"><input type="checkbox" id="hiringOnly"> 채용 중인 회사만</label>
+    </div>
+  </header>
+
+  <div class="body">
+    <aside class="panel" id="panel" aria-label="회사 목록과 상세"></aside>
+    <div class="map" id="map" aria-label="회사 지도. 끌어서 옮기고 버튼이나 휠로 확대합니다">
+      <svg id="mapSvg" preserveAspectRatio="none" aria-hidden="true">
+        <rect class="w-bg" x="-3000" y="-3000" width="7000" height="7000"/>
+        <path class="w-water" d="M-400,610 C200,560 400,650 620,605 S900,560 1400,595 L1400,1100 L-400,1100 Z"/>
+        <path class="w-road minor" d="M110,-200 L140,620"/>
+        <path class="w-road minor" d="M630,-200 L605,610"/>
+        <path class="w-road minor" d="M890,-200 L865,600"/>
+        <path class="w-road minor" d="M-200,95 L1200,115"/>
+        <path class="w-road minor" d="M-200,540 L1200,520"/>
+        <path class="w-road" d="M-200,335 L1200,300"/>
+        <path class="w-road" d="M-200,185 L1200,215"/>
+        <path class="w-road" d="M470,-200 L505,610"/>
+        <path class="w-road" d="M200,-200 L262,620"/>
+        <path class="w-road" d="M765,-200 L722,610"/>
+        <path class="w-road" d="M-200,460 L1200,445"/>
+        <g id="overlay"></g>
+      </svg>
+      <div class="layer" id="stationLayer"></div>
+      <div class="layer" id="markerLayer"></div>
+      <div class="map-ctrl">
+        <button type="button" id="zoomIn" aria-label="확대">+</button>
+        <button type="button" id="zoomOut" aria-label="축소">−</button>
+        <button type="button" id="fitAll">전체</button>
+      </div>
+      <div class="map-legend" aria-hidden="true">
+        <span><i class="lg-tag"></i>회사 (건물 위치)</span>
+        <span><i class="lg-tag dash"></i>대략 위치 (동 단위)</span>
+        <span><i class="lg-tag dim"></i>가입자 10명 미만</span>
+        <span><i class="lg-stn"></i>지하철역</span>
+      </div>
+      <div class="tray" id="tray" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var NS = 'http://www.w3.org/2000/svg';
+  var MONTHS = ['2025.08','2025.09','2025.10','2025.11','2025.12','2026.01','2026.02','2026.03','2026.04','2026.05','2026.06','2026.07','2026.08'];
+  var TODAY = new Date(2026, 9, 8);
+  var UNIT_M = 10; // 지도 1단위 = 10m
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ================= 가상 데이터 =================
+  var stations = [
+    { id: 's1', name: '한빛역', lines: '2호선', x: 520, y: 330, n: 184, p25: 78, med: 92, p75: 108, jeonse: 21000 },
+    { id: 's2', name: '새솔역', lines: '2호선, 9호선', x: 400, y: 350, n: 236, p25: 72, med: 85, p75: 99, jeonse: 19500 },
+    { id: 's3', name: '누리역', lines: '수인분당선', x: 540, y: 470, n: 16, p25: 65, med: 74, p75: 88, jeonse: 16800 },
+    { id: 's4', name: '가온역', lines: '9호선', x: 250, y: 300, n: 120, p25: 70, med: 82, p75: 95, jeonse: 18800 },
+    { id: 's5', name: '다솜역', lines: '2호선', x: 700, y: 300, n: 210, p25: 80, med: 95, p75: 112, jeonse: 22500 },
+    { id: 's6', name: '마루역', lines: '3호선', x: 330, y: 160, n: 150, p25: 76, med: 88, p75: 103, jeonse: 20000 },
+    { id: 's7', name: '아라역', lines: '7호선', x: 800, y: 180, n: 90, p25: 68, med: 79, p75: 92, jeonse: 17500 }
+  ];
+  // growth가 null이면 12개월 이력 없음(short_history)
+  var companies = [
+    { id: 1, name: '예시소프트', x: 490, y: 390, members: 142, growth: 0.183, quit: 0.091, salary: 4120, jobs: 3, wp: 3, dart: true },
+    { id: 2, name: '예시데이터', x: 300, y: 250, members: 86, growth: 0.049, quit: 0.152, salary: 3880, jobs: 1 },
+    { id: 3, name: '예시클라우드', x: 640, y: 255, members: 412, growth: -0.061, quit: 0.248, salary: 5210, jobs: 5, wp: 5, dart: true },
+    { id: 4, name: '예시코드랩', x: 430, y: 505, members: 23, growth: 0.278, quit: 0.310, salary: 3420, jobs: 2, approx: true },
+    { id: 5, name: '예시시스템', x: 175, y: 420, members: 57, growth: -0.123, quit: 0.284, salary: 3610, jobs: 4 },
+    { id: 6, name: '예시네트웍스', x: 770, y: 395, members: 198, growth: 0.015, quit: 0.117, salary: 4630, jobs: 0, wp: 2, dart: true },
+    { id: 7, name: '예시테크', x: 560, y: 135, members: 34, growth: 0.097, quit: 0.195, salary: 3950, jobs: 1, approx: true },
+    { id: 8, name: '예시정보', x: 870, y: 120, members: 265, growth: 0.031, quit: 0.082, salary: 5480, jobs: 2, wp: 4, dart: true },
+    { id: 9, name: '예시웹', x: 115, y: 240, members: 12, growth: -0.2, quit: 0.417, salary: 3150, jobs: 3 },
+    { id: 10, name: '예시AI', x: 625, y: 560, members: 71, growth: 0.365, quit: 0.14, salary: 4890, jobs: 6 },
+    { id: 11, name: '예시랩스', x: 355, y: 425, members: 8, growth: 0.143, quit: 0.25, salary: 3300, jobs: 1 },
+    { id: 12, name: '예시모빌리티', x: 715, y: 500, members: 96, growth: null, quit: 0.16, salary: 4210, jobs: 2 },
+    { id: 13, name: '예시헬스케어', x: 240, y: 560, members: 133, growth: 0.072, quit: 0.121, salary: 4380, jobs: 0, dart: true },
+    { id: 14, name: '예시커머스', x: 885, y: 300, members: 308, growth: -0.034, quit: 0.229, salary: 4470, jobs: 3, wp: 3, dart: true },
+    { id: 15, name: '예시게임즈', x: 420, y: 220, members: 176, growth: 0.121, quit: 0.176, salary: 4950, jobs: 4, wp: 2, dart: true },
+    { id: 16, name: '예시보안', x: 820, y: 560, members: 45, growth: 0.022, quit: 0.133, salary: 4060, jobs: 0 },
+    { id: 17, name: '예시에듀', x: 150, y: 115, members: 64, growth: -0.058, quit: 0.301, salary: 3290, jobs: 1, personal: true },
+    { id: 18, name: '예시핀테크', x: 600, y: 405, members: 121, growth: 0.214, quit: 0.108, salary: 5630, jobs: 2, dart: true }
+  ];
+  var byId = {};
+  companies.forEach(function (c) { byId[c.id] = c; });
+
+  // 업종 분포: [최소, p25, p50, p75, 최대]
+  var Q = { growth: [-0.3, -0.04, 0.03, 0.11, 0.4], quit: [0, 0.12, 0.21, 0.33, 0.6], salary: [2000, 3350, 3900, 4700, 8000] };
+  var INDUSTRY_N = 1204;
+
+  var JOB_TITLES = ['백엔드 개발자', '프론트엔드 개발자', '데이터 엔지니어', 'iOS 개발자', 'QA 엔지니어', '프로덕트 디자이너', 'DevOps 엔지니어', '서비스 기획자'];
+  var LEVELS = ['신입', '경력 3년 이상', '경력 5년 이상', '경력 무관'];
+  var DUE = [4, 7, 12, 18, 23, 30, null];
+  var PAYS = [[3600, 4000], [4000, 5500], null, [4500, 6500], [3200, 3800], null];
+
+  function jobsFor(c) {
+    if (c.id === 1) return [
+      { title: '백엔드 개발자 (Python)', level: '경력 3년 이상', due: 7, pay: [4000, 5500] },
+      { title: '프론트엔드 개발자', level: '신입', due: 23, pay: [3600, 4000] },
+      { title: '데이터 엔지니어', level: '경력 5년 이상', due: null, pay: null }
+    ];
+    var out = [];
+    for (var k = 0; k < c.jobs; k++) {
+      out.push({ title: JOB_TITLES[(c.id * 3 + k) % JOB_TITLES.length], level: LEVELS[(c.id + k) % LEVELS.length],
+        due: DUE[(c.id + k * 2) % DUE.length], pay: PAYS[(c.id + k) % PAYS.length] });
+    }
+    return out;
+  }
+  function soonestDue(c) {
+    var d = jobsFor(c).map(function (j) { return j.due; }).filter(function (v) { return v != null; });
+    return d.length ? Math.min.apply(null, d) : Infinity;
+  }
+  function trend(c) {
+    var t = [];
+    var g = c.growth == null ? 0.09 : c.growth;
+    var m0 = c.members / (1 + g);
+    for (var i = 0; i < 13; i++) {
+      t.push(i === 12 ? c.members : Math.round(m0 + (c.members - m0) * i / 12 + Math.sin(i * 1.7 + c.id) * m0 * 0.015));
+    }
+    if (c.id === 1) { t = [120, 121, 124, 123, 126, 128, null, 131, 133, 135, 137, 140, 142]; }
+    if (c.growth == null) { for (var j = 0; j < 6; j++) t[j] = null; }
+    return t;
+  }
+  function stationsNear(c) {
+    return stations.map(function (s) { return { s: s, d: Math.round(Math.hypot(s.x - c.x, s.y - c.y) * UNIT_M / 10) * 10 }; })
+      .filter(function (o) { return o.d <= 1000; }).sort(function (a, b) { return a.d - b.d; }).slice(0, 3);
+  }
+  function stationStats(s, months) {
+    var f = { 6: 0.52, 12: 1, 24: 1.9 }, off = { 6: 2, 12: 0, 24: -3 };
+    var n = Math.round(s.n * f[months]);
+    var used = months, extended = false;
+    if (n < 20 && months !== 24) { used = 24; extended = true; n = Math.round(s.n * f[24]); }
+    return { n: n, p25: s.p25 + off[used], med: s.med + off[used], p75: s.p75 + off[used], jeonse: s.jeonse + off[used] * 150, extended: extended };
+  }
+  function nearRent(c) { var near = stationsNear(c); return near.length ? near[0].s.med : null; }
+
+  // ================= 형식 =================
+  function pct(v, sign) { return v == null ? '—' : (sign && v > 0 ? '+' : '') + (v * 100).toFixed(1) + '%'; }
+  function wan(v) { return v.toLocaleString('ko-KR'); }
+  function eok(v) { var e = Math.floor(v / 10000), r = v % 10000; return (e ? e + '억' : '') + (r ? ' ' + wan(r) + '만' : '') + ' 원'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]; }); }
+  function interp(v, q) {
+    if (v <= q[0]) return 0;
+    if (v >= q[4]) return 100;
+    for (var i = 0; i < 4; i++) if (v <= q[i + 1]) return 25 * i + 25 * (v - q[i]) / (q[i + 1] - q[i]);
+    return 100;
+  }
+  function posIn(v, lo, hi) { return Math.max(0, Math.min(100, (v - lo) / (hi - lo) * 100)); }
+  function dueText(d) {
+    if (d == null) return { main: '상시 채용', sub: '' };
+    var dt = new Date(TODAY.getTime() + d * 86400000);
+    return { main: (dt.getMonth() + 1) + '월 ' + dt.getDate() + '일 마감', sub: d + '일 남음' };
+  }
+  function burden(rent, salary) { return rent / (salary / 12); }
+  function saraminUrl(c) { return 'https://www.saramin.co.kr/zf_user/search?searchword=' + encodeURIComponent(c.name); }
+  function svgEl(tag, attrs, text) {
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  // ================= 상태 =================
+  var S = { view: { x: 0, y: 0, w: 1000, h: 700 }, cw: 1, ch: 1, metric: 'growth', mode: 'list', sel: null, hover: null,
+    compare: [1, 3], months: 12, ext: true, query: '', hiringOnly: false, sort: 'members', region: 'gangnam' };
+  var app = $('app'), panel = $('panel'), mapEl = $('map'), svg = $('mapSvg');
+
+  function passes(c) {
+    if (S.query && c.name.indexOf(S.query) === -1) return false;
+    if (S.ext && S.hiringOnly && !c.jobs) return false;
+    return true;
+  }
+  function inView(c) {
+    var v = S.view, pad = v.w * 0.02;
+    return c.x >= v.x + pad && c.x <= v.x + v.w - pad && c.y >= v.y + pad && c.y <= v.y + v.h - pad;
+  }
+
+  // ================= 지도 =================
+  function toScreen(x, y) { return [(x - S.view.x) / S.view.w * S.cw, (y - S.view.y) / S.view.h * S.ch]; }
+  function setViewBox() { svg.setAttribute('viewBox', [S.view.x, S.view.y, S.view.w, S.view.h].join(' ')); }
+
+  var stnEls = {};
+  stations.forEach(function (s) {
+    var d = document.createElement('div');
+    d.className = 'stn';
+    d.innerHTML = '<i></i><span>' + esc(s.name) + '</span>';
+    $('stationLayer').appendChild(d);
+    stnEls[s.id] = d;
+  });
+
+  var mkEls = {};
+  companies.forEach(function (c) {
+    var d = document.createElement('div');
+    d.className = 'mk' + (c.approx ? ' approx' : '') + (c.members < 10 ? ' small' : '');
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.innerHTML = '<span class="mk-name">' + esc(c.name) + '</span><span class="mk-val"></span>';
+    b.addEventListener('click', function () { openDetail(c.id); });
+    b.addEventListener('mouseenter', function () { setHover(c.id); });
+    b.addEventListener('mouseleave', function () { setHover(null); });
+    d.appendChild(b);
+    $('markerLayer').appendChild(d);
+    mkEls[c.id] = { wrap: d, btn: b, val: b.querySelector('.mk-val') };
+  });
+
+  function metricText(c) {
+    if (S.metric === 'growth') return c.growth == null ? '이력 짧음' : pct(c.growth, true);
+    if (S.metric === 'quit') return pct(c.quit);
+    if (S.metric === 'salary') return wan(c.salary) + '만';
+    return c.jobs ? '공고 ' + c.jobs : '공고 없음';
+  }
+  function updateMarkers() {
+    companies.forEach(function (c) {
+      var m = mkEls[c.id];
+      m.val.textContent = metricText(c);
+      m.btn.setAttribute('aria-label', c.name + ', ' + metricText(c) + (c.approx ? ', 대략 위치' : ''));
+      m.wrap.classList.toggle('sel', S.sel === c.id);
+      m.wrap.classList.toggle('on', S.hover === c.id);
+    });
+    placeOverlays();
+  }
+  function placeOverlays() {
+    stations.forEach(function (s) {
+      var p = toScreen(s.x, s.y);
+      stnEls[s.id].style.transform = 'translate(' + (p[0] - 4.5) + 'px,' + (p[1] - 4.5) + 'px)';
+    });
+    companies.forEach(function (c) {
+      var m = mkEls[c.id];
+      var show = passes(c) && inView(c);
+      m.wrap.hidden = !show;
+      if (!show) return;
+      var p = toScreen(c.x, c.y);
+      m.wrap.style.transform = 'translate(' + p[0] + 'px,' + p[1] + 'px) translate(-50%, calc(-100% - 6px))';
+    });
+  }
+  var listQueued = false;
+  function applyView() {
+    setViewBox();
+    placeOverlays();
+    if (S.mode === 'list' && !listQueued) {
+      listQueued = true;
+      requestAnimationFrame(function () { listQueued = false; renderList(); });
+    }
+  }
+  function clampView() {
+    var v = S.view;
+    v.w = Math.max(220, Math.min(v.w, 1400));
+    v.h = v.w * S.ch / S.cw;
+    v.x = Math.max(-300, Math.min(v.x, 1300 - v.w));
+    v.y = Math.max(-200, Math.min(v.y, 900 - v.h));
+  }
+  function fitAll() {
+    var aspect = S.ch / S.cw;
+    var w = Math.max(1000, 700 / aspect) * 1.04;
+    var h = w * aspect;
+    return { x: 500 - w / 2, y: 340 - h / 2, w: w, h: h };
+  }
+  var anim = null;
+  function flyTo(target) {
+    if (anim) cancelAnimationFrame(anim);
+    if (reduceMotion) { S.view = target; clampView(); applyView(); return; }
+    var from = { x: S.view.x, y: S.view.y, w: S.view.w }, t0 = performance.now(), dur = 320;
+    (function step(now) {
+      var k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      S.view.w = from.w + (target.w - from.w) * e;
+      S.view.x = from.x + (target.x - from.x) * e;
+      S.view.y = from.y + (target.y - from.y) * e;
+      S.view.h = S.view.w * S.ch / S.cw;
+      applyView();
+      if (k < 1) anim = requestAnimationFrame(step); else { anim = null; clampView(); applyView(); }
+    })(t0);
+  }
+  function zoomAt(factor, sx, sy) {
+    var v = S.view;
+    var wx = v.x + sx / S.cw * v.w, wy = v.y + sy / S.ch * v.h;
+    var nw = Math.max(220, Math.min(v.w * factor, 1400));
+    var nh = nw * S.ch / S.cw;
+    S.view = { x: wx - sx / S.cw * nw, y: wy - sy / S.ch * nh, w: nw, h: nh };
+    clampView();
+    applyView();
+  }
+  var first = true;
+  new ResizeObserver(function () {
+    var r = mapEl.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    var cx = S.view.x + S.view.w / 2, cy = S.view.y + S.view.h / 2;
+    S.cw = r.width; S.ch = r.height;
+    if (first) { S.view = fitAll(); first = false; }
+    else { S.view.h = S.view.w * S.ch / S.cw; S.view.x = cx - S.view.w / 2; S.view.y = cy - S.view.h / 2; }
+    applyView();
+  }).observe(mapEl);
+
+  var drag = null;
+  mapEl.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('button')) return;
+    drag = { x: e.clientX, y: e.clientY, vx: S.view.x, vy: S.view.y, id: e.pointerId };
+    mapEl.setPointerCapture(e.pointerId);
+    mapEl.classList.add('dragging');
+  });
+  mapEl.addEventListener('pointermove', function (e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    S.view.x = drag.vx - (e.clientX - drag.x) / S.cw * S.view.w;
+    S.view.y = drag.vy - (e.clientY - drag.y) / S.ch * S.view.h;
+    clampView();
+    applyView();
+  });
+  function endDrag() { drag = null; mapEl.classList.remove('dragging'); }
+  mapEl.addEventListener('pointerup', endDrag);
+  mapEl.addEventListener('pointercancel', endDrag);
+  mapEl.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    var r = mapEl.getBoundingClientRect();
+    zoomAt(e.deltaY > 0 ? 1.15 : 1 / 1.15, e.clientX - r.left, e.clientY - r.top);
+  }, { passive: false });
+  $('zoomIn').addEventListener('click', function () { zoomAt(1 / 1.4, S.cw / 2, S.ch / 2); });
+  $('zoomOut').addEventListener('click', function () { zoomAt(1.4, S.cw / 2, S.ch / 2); });
+  $('fitAll').addEventListener('click', function () { flyTo(fitAll()); });
+
+  function setOverlay(c) {
+    var g = $('overlay');
+    g.textContent = '';
+    if (!c || !S.ext) return;
+    stationsNear(c).forEach(function (o) { g.appendChild(svgEl('circle', { 'class': 'ov-ring', cx: o.s.x, cy: o.s.y, r: 500 / UNIT_M })); });
+    g.appendChild(svgEl('circle', { 'class': 'ov-km', cx: c.x, cy: c.y, r: 1000 / UNIT_M, 'vector-effect': 'non-scaling-stroke' }));
+  }
+  function setHover(id) {
+    S.hover = id;
+    companies.forEach(function (c) { mkEls[c.id].wrap.classList.toggle('on', id === c.id); });
+    panel.querySelectorAll('.item').forEach(function (it) { it.classList.toggle('on', Number(it.dataset.id) === id); });
+  }
+
+  // ================= 패널: 목록 =================
+  var SORTS = {
+    members: { label: '가입자 많은 순', fn: function (a, b) { return b.members - a.members; } },
+    growth: { label: '12개월 증감 높은 순', fn: function (a, b) { return (b.growth == null ? -9 : b.growth) - (a.growth == null ? -9 : a.growth); } },
+    quit: { label: '퇴사율 낮은 순', fn: function (a, b) { return a.quit - b.quit; } },
+    salary: { label: '추정 연봉 높은 순', fn: function (a, b) { return b.salary - a.salary; } },
+    due: { label: '마감 임박 순', fn: function (a, b) { return soonestDue(a) - soonestDue(b); }, ext: true }
+  };
+  function renderList() {
+    if (S.mode !== 'list') return;
+    var visible = companies.filter(function (c) { return passes(c) && inView(c); }).sort(SORTS[S.sort].fn);
+    var opts = Object.keys(SORTS).filter(function (k) { return S.ext || !SORTS[k].ext; })
+      .map(function (k) { return '<option value="' + k + '"' + (k === S.sort ? ' selected' : '') + '>' + SORTS[k].label + '</option>'; }).join('');
+    var status = S.region === 'seoul'
+      ? '<p class="note">조건에 맞는 회사가 200곳이 넘어 가입자 많은 200곳만 지도에 올렸습니다. 지역이나 업종을 좁혀 주세요.</p>' : '';
+    var items = visible.map(function (c) {
+      var due = soonestDue(c);
+      var jobs = S.ext ? (c.jobs ? '<span class="it-jobs">공고 ' + c.jobs + '건' + (due !== Infinity ? ', ' + due + '일 뒤 마감' : '') + '</span>' : '<span class="it-sub">진행 중 공고 없음</span>') : '';
+      return '<li><button type="button" class="item" data-id="' + c.id + '">' +
+        '<span class="it-top"><span class="it-name">' + esc(c.name) + '</span>' + jobs + '</span>' +
+        '<span class="it-sub">가입자 ' + c.members + '명, 사업장 ' + (c.wp || 1) + '곳' + (c.approx ? ', 대략 위치' : '') + '</span>' +
+        '<span class="it-metrics"><span><i>12개월 증감</i>' + (c.growth == null ? '이력 짧음' : pct(c.growth, true)) + '</span>' +
+        '<span><i>퇴사율</i>' + pct(c.quit) + '</span><span><i>추정 연봉</i>' + wan(c.salary) + '만 이상</span></span>' +
+        '</button></li>';
+    }).join('');
+    panel.innerHTML = '<div class="pane">' +
+      '<div class="list-head"><h2>지도 안의 회사 <span class="num">' + visible.length + '</span>곳</h2>' +
+      '<label class="sr-only" for="sortSel">정렬</label><select id="sortSel">' + opts + '</select></div>' + status +
+      (visible.length ? '<ul class="items">' + items + '</ul>'
+        : '<div class="empty"><p>이 범위에는 조건에 맞는 회사가 없습니다. 지도를 넓히거나 검색어와 필터를 줄여 보세요.</p><button type="button" class="btn btn-line" id="emptyFit">지도 전체 보기</button></div>') +
+      '<p class="muted small">지도를 움직이거나 확대하면 목록이 바뀝니다. 회사를 누르면 상세가 열립니다.</p></div>';
+    $('sortSel').addEventListener('change', function (e) { S.sort = e.target.value; renderList(); });
+    if ($('emptyFit')) $('emptyFit').addEventListener('click', function () { flyTo(fitAll()); });
+    panel.querySelectorAll('.item').forEach(function (it) {
+      var id = Number(it.dataset.id);
+      it.addEventListener('click', function () { openDetail(id); });
+      it.addEventListener('mouseenter', function () { setHover(id); });
+      it.addEventListener('mouseleave', function () { setHover(null); });
+      it.addEventListener('focus', function () { setHover(id); });
+    });
+  }
+
+  // ================= 패널: 상세 =================
+  function rowHtml(name, valueHtml, caption, trackHtml, axis, verdict, sub, note, aria) {
+    return '<div class="row"><span class="r-name">' + name + '</span>' +
+      '<div class="r-verdict"><b>' + verdict + '</b><span>' + sub + '</span></div>' +
+      '<div class="r-value"><strong>' + valueHtml + '</strong><span>' + caption + '</span></div>' +
+      (trackHtml ? '<div class="r-pos" role="img" aria-label="' + aria + '"><div class="track"><i class="base"></i>' + trackHtml + '</div>' +
+        '<div class="axis"><span>' + axis[0] + '</span><span>' + axis[1] + '</span></div></div>' : '') +
+      (note ? '<p class="note">' + note + '</p>' : '') + '</div>';
+  }
+  function bandHtml(q, lo, hi) {
+    return '<i class="band" style="left:' + posIn(q[1], lo, hi) + '%;width:' + (posIn(q[3], lo, hi) - posIn(q[1], lo, hi)) + '%"></i>' +
+      '<i class="median" style="left:' + posIn(q[2], lo, hi) + '%"></i>';
+  }
+  function topText(p) { return '업종 상위 ' + Math.max(1, Math.round(100 - p)) + '%'; }
+  function healthSheet(c) {
+    var small = c.members < 10;
+    var gP = c.growth == null ? null : interp(c.growth, Q.growth);
+    var qP = interp(c.quit, Q.quit), stab = 100 - qP;
+    var sP = interp(c.salary, Q.salary);
+    var gVerdict = c.growth == null ? '계산 안 함' : c.growth > 0.1 ? '빠르게 늘고 있음' : c.growth > 0.02 ? '늘고 있음' : c.growth > -0.02 ? '거의 그대로' : '줄고 있음';
+    var qVerdict = stab >= 60 ? '퇴사가 적은 편' : stab >= 40 ? '업종 평균 수준' : '퇴사가 많은 편';
+    var sVerdict = sP >= 60 ? '업종 중간보다 높음' : sP >= 40 ? '업종 중간 수준' : '업종 중간보다 낮음';
+    var mk = function (v, lo, hi) { return '<i class="marker" style="left:' + posIn(v, lo, hi) + '%"></i>'; };
+    var html = '<section class="sheet" aria-labelledby="hTitle"><div class="head"><h2 id="hTitle">회사 체력</h2>' +
+      '<p class="muted small">같은 업종 ' + wan(INDUSTRY_N) + '곳과 비교했습니다. 2026년 8월 국민연금 자료 기준입니다.</p></div>' +
+      '<div class="legend" aria-hidden="true"><span><i class="sw-band"></i>업종 중간 50%</span><span><i class="sw-median"></i>업종 중간값</span><span><i class="sw-pen"></i>이 회사</span><span><i class="sw-tail"></i>더 높을 수 있음</span></div>';
+    html += rowHtml('성장', c.growth == null ? '계산 안 함' : pct(c.growth, true), '12개월 전보다 가입자 증감',
+      c.growth == null ? '' : bandHtml(Q.growth, -0.3, 0.4) + mk(c.growth, -0.3, 0.4), ['-30%', '+40%'],
+      gVerdict, c.growth == null ? '' : (small ? '참고용' : topText(gP)),
+      c.growth == null ? '국민연금 자료가 7개월치뿐이라 12개월 증감을 계산하지 않았습니다.' : '',
+      '업종 중간 50%는 -4%에서 +11%, 이 회사 ' + pct(c.growth, true));
+    html += rowHtml('안정', pct(c.quit), '최근 12개월 퇴사율',
+      bandHtml(Q.quit, 0, 0.6) + mk(c.quit, 0, 0.6), ['0% (적게 떠남)', '60%'],
+      qVerdict, small ? '참고용' : '퇴사 적은 순 ' + topText(stab).replace('업종 ', ''), '',
+      '업종 중간 50%는 12%에서 33%, 이 회사 ' + pct(c.quit));
+    html += rowHtml('급여', '≥ ' + wan(c.salary) + '만 원', '추정 평균 연봉, 세전',
+      bandHtml(Q.salary, 2000, 8000) + '<i class="tail" style="left:' + posIn(c.salary, 2000, 8000) + '%;width:10%"></i>' + mk(c.salary, 2000, 8000), ['2,000만', '8,000만'],
+      sVerdict, small ? '참고용' : topText(sP),
+      '국민연금 소득 상한 때문에 실제보다 낮게 나올 수 있습니다. 회사 전체 평균이며 개인이나 직무별 연봉이 아닙니다.',
+      '업종 중간 50%는 3,350만 원에서 4,700만 원, 이 회사 ' + wan(c.salary) + '만 원 이상');
+    return html + '</section>';
+  }
+  function jobsSection(c) {
+    if (!S.ext) {
+      return '<section class="block"><h2>채용 현황</h2><p class="small">이 회사의 채용공고는 사람인에서 확인할 수 있습니다.</p>' +
+        '<p><a class="btn btn-line" href="' + saraminUrl(c) + '" target="_blank" rel="noopener">사람인에서 채용공고 보기</a></p></section>';
+    }
+    var jobs = jobsFor(c);
+    if (!jobs.length) {
+      return '<section class="block"><h2>채용 현황</h2><p class="small">지금 사람인에 올라온 이 회사의 공고가 없습니다.</p><p class="credit">채용정보 제공: 사람인</p></section>';
+    }
+    var gP = c.growth == null ? null : interp(c.growth, Q.growth), qP = interp(c.quit, Q.quit);
+    var signal;
+    if (gP != null && gP >= 50 && c.quit <= Q.quit[2]) {
+      signal = '<b>사람이 늘면서 뽑는 채용으로 보입니다</b><p class="small">가입자가 12개월 동안 ' + pct(c.growth, true) + ' 바뀌었고, 퇴사율(' + pct(c.quit) + ')이 업종 중간값(21%)보다 낮습니다.</p>';
+    } else if (qP >= 80 && c.growth != null && c.growth <= 0) {
+      signal = '<b>떠난 사람을 채우는 채용일 수 있습니다</b><p class="small">퇴사율(' + pct(c.quit) + ')이 업종 상위 20% 안이고, 가입자는 12개월 동안 ' + pct(c.growth, true) + ' 바뀌었습니다.</p>';
+    } else {
+      signal = '<b>인원 흐름만으로는 채용 성격을 판단하기 어렵습니다</b>';
+    }
+    signal += '<p class="small muted">통계로 본 가능성이며 회사가 밝힌 채용 이유가 아닙니다.</p>';
+    var list = jobs.map(function (j) {
+      var d = dueText(j.due);
+      return '<li class="job"><div><div class="job-title">' + esc(j.title) + '</div><div class="job-meta">' + esc(j.level) + '</div></div>' +
+        '<div class="job-dl"><b>' + d.main + '</b>' + (d.sub ? '<br><span class="muted">' + d.sub + '</span>' : '') + '</div>' +
+        '<div class="job-pay' + (j.pay ? '' : ' muted') + '">' + (j.pay ? wan(j.pay[0]) + '만~' + wan(j.pay[1]) + '만 원' : '회사 내규에 따름') + '</div>' +
+        '<a href="' + saraminUrl(c) + '" target="_blank" rel="noopener">공고 원문 보기</a></li>';
+    }).join('');
+    var pays = jobs.filter(function (j) { return j.pay; });
+    var payHtml;
+    if (pays.length) {
+      var lo = Math.min.apply(null, pays.map(function (j) { return j.pay[0]; }));
+      var hi = Math.max.apply(null, pays.map(function (j) { return j.pay[1]; }));
+      payHtml = '<h3>공고 연봉과 비교</h3><dl class="pay-facts"><div><dt>공고 연봉 (' + pays.length + '건)</dt><dd>' + wan(lo) + '만~' + wan(hi) + '만</dd></div>' +
+        '<div><dt>이 회사 추정</dt><dd>' + wan(c.salary) + '만 이상</dd></div><div><dt>업종 중간값</dt><dd>3,900만</dd></div></dl>' +
+        '<div role="img" aria-label="공고 연봉 ' + wan(lo) + '만~' + wan(hi) + '만 원, 이 회사 추정 ' + wan(c.salary) + '만 원 이상"><div class="track"><i class="base"></i>' +
+        bandHtml(Q.salary, 2000, 8000) + '<i class="box" style="left:' + posIn(lo, 2000, 8000) + '%;width:' + (posIn(hi, 2000, 8000) - posIn(lo, 2000, 8000)) + '%"></i>' +
+        '<i class="tail" style="left:' + posIn(c.salary, 2000, 8000) + '%;width:10%"></i><i class="marker" style="left:' + posIn(c.salary, 2000, 8000) + '%"></i></div>' +
+        '<div class="axis"><span>2,000만</span><span>8,000만</span></div></div>' +
+        '<div class="legend" aria-hidden="true"><span><i class="sw-box"></i>공고 연봉</span><span><i class="sw-band"></i>업종 중간 50%</span><span><i class="sw-pen"></i>이 회사 추정</span></div>';
+    } else {
+      payHtml = '<p class="small muted">연봉이 적힌 공고가 없어 비교하지 않았습니다.</p>';
+    }
+    return '<section class="block"><div class="head"><h2>채용 현황</h2><p class="muted small">사람인의 진행 중인 공고 ' + jobs.length + '건입니다. 2026년 10월 8일에 모았습니다.</p></div>' +
+      '<div class="block" style="gap:4px">' + signal + '</div><ul class="jobs">' + list + '</ul>' + payHtml + '<p class="credit">채용정보 제공: 사람인</p></section>';
+  }
+  function stationRows(c) {
+    var near = stationsNear(c);
+    if (!near.length) return '<p class="small">회사에서 1km 안에 지하철역이 없습니다.</p>';
+    return near.map(function (o) {
+      var st = stationStats(o.s, S.months);
+      var lo = burden(st.p25, c.salary), mid = burden(st.med, c.salary), hi = burden(st.p75, c.salary);
+      var p = function (v) { return posIn(v, 0, 0.5); };
+      return '<div class="st"><div class="st-name"><b>' + esc(o.s.name) + '</b><span>' + esc(o.s.lines) + ', 회사에서 ' + o.d + 'm</span></div>' +
+        '<div class="st-rent"><strong>월 ' + st.med + '만 원</strong><span>' + st.p25 + '만~' + st.p75 + '만, 계약 ' + st.n + '건</span><span>전세 ' + eok(st.jeonse) + '</span></div>' +
+        '<div class="st-burden" role="img" aria-label="주거비 부담률 ' + Math.round(lo * 100) + '에서 ' + Math.round(hi * 100) + '퍼센트">' +
+        '<p>월급의 <b>' + Math.round(lo * 100) + '~' + Math.round(hi * 100) + '%</b> (중간 ' + Math.round(mid * 100) + '%)</p>' +
+        '<div class="track"><i class="base"></i><i class="soft" style="left:' + p(lo) + '%;width:' + (p(hi) - p(lo)) + '%"></i><i class="marker" style="left:' + p(mid) + '%"></i></div>' +
+        '<div class="axis"><span>0%</span><span>월급의 50%</span></div></div>' +
+        (st.extended ? '<p class="note">최근 ' + S.months + '개월 계약이 20건보다 적어 최근 24개월로 넓혀 계산했습니다.</p>' : '') + '</div>';
+    }).join('');
+  }
+  function housingSection(c) {
+    if (!S.ext) return '';
+    var segs = [6, 12, 24].map(function (m) { return '<button type="button" data-months="' + m + '" aria-pressed="' + (m === S.months) + '">최근 ' + m + '개월</button>'; }).join('');
+    return '<section class="block"><div class="head"><h2>회사 근처 주거비</h2>' +
+      '<p class="muted small">회사에서 1km 안의 역(지도의 점선 원)입니다. 역에서 500m 안, 전용 33㎡ 이하 연립다세대와 오피스텔의 신고된 계약만 셉니다.</p></div>' +
+      '<div class="seg" role="group" aria-label="계약 기간" id="periodSeg">' + segs + '</div>' +
+      '<p class="small">추정 월급(세전) <b class="num">' + wan(Math.round(c.salary / 12)) + '만 원 이상</b>으로 나눈 부담률입니다. 실제 월급이 더 높으면 부담률은 낮아집니다.</p>' +
+      '<div class="legend" aria-hidden="true"><span><i class="sw-soft"></i>시세 하위 25%~상위 25%</span><span><i class="sw-pen"></i>중간값</span></div>' +
+      '<div id="stationRows">' + stationRows(c) + '</div>' +
+      '<p class="muted small">환산 월세는 월세에 보증금을 전월세전환율로 바꾼 금액을 더한 값입니다. 신고된 계약 기준이라 지금 매물 가격과 다를 수 있습니다.</p></section>';
+  }
+  function trendChart(t, label) {
+    var vals = t.filter(function (v) { return v != null; });
+    var lo = Math.floor((Math.min.apply(null, vals) - 1) / 10) * 10, hi = Math.ceil((Math.max.apply(null, vals) + 1) / 10) * 10;
+    if (hi - lo < 20) hi = lo + 20;
+    var step = (hi - lo) / 4;
+    var L = 44, R = 470, T = 16, B = 172;
+    var x = function (i) { return L + i * (R - L) / 12; }, y = function (v) { return B - (v - lo) / (hi - lo) * (B - T); };
+    var s = '<svg viewBox="0 0 520 200" role="img" aria-label="' + esc(label) + '">';
+    t.forEach(function (v, i) {
+      if (v == null) s += '<rect class="c-gap" x="' + (x(i) - (R - L) / 24).toFixed(1) + '" y="' + T + '" width="' + ((R - L) / 12).toFixed(1) + '" height="' + (B - T) + '"/>';
+    });
+    var gapIdx = t.indexOf(null);
+    if (gapIdx !== -1) s += '<text class="c-gaplabel" x="' + x(gapIdx) + '" y="' + (T + 14) + '" text-anchor="' + (gapIdx === 0 ? 'start' : 'middle') + '">자료 없음</text>';
+    for (var k = 0; k <= 4; k++) {
+      var gv = lo + step * k;
+      s += '<line class="c-grid" x1="' + L + '" x2="' + R + '" y1="' + y(gv) + '" y2="' + y(gv) + '"/>';
+      s += '<text class="c-ax" x="' + (L - 8) + '" y="' + (y(gv) + 4) + '" text-anchor="end">' + Math.round(gv) + '</text>';
+    }
+    [0, 3, 6, 9, 12].forEach(function (i) { s += '<text class="c-ax" x="' + x(i) + '" y="192" text-anchor="middle">' + MONTHS[i] + '</text>'; });
+    var seg = [];
+    var flush = function () { if (seg.length > 1) s += '<polyline class="c-line" points="' + seg.join(' ') + '"/>'; seg = []; };
+    t.forEach(function (v, i) { if (v == null) flush(); else seg.push(x(i).toFixed(1) + ',' + y(v).toFixed(1)); });
+    flush();
+    t.forEach(function (v, i) { if (v != null) s += '<circle class="c-dot" cx="' + x(i).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="' + (i === 12 ? 5 : 2.5) + '"/>'; });
+    s += '<text class="c-end" x="' + (R + 8) + '" y="' + (y(t[12]) + 4) + '">' + t[12] + '명</text>';
+    return s + '</svg>';
+  }
+  function monthlyTable(c, t) {
+    var rows = '';
+    for (var i = 12; i >= 7; i--) {
+      if (t[i] == null) { rows += '<tr><td>' + MONTHS[i] + '</td><td class="missing" colspan="5">이 달의 국민연금 자료가 없습니다</td></tr>'; continue; }
+      var prev = t[i - 1];
+      var lost = Math.max(0, Math.round(c.quit * t[i] / 12 + ((i * 7 + c.id) % 3) - 1));
+      var nw = (prev == null ? 0 : t[i] - prev) + lost;
+      if (nw < 0) { lost -= nw; nw = 0; }
+      var hr = prev == null ? '—' : pct(nw / prev), qr = prev == null ? '—' : pct(lost / prev);
+      rows += '<tr><td>' + MONTHS[i] + '</td><td>' + t[i] + '</td><td>' + nw + '</td><td>' + lost + '</td><td>' + hr + '</td><td>' + qr + '</td></tr>';
+    }
+    return '<div class="table-wrap"><table><thead><tr><th scope="col">월</th><th scope="col">가입자</th><th scope="col">입사</th><th scope="col">퇴사</th><th scope="col">입사율</th><th scope="col">퇴사율</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+  function finSection(c) {
+    if (!c.dart) return '<section class="block"><h2>재무</h2><p class="small muted">DART 공시 대상이 아니거나 연결된 공시가 없어 재무 정보가 없습니다.</p></section>';
+    var rev = Math.round(c.members * 1.9), g = Math.max(c.growth || 0, -0.1) + 0.08;
+    var margin = Math.max(-0.05, Math.min(0.14, 0.04 + (c.growth || 0) * 0.25));
+    var rows = [2025, 2024, 2023].map(function (yr, k) {
+      var r = Math.round(rev / Math.pow(1 + g, k)), op = Math.round(r * margin), net = Math.round(op * 0.75);
+      var debt = 60 + (c.id * 13) % 50 + k * 9;
+      return '<tr><td>' + yr + '</td><td>' + wan(r) + '억</td><td>' + op + '억</td><td>' + net + '억</td><td>' + debt + '%</td></tr>';
+    }).join('');
+    return '<section class="block"><div class="head"><h2>재무</h2><p class="muted small">DART 사업보고서 기준입니다. 사업자번호와 회사 이름이 모두 일치해 연결했습니다.</p></div>' +
+      '<div class="table-wrap"><table><thead><tr><th scope="col">연도</th><th scope="col">매출</th><th scope="col">영업이익</th><th scope="col">순이익</th><th scope="col">부채비율</th></tr></thead><tbody>' + rows + '</tbody></table></div></section>';
+  }
+  function renderDetail() {
+    var c = byId[S.sel], t = trend(c), inCmp = S.compare.indexOf(c.id) !== -1;
+    panel.innerHTML = '<div class="pane">' +
+      '<button type="button" class="btn-back" id="backBtn">목록으로</button>' +
+      '<section class="block"><h1>' + esc(c.name) + '</h1>' +
+      '<dl class="facts"><div><dt>지역</dt><dd>서울 강남구</dd></div><div><dt>업종</dt><dd>응용 소프트웨어 개발 및 공급업</dd></div>' +
+      '<div><dt>형태</dt><dd>' + (c.personal ? '개인사업장' : '법인') + ', 사업장 ' + (c.wp || 1) + '곳</dd></div><div><dt>국민연금 가입자</dt><dd class="num">' + c.members + '명</dd></div></dl>' +
+      (c.members < 10 ? '<p class="note">가입자가 10명 미만이라 비율이 크게 흔들릴 수 있습니다. 판정은 참고용으로만 보세요.</p>' : '') +
+      (c.approx ? '<p class="note">주소가 동 단위까지만 있어 지도 위치는 대략적인 위치입니다.</p>' : '') +
+      '<div class="actions"><a class="btn btn-solid" href="' + saraminUrl(c) + '" target="_blank" rel="noopener">사람인에서 채용공고 보기</a>' +
+      '<button type="button" class="btn btn-line" id="cmpBtn" aria-pressed="' + inCmp + '">' + (inCmp ? '비교에서 빼기' : '비교에 담기') + '</button></div></section>' +
+      healthSheet(c) + jobsSection(c) + housingSection(c) +
+      '<section class="block"><div class="head"><h2>가입자 추이</h2><p class="muted small">최근 13개월 국민연금 가입자 수입니다. 자료가 없는 달은 선을 끊어 표시합니다.</p></div>' +
+      '<div class="chart">' + trendChart(t, c.name + ' 가입자 추이') + '</div><h3>월별 입사와 퇴사</h3>' + monthlyTable(c, t) +
+      '<p class="muted small">입사율과 퇴사율은 전달 가입자 수로 나눈 값입니다. 전달 자료가 없으면 계산하지 않습니다(—).</p></section>' +
+      finSection(c) +
+      '<section class="block"><h2>이 숫자를 읽을 때</h2><p class="small">가입자, 입사, 퇴사는 국민연금 가입 기준이라 실제 직원 수와 다를 수 있습니다. 팀 분위기나 업무 강도처럼 통계에 나오지 않는 정보는 알 수 없습니다. <a href="#">계산 방법 자세히 보기</a></p></section>' +
+      sourcesHtml() + '</div>';
+    panel.scrollTop = 0;
+    $('backBtn').addEventListener('click', backToList);
+    $('cmpBtn').addEventListener('click', function () { toggleCompare(c.id); });
+    var ps = $('periodSeg');
+    if (ps) ps.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        S.months = Number(b.dataset.months);
+        ps.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        $('stationRows').innerHTML = stationRows(c);
+      });
+    });
+  }
+  function sourcesHtml() {
+    return '<div class="sources"><p>데이터 기준월: 국민연금 2026년 8월' +(S.ext ? ', 채용공고 2026년 10월 8일, 전월세 계약 2026년 9월' : '') + '</p><ul>' +
+      '<li>국민연금공단 가입 사업장 내역, 금융감독원 OpenDART</li>' +
+      (S.ext ? '<li>사람인 채용공고, 서울특별시 부동산 전월세가 정보, 한국부동산원 전월세전환율</li>' : '') +
+      '<li>주소 좌표: 행정안전부 주소정보누리집, 지도: 네이버 지도</li></ul>' +
+      '<p>참고용 정보이며 투자, 법률, 고용 판단의 유일한 근거로 쓰면 안 됩니다.</p></div>';
+  }
+
+  // ================= 패널: 비교 =================
+  var LINE = ['l1', 'l2', 'l3'];
+  function renderCompare() {
+    var cs = S.compare.map(function (id) { return byId[id]; });
+    var series = cs.map(function (c) { var t = trend(c); return t.map(function (v) { return v == null || t[0] == null ? null : v / t[0] * 100; }); });
+    var all = [].concat.apply([], series).filter(function (v) { return v != null; });
+    var chart = '';
+    if (all.length) {
+      var lo = Math.floor((Math.min.apply(null, all) - 2) / 10) * 10, hi = Math.ceil((Math.max.apply(null, all) + 2) / 10) * 10;
+      var L = 40, R = 400, T = 12, B = 168;
+      var x = function (i) { return L + i * (R - L) / 12; }, y = function (v) { return B - (v - lo) / (hi - lo) * (B - T); };
+      chart = '<svg viewBox="0 0 520 196" role="img" aria-label="비교 회사의 가입자 지수 추이">';
+      for (var v = lo; v <= hi; v += 10) chart += '<line class="c-grid" x1="' + L + '" x2="' + R + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text class="c-ax" x="' + (L - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + '</text>';
+      [0, 6, 12].forEach(function (i) { chart += '<text class="c-ax" x="' + x(i) + '" y="188" text-anchor="middle">' + MONTHS[i] + '</text>'; });
+      var ends = [];
+      series.forEach(function (s, k) {
+        if (s[12] == null) return;
+        chart += '<polyline class="' + LINE[k] + '" points="' + s.map(function (v, i) { return v == null ? null : x(i).toFixed(1) + ',' + y(v).toFixed(1); }).filter(Boolean).join(' ') + '"/>';
+        ends.push({ k: k, y: y(s[12]), v: s[12] });
+      });
+      ends.sort(function (a, b) { return a.y - b.y; });
+      for (var j = 1; j < ends.length; j++) if (ends[j].y - ends[j - 1].y < 15) ends[j].y = ends[j - 1].y + 15;
+      ends.forEach(function (e) { chart += '<text class="c-endlabel" x="' + (R + 8) + '" y="' + (e.y + 4) + '">' + esc(cs[e.k].name) + ' ' + e.v.toFixed(0) + '</text>'; });
+      chart += '</svg>';
+    }
+    var legend = '<div class="cmp-legend">' + cs.map(function (c, k) {
+      return '<span><svg viewBox="0 0 28 8" aria-hidden="true"><line class="' + LINE[k] + '" x1="0" x2="28" y1="4" y2="4"/></svg>' + esc(c.name) + '</span>';
+    }).join('') + '</div>';
+    var shortNote = cs.filter(function (c) { return c.growth == null; }).map(function (c) { return c.name; });
+    var head = '<tr><th scope="col">항목</th>' + cs.map(function (c) { return '<th scope="col">' + esc(c.name) + '</th>'; }).join('') + '</tr>';
+    var line = function (label, f) { return '<tr><td>' + label + '</td>' + cs.map(function (c) { return '<td>' + f(c) + '</td>'; }).join('') + '</tr>'; };
+    var body = line('가입자', function (c) { return c.members + '명'; }) +
+      line('12개월 증감', function (c) { return c.growth == null ? '계산 안 함' : pct(c.growth, true); }) +
+      line('연간 퇴사율', function (c) { return pct(c.quit); }) +
+      line('추정 연봉', function (c) { return wan(c.salary) + '만 이상'; });
+    if (S.ext) {
+      body += line('진행 중 공고', function (c) { return c.jobs + '건'; }) +
+        line('가까운 역 월세', function (c) { var r = nearRent(c); return r == null ? '역 없음' : '월 ' + r + '만'; }) +
+        line('주거비 부담률', function (c) { var r = nearRent(c); return r == null ? '—' : Math.round(burden(r, c.salary) * 100) + '%'; });
+    }
+    panel.innerHTML = '<div class="pane"><button type="button" class="btn-back" id="backBtn">목록으로</button>' +
+      '<div class="head"><h1>회사 비교</h1><p class="muted small">12개월 전 가입자 수를 100으로 놓은 지수입니다.</p></div>' +
+      (cs.length < 2 ? '<p>비교하려면 회사를 2곳 이상 담아 주세요. 지도나 목록에서 회사를 열고 "비교에 담기"를 누르면 됩니다.</p>' :
+        legend + '<div class="chart">' + chart + '</div>' +
+        (shortNote.length ? '<p class="note">' + shortNote.join(', ') + '은(는) 12개월 전 자료가 없어 지수를 그리지 않았습니다.</p>' : '') +
+        '<div class="table-wrap"><table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' +
+        (S.ext ? '<p class="muted small">가까운 역 월세는 회사에서 가장 가까운 역의 환산 월세 중간값(최근 12개월)이고, 부담률은 그 값을 추정 월급으로 나눈 값입니다.</p>' : '')) +
+      '</div>';
+    panel.scrollTop = 0;
+    $('backBtn').addEventListener('click', backToList);
+  }
+
+  // ================= 흐름 =================
+  function setMode(mode) { S.mode = mode; app.dataset.mode = mode; }
+  function openDetail(id) {
+    var c = byId[id];
+    S.sel = id;
+    setMode('detail');
+    renderDetail();
+    updateMarkers();
+    setOverlay(c);
+    var w = 360;
+    var h = w * S.ch / S.cw;
+    flyTo({ x: c.x - w / 2, y: c.y - h / 2, w: w, h: h });
+    try { history.replaceState(null, '', '#c' + id); } catch (e) { /* 미리보기에서는 무시 */ }
+    if (window.matchMedia('(max-width: 760px)').matches) panel.scrollIntoView({ block: 'start' });
+  }
+  function backToList() {
+    S.sel = null;
+    setMode('list');
+    setOverlay(null);
+    updateMarkers();
+    renderList();
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* 무시 */ }
+  }
+  function toggleCompare(id) {
+    var i = S.compare.indexOf(id);
+    if (i !== -1) S.compare.splice(i, 1);
+    else if (S.compare.length >= 3) { flashTray('비교는 3곳까지 담을 수 있습니다. 하나를 빼고 다시 담아 주세요.'); return; }
+    else S.compare.push(id);
+    renderTray();
+    if (S.mode === 'detail') renderDetail();
+    if (S.mode === 'compare') renderCompare();
+  }
+  var trayMsg = '';
+  function flashTray(msg) { trayMsg = msg; renderTray(); setTimeout(function () { trayMsg = ''; renderTray(); }, 3000); }
+  function renderTray() {
+    var tray = $('tray');
+    if (!S.compare.length && !trayMsg) { tray.hidden = true; return; }
+    tray.hidden = false;
+    tray.innerHTML = '<span>비교함 ' + S.compare.length + '/3</span>' +
+      S.compare.map(function (id) { return '<span class="chip">' + esc(byId[id].name) + '<button type="button" data-rm="' + id + '" aria-label="' + esc(byId[id].name) + ' 비교함에서 빼기">×</button></span>'; }).join('') +
+      '<button type="button" class="btn btn-solid" id="goCompare"' + (S.compare.length < 2 ? ' disabled' : '') + '>비교하기</button>' +
+      (trayMsg ? '<span class="note">' + trayMsg + '</span>' : '');
+    tray.querySelectorAll('[data-rm]').forEach(function (b) { b.addEventListener('click', function () { toggleCompare(Number(b.dataset.rm)); }); });
+    $('goCompare').addEventListener('click', function () {
+      S.sel = null; setOverlay(null); updateMarkers(); setMode('compare'); renderCompare();
+    });
+  }
+
+  // ================= 필터 =================
+  $('q').addEventListener('input', function (e) { S.query = e.target.value.trim(); placeOverlays(); if (S.mode === 'list') renderList(); });
+  $('searchForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var hit = companies.filter(passes)[0];
+    if (hit && S.query) openDetail(hit.id);
+  });
+  $('regSel').addEventListener('change', function (e) { S.region = e.target.value; if (S.mode === 'list') renderList(); });
+  $('hiringOnly').addEventListener('change', function (e) { S.hiringOnly = e.target.checked; placeOverlays(); if (S.mode === 'list') renderList(); });
+  var metricBtns = document.querySelectorAll('#metricSeg button');
+  metricBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      S.metric = b.dataset.metric;
+      metricBtns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      updateMarkers();
+    });
+  });
+  $('noExt').addEventListener('change', function (e) {
+    S.ext = !e.target.checked;
+    document.querySelectorAll('.top .ext').forEach(function (n) { n.hidden = !S.ext; });
+    if (!S.ext && S.metric === 'jobs') metricBtns[0].click();
+    if (!S.ext && S.sort === 'due') S.sort = 'members';
+    updateMarkers();
+    if (S.mode === 'list') renderList();
+    if (S.mode === 'detail') { renderDetail(); setOverlay(byId[S.sel]); }
+    if (S.mode === 'compare') renderCompare();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.mode !== 'list') backToList(); });
+
+  // ================= 시작 =================
+  updateMarkers();
+  renderList();
+  renderTray();
+  var m = /^#c(\d+)$/.exec(location.hash);
+  if (m && byId[Number(m[1])]) setTimeout(function () { openDetail(Number(m[1])); }, 0);
+})();
+</script>
