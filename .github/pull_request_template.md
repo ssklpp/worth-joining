@@ -20,5 +20,6 @@
 - [ ] 마이그레이션이 있으면 `alembic heads`가 1개
 - [ ] API 계약을 바꿨으면 T4 리뷰 요청
 - [ ] 관련 문서(README, SPEC, docs) 갱신
+- [ ] 에러 · 버그를 해결했으면 `docs/troubleshooting.md`에 TS 항목 추가 (번호: )
 - [ ] 화면 변경이면 스크린샷 첨부
 - [ ] API 키 · 비밀번호가 들어 있지 않음
