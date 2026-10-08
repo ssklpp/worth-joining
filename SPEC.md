@@ -98,7 +98,7 @@ GRANT ALL PRIVILEGES ON worth_joining_test.* TO 'wj'@'localhost';
 ```
 
 - `LOAD DATA LOCAL INFILE`을 쓰므로 서버 `local_infile=ON`, 클라이언트 연결에 `local_infile=True`를 설정한다.
-- MariaDB 11.4는 서버 인증서를 자동 생성하고 클라이언트가 기본으로 검증한다. 로컬에서는 `DB_SSL_VERIFY=false`로 검증을 끄고(CLI는 `--skip-ssl-verify-server-cert`), 배포 환경에서는 검증한다. `app/core/db.py`에서 이 값으로 드라이버 SSL 옵션을 구성한다.
+- MariaDB 11.4는 서버 인증서를 자동 생성하고 클라이언트가 기본으로 검증한다. 로컬에서는 `DB_SSL_VERIFY=false`로 검증을 끄고(CLI는 `--skip-ssl-verify-server-cert`), 배포 환경에서는 검증한다. `app/core/db.py`에서 이 값으로 드라이버 SSL 옵션을 구성한다. asyncmy는 Windows 기본 이벤트 루프에서 TLS 전환이 실패하므로 `false`일 때는 TLS 없이 접속한다.
 
 ---
 
