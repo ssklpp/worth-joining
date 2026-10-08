@@ -16,7 +16,7 @@
 - 보험료율, 소득 상한, 전월세전환율 같은 기준값은 코드 상수로 두지 않고 테이블에 둔다.
 - 추정값을 내려주는 응답에는 반드시 `flags`를 포함한다.
 - API 키는 `.env`에만 두고 커밋하지 않는다.
-- 모든 변경은 기능 브랜치 → PR → 리뷰 1명 이상 승인 → CI 통과 → main 병합 순서를 따른다. 커밋 메시지는 `feat:`, `fix:`, `test:`, `docs:`, `chore:` 접두어를 쓴다.
+- 모든 변경은 기능 브랜치 → PR → 리뷰 1명 이상 승인 → CI 통과 → main 병합 순서를 따른다. 커밋 메시지는 [Conventional Commits 1.0.0](https://www.conventionalcommits.org/ko/v1.0.0/)(`<type>(<scope>): <설명>`)을 따른다. type은 `feat`, `fix`, `test`, `docs`, `chore`를 기본으로 하고 필요하면 `refactor`, `perf`, `style`, `ci`, `build`도 쓴다. 세부 규칙은 `CLAUDE.md` 팀 규칙을 따른다.
 - 이슈와 PR에는 관련 요구사항 ID와 Task ID(docs/02_requirements.md 10장, 예: `T1-04`)를 적는다.
 
 ---

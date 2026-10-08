@@ -87,7 +87,7 @@ pytest tests/sql/test_x.py::test_name        # 단일 테스트
 - 브랜치 이름은 `<type>/<track>-<topic>`(예: `feat/t1-nps-loader`)이다. 보호된 `main`에는 리뷰 승인 1명 이상과 CI 통과 후 squash merge한다. 이슈와 PR에는 요구사항 ID와 Task ID를 적는다.
 - **GitHub에 push하는 모든 커밋은 [Conventional Commits 1.0.0](https://www.conventionalcommits.org/ko/v1.0.0/)을 지킨다.** squash merge 커밋 제목과 PR 제목도 같은 형식을 쓴다.
   - 제목 형식: `<type>(<scope>): <설명>`. scope는 선택이다(예: `docs(readme): 화면 시안 추가`, `feat(pipeline): 국민연금 월 적재기 추가`).
-  - type: SPEC의 `feat`, `fix`, `test`, `docs`, `chore`를 기본으로 쓰고, 필요하면 `refactor`, `perf`, `style`, `ci`, `build`도 쓴다.
+  - type: `feat`, `fix`, `test`, `docs`, `chore`를 기본으로 쓰고, 필요하면 `refactor`, `perf`, `style`, `ci`, `build`도 쓴다(SPEC 0장).
   - 설명은 한국어로, 무엇을 바꿨는지 한 줄로 쓴다. 마침표는 붙이지 않는다.
   - 호환성을 깨는 변경(API 계약 · 스키마)은 `feat!:`처럼 `!`를 붙이고, 본문에 `BREAKING CHANGE: <내용>`을 적는다.
   - 본문에는 왜 바꿨는지를 쓴다. 커밋 하나에는 논리적인 변경 하나만 담는다.
