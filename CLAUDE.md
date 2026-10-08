@@ -92,6 +92,10 @@ pytest tests/sql/test_x.py::test_name        # 단일 테스트
   - 호환성을 깨는 변경(API 계약 · 스키마)은 `feat!:`처럼 `!`를 붙이고, 본문에 `BREAKING CHANGE: <내용>`을 적는다.
   - 본문에는 왜 바꿨는지를 쓴다. 커밋 하나에는 논리적인 변경 하나만 담는다.
   - push 전에 `git log origin/main..HEAD --format=%s`로 모든 제목이 형식에 맞는지 확인하고, 맞지 않으면 push하지 않고 고친다.
+- 작업 흐름. 현재 보호 단계는 `docs/decisions/001-저장소-설정과-main-보호.md`를 본다.
+  - 시작: 최신 `main`에서 Task 하나당 브랜치 하나를 만든다. `main`에 직접 push하면 ruleset이 거부한다.
+  - PR: `gh pr create`로 연다. Claude는 PR까지만 만들고, 병합은 사람이 웹에서 Squash and merge한다(저장소는 squash만 허용, 커밋 제목 = PR 제목).
+  - 정리: 원격 브랜치는 병합 시 자동 삭제된다. 로컬은 `git switch main; git pull; git branch -D <branch>; git fetch --prune`.
 - 트랙별 담당 영역: T1 `pipeline/`, T2 `migrations/` · `sql/` · `tests/sql/`, T3 `app/` · `tests/api/` · `.github/`, T4 `web/`. 마이그레이션은 T2가 관리하므로 병합 전에 `alembic heads`가 정확히 1개인지 확인한다. API 계약 변경은 별도 PR로 하고 T4의 리뷰를 받는다.
 - 테스트는 실제 API 키 없이 `tests/fixtures/`(국민연금 축소 CSV, DART · 전월세 · 사람인 응답 샘플)로 돌아가야 한다. `tests/conftest.py`는 세션마다 테스트 DB를 비우고 `alembic upgrade head`를 한 번 실행하며, 테스트마다 트랜잭션을 롤백한다.
 - 결정 사항은 `docs/decisions/NNN-제목.md`에 기록한다.
