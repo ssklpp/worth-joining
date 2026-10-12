@@ -23,12 +23,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 0 | 작업 규칙 | 9 |
 | 1 · 2 · 3 | 기술 스택 · 저장소 구조 · 환경 변수 | 24 · 39 · 71 |
 | 4 | 데이터 소스와 수집 규칙 | 105 |
-| 5 | DB (5.2 DDL 161, 5.3 MariaDB 주의사항 383) | 147 |
-| 6 | 계산 규칙 · 상호 정규화 · 매칭 순서 | 398 |
-| 7 | 핵심 SQL (q1, q2, 지도, 비교, q5, q6, 파티션 순환) | 436 |
-| 8 · 9 | API 계약 · 화면 | 635 · 662 |
-| 10 | 진행 단계 (Phase 0~11과 완료 조건) | 677 |
-| 11 · 12 | 하지 않는 것 · 팀 운영 | 873 · 886 |
+| 5 | DB (5.2 DDL 161, 5.3 MariaDB 주의사항 397) | 147 |
+| 6 | 계산 규칙 · 상호 정규화 · 매칭 순서 | 412 |
+| 7 | 핵심 SQL (q1, q2, 지도, 비교, q5, q6, 파티션 순환) | 450 |
+| 8 · 9 | API 계약 · 화면 | 649 · 676 |
+| 10 | 진행 단계 (Phase 0~11과 완료 조건) | 691 |
+| 11 · 12 | 하지 않는 것 · 팀 운영 | 887 · 900 |
 
 ## 명령어 (SPEC 3장 · 10장 참고. web은 예정)
 
@@ -41,6 +41,7 @@ python -m pipeline.region.load               # 시군구 이름 (data/raw/region
 python -m pipeline.nps.extract_seoul data/raw/nps/all/*.csv   # 전국 원본 → 서울 추출
 python -m pipeline.nps.load --all            # 국민연금 전체 월 오름차순 적재 (--ym 202608은 한 달, 멱등)
 python -m pipeline.refresh_mart              # mart를 비우고 sql/q1 → q2를 한 트랜잭션으로 (약 23초)
+python -m pipeline.dart.corp_code            # DART 고유번호 → dart_corp (OPENDART_API_KEY, 또는 --file ZIP)
 uvicorn app.main:app --reload                # API, :8000/docs
 cd web && npm install && npm run dev         # 프론트엔드, :3000
 ruff check .
@@ -49,7 +50,7 @@ pytest tests/sql/test_x.py::test_name        # 단일 테스트
 python -m locust -f tests/perf/locustfile.py --host http://127.0.0.1:8000 --headless -u 20 -r 5 -t 60s   # 부하 측정 (Windows: PURE_PYTHON=1 PYTHONUTF8=1, TS-014 · 015)
 ```
 
-필요한 것: Python 3.12, Node 20+, MariaDB 11.4(로컬 설치. Docker는 선택). `.env.example`을 `.env`로 복사해 쓴다. 로컬에서는 `DB_SSL_VERIFY=false`로 둔다. 이때 `app/core/db.py`는 TLS 없이 접속한다(Windows asyncmy 문제, TS-001). 새 DB 접속 코드도 `connect_args()`를 재사용한다. 적재기가 `LOAD DATA LOCAL INFILE`을 쓰므로 서버와 클라이언트 연결 양쪽에서 `local_infile`을 켜야 한다. API 키가 비어 있는 수집기는 실패하지 않고 경고 로그를 남긴 뒤 건너뛴다.
+필요한 것: Python 3.12, Node 20+, MariaDB 11.4(로컬 설치. Docker는 선택). `.env.example`을 `.env`로 복사해 쓴다. 로컬에서는 `DB_SSL_VERIFY=false`로 둔다. 이때 `app/core/db.py`는 TLS 없이 접속한다(Windows asyncmy 문제, TS-001). 새 DB 접속 코드도 `connect_args()`를 재사용한다. 외부 API는 `pipeline/common/http.py`의 `ApiClient`로 부른다(재시도, `api_call_log` 한도, 오류 메시지의 키 가림). 적재기가 `LOAD DATA LOCAL INFILE`을 쓰므로 서버와 클라이언트 연결 양쪽에서 `local_infile`을 켜야 한다. API 키가 비어 있는 수집기는 실패하지 않고 경고 로그를 남긴 뒤 건너뛴다.
 
 ## 아키텍처
 

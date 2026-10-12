@@ -220,14 +220,28 @@ CREATE TABLE dart_corp (
   corp_cls       CHAR(1),
   adres          VARCHAR(300),     -- company.json 본사 주소 (Phase 8 좌표, decisions/004)
   bizr6          CHAR(6) AS (LEFT(bizr_no, 6)) PERSISTENT,
-  KEY ix_bizr6 (bizr6)
+  KEY ix_bizr6 (bizr6),
+  KEY ix_name_norm (corp_name_norm)  -- 정확 매칭, company.json 호출 대상 고르기
 );
 
 CREATE TABLE company_dart_link (
   company_id  INT PRIMARY KEY,
   corp_code   CHAR(8) NOT NULL,
   match_type  ENUM('exact','fuzzy','manual') NOT NULL,
-  match_score DECIMAL(4,3)
+  match_score DECIMAL(4,3),
+  KEY ix_corp (corp_code)
+);
+
+CREATE TABLE dart_financial (       -- docs/04 3장 제안, 마이그레이션 0004
+  corp_code         CHAR(8) NOT NULL,
+  bsns_year         SMALLINT NOT NULL,
+  reprt_code        CHAR(5) NOT NULL,   -- 11011 사업보고서
+  revenue           BIGINT,
+  operating_income  BIGINT,
+  net_income        BIGINT,
+  total_liabilities BIGINT,
+  total_equity      BIGINT,             -- 부채비율 = 부채 ÷ 자본
+  PRIMARY KEY (corp_code, bsns_year, reprt_code)
 );
 
 CREATE TABLE mart_company_monthly (

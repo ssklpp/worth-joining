@@ -8,6 +8,8 @@
 
 - `tests/nps_csv.py`의 `Row`, `write_nps_csv(path, ym, rows)`: 실제 헤더 22개(`pipeline/nps/columns.py`)와 CP949 인코딩으로 가상 회사 CSV를 `tmp_path`에 쓴다.
 - 법정동코드 파일도 `tests/unit/test_region_load.py`가 몇 줄짜리 샘플을 직접 쓴다.
+- `dart/CORPCODE.xml`: OpenDART corpCode ZIP 안의 XML과 같은 형식의 가상 법인 3개(상장 1, 비상장 2). 테스트가 ZIP으로 감싸 쓴다.
+- 외부 API 응답은 `httpx.MockTransport`로 흉내 낸다(`tests/unit/test_http.py`).
 
 테스트마다 필요한 행만 적어 두면 무엇을 검사하는지가 테스트 안에서 바로 보인다.
 
