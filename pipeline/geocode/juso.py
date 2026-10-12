@@ -8,6 +8,7 @@ Phase 8(회사 좌표)과 Phase 9(전월세 건물)가 같이 쓴다. 캐시에 
 
 import logging
 import re
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -24,6 +25,10 @@ PROVIDER = "juso"
 DAILY_LIMIT = 50_000  # 승인키 종류별 한도가 문서에 없다. api_call_log로 실제 사용량을 본다
 # 키 · 시스템 오류는 수집을 멈춘다. 그 밖의 오류(검색어 형식 등)는 그 주소만 실패로 캐시한다
 FATAL = {"E0001": "승인되지 않은 키", "E0014": "키 사용 기간 만료", "-999": "시스템 오류"}
+# 짧은 시간에 몰아 부르면 E0007(다량 요청)을 준다. 일시적이므로 기다렸다 다시 부르고 캐시하지 않는다
+THROTTLED = "E0007"
+WAITS = (1, 2, 4, 8, 16)  # 초
+INTERVAL = 0.15  # 호출 사이 기본 간격(초)
 # juso 검색어에 쓸 수 없는 문자(특수문자 · SQL 예약 기호)
 UNSAFE = re.compile(r"[%=><\[\]{}\"'`;|\\^~!?*+$#@&]")
 
@@ -51,8 +56,8 @@ def clean_keyword(keyword: str) -> str:
 
 class Juso:
     def __init__(self, engine: Engine, search_key: str, coord_key: str, transport=None,
-                 backoff: float = 1.0):
-        self.engine = engine
+                 backoff: float = 1.0, interval: float = INTERVAL):
+        self.engine, self.interval = engine, interval
         self.search_key, self.coord_key = search_key, coord_key
         self.search_api = ApiClient(engine, "juso_search", DAILY_LIMIT, secret=search_key,
                                     transport=transport, backoff=backoff)
@@ -71,23 +76,35 @@ class Juso:
             raise ApiError(f"juso {code} {FATAL[code]}: {message}")
         return code, message
 
+    def _call(self, api: ApiClient, url: str, params: dict) -> tuple[dict, str, str]:
+        """E0007이면 간격을 늘려 다시 부른다. 끝내 풀리지 않으면 ApiError(캐시하지 않는다)."""
+        for wait in (*WAITS, None):
+            time.sleep(self.interval)
+            body = api.get(url, params).json()
+            code, message = self._check(body)
+            if code != THROTTLED:
+                return body, code, message
+            if wait is None:
+                raise ApiError(f"juso {code} 다량 요청 제한이 풀리지 않는다: {message}")
+            log.info("juso %s, %s초 뒤 다시 부른다", code, wait)
+            time.sleep(wait if self.interval else 0)
+        raise AssertionError("unreachable")
+
     def search(self, keyword: str, count: int = 10) -> tuple[list[dict], str | None]:
         """(결과, 실패 사유). 검색어 형식 오류 등은 사유로 돌려준다."""
-        body = self.search_api.get(SEARCH_URL, {
+        body, code, message = self._call(self.search_api, SEARCH_URL, {
             "confmKey": self.search_key, "keyword": clean_keyword(keyword), "currentPage": 1,
-            "countPerPage": count, "resultType": "json"}).json()
-        code, message = self._check(body)
+            "countPerPage": count, "resultType": "json"})
         if code != "0":
             return [], f"search {code} {message}"[:100]
         return body["results"].get("juso") or [], None
 
     def coordinate(self, item: dict) -> tuple[float, float] | None:
         """검색 결과 한 건의 건물 출입구 좌표(경도, 위도)."""
-        body = self.coord_api.get(COORD_URL, {
+        body, code, _ = self._call(self.coord_api, COORD_URL, {
             "confmKey": self.coord_key, "admCd": item["admCd"], "rnMgtSn": item["rnMgtSn"],
             "udrtYn": item["udrtYn"], "buldMnnm": item["buldMnnm"], "buldSlno": item["buldSlno"],
-            "resultType": "json"}).json()
-        code, _ = self._check(body)
+            "resultType": "json"})
         found = body["results"].get("juso") or []
         if code != "0" or not found or not found[0].get("entX"):
             return None
