@@ -262,7 +262,7 @@ CREATE TABLE mart_company_summary (
   KEY ix_ind_region (industry_code, region_code)
 );
 -- 최신 월에 없는 회사(폐업 · 탈퇴 가능)는 summary에 행이 없다.
--- 상세 API는 company는 있고 summary가 없으면 mart_company_monthly의 MAX(snapshot_ym)을 last_seen_ym으로 내려준다.
+-- 상세 API는 company는 있고 summary가 없으면 mart_company_monthly에서 members > 0인 MAX(snapshot_ym)을 last_seen_ym으로 내려준다.
 
 CREATE TABLE region (
   region_code  CHAR(5) PRIMARY KEY,
@@ -438,6 +438,7 @@ def normalize_name(name: str) -> str:
 ### q1_company_monthly.sql
 
 ```sql
+-- 실제 파일은 sql/q1_company_monthly.sql. refresh_mart가 DELETE FROM mart_company_monthly 뒤 실행(docs/04 D4)
 INSERT INTO mart_company_monthly
   (company_id, snapshot_ym, members, new_members, lost_members, hire_rate, quit_rate, avg_salary_est)
 SELECT company_id, snapshot_ym, members, new_m, lost_m, hire_rate, quit_rate, avg_salary_est
@@ -471,20 +472,21 @@ ON DUPLICATE KEY UPDATE
 ### q2_company_summary.sql
 
 ```sql
-REPLACE INTO mart_company_summary
+-- refresh_mart가 DELETE FROM mart_company_summary 뒤 같은 트랜잭션에서 실행(docs/04 D1)
+INSERT INTO mart_company_summary
   (company_id, industry_code, region_code, rep_addr_key, workplace_count, latest_ym, members,
    growth_12m, quit_rate_12m, avg_salary_est, pct_growth, pct_stability, pct_salary,
    small_sample, short_history)
 SELECT company_id, industry_code, region_code, rep_addr_key, workplace_count, latest_ym, members,
        growth_12m, quit_rate_12m, avg_salary_est,
-       -- NULL 지표는 별도 파티션으로 분리해 백분위 0을 받지 않게 한다
-       CASE WHEN growth_12m IS NOT NULL THEN ROUND(100 * PERCENT_RANK() OVER (
-            PARTITION BY industry_code, growth_12m IS NULL ORDER BY growth_12m)) END,
-       CASE WHEN quit_rate_12m IS NOT NULL THEN ROUND(100 - 100 * PERCENT_RANK() OVER (
-            PARTITION BY industry_code, quit_rate_12m IS NULL ORDER BY quit_rate_12m)) END,
-       CASE WHEN avg_salary_est IS NOT NULL THEN ROUND(100 * PERCENT_RANK() OVER (
-            PARTITION BY industry_code, avg_salary_est IS NULL ORDER BY avg_salary_est)) END,
-       members < 10,
+       -- NULL 지표와 표본 부족 회사는 별도 파티션으로 분리해 분포에서 빼고 백분위를 NULL로 둔다(docs/04 D6)
+       CASE WHEN growth_12m IS NOT NULL AND NOT small THEN ROUND(100 * PERCENT_RANK() OVER (
+            PARTITION BY industry_code, growth_12m IS NULL OR small ORDER BY growth_12m)) END,
+       CASE WHEN quit_rate_12m IS NOT NULL AND NOT small THEN ROUND(100 - 100 * PERCENT_RANK() OVER (
+            PARTITION BY industry_code, quit_rate_12m IS NULL OR small ORDER BY quit_rate_12m)) END,
+       CASE WHEN avg_salary_est IS NOT NULL AND NOT small THEN ROUND(100 * PERCENT_RANK() OVER (
+            PARTITION BY industry_code, avg_salary_est IS NULL OR small ORDER BY avg_salary_est)) END,
+       small,
        members_12m_ago IS NULL
 FROM (
   WITH latest AS (SELECT MAX(snapshot_ym) AS ym FROM mart_company_monthly),
@@ -511,13 +513,16 @@ FROM (
          w.latest_ym, w.members, w.members_12m_ago,
          w.members / NULLIF(w.members_12m_ago, 0) - 1 AS growth_12m,
          w.lost_12m / NULLIF(w.avg_members_12m, 0)    AS quit_rate_12m,
-         w.avg_salary_est
+         w.avg_salary_est,
+         w.members < 10 AS small
   FROM win w JOIN cur_wp r ON r.company_id = w.company_id AND r.rn = 1
-  WHERE w.members IS NOT NULL      -- 최신 월에 없는 회사(최근 자료 없음)는 summary에 넣지 않는다
+  WHERE w.members > 0      -- 최신 월에 없거나 0명인 회사(최근 자료 없음 · 전부 탈퇴)는 summary에 넣지 않는다
 ) s;
 ```
 
-- NULL 원값은 `PARTITION BY industry_code, 지표 IS NULL`로 분리해 백분위 0을 받지 않는다(이전 버전의 알려진 문제 수정).
+- 실제 파일은 `sql/q2_company_summary.sql`이다. q1 · q2 모두 `pipeline/refresh_mart.py`가 테이블을 비운 뒤 한 트랜잭션에서 실행한다(docs/04 D1 · D4).
+- NULL 원값과 표본 부족(가입자 10명 미만) 회사는 `PARTITION BY industry_code, 지표 IS NULL OR small`로 분리해 업종 분포에 넣지 않고 백분위를 NULL로 둔다(이전 버전의 백분위 0 문제 수정, docs/04 D6). 서울 2026-08 기준 회사의 61%가 표본 부족이다.
+- 최신 월 가입자가 0명인 회사(그달 전부 탈퇴 118곳, 0명 등록 98곳, 2026-08)도 summary에서 뺀다. API의 `last_seen_ym`은 가입자가 있던 마지막 달로 계산한다.
 - 대표 사업장의 업종 · 지역 · 주소 키와 최신 월 사업장 수를 함께 저장한다.
 - MariaDB 10.11.14에서 실행 확인: 짧은 이력 회사는 `growth_12m`·`pct_growth` NULL, `short_history = 1`. 최신 월에 없는 회사는 행 없음.
 
