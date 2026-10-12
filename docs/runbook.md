@@ -4,7 +4,7 @@
 |---|---|
 | 대상 | 배포 · 월 갱신을 맡은 사람 (팀장, T1 · T3) |
 | 기준 | SPEC Phase 7, [06_architecture.md](./06_architecture.md) 4장 |
-| 상태 | 초안 · 2026-10-12. 첫 배포 후 실제 화면 이름 · 값으로 고친다 |
+| 상태 | 첫 배포 완료 · 2026-10-12 (웹 https://web-chi-flax-46.vercel.app, API https://api-production-30254.up.railway.app) |
 
 이 문서만 보고 배포를 처음부터 다시 만들 수 있어야 한다. 비밀번호 · 키는 이 문서와 저장소에 적지 않는다.
 
@@ -39,7 +39,7 @@ Vercel   web   (Next.js, 저장소의 web/)  ──HTTPS──▶  Railway api (
    | `MARIADB_USER` | `wj` |
    | `MARIADB_PASSWORD` | 새로 만든 긴 무작위 값 (로컬 `.env`와 다르게) |
 
-4. 복원하는 동안만 **TCP Proxy**를 켠다(Settings → Networking). 공개 호스트 · 포트가 나온다.
+4. 복원하는 동안만 **TCP Proxy**를 켠다(Settings → Networking, 포트 `3306`). `xxxx.proxy.rlwy.net:12345`처럼 호스트와 포트가 한 줄로 나온다. 클라이언트에는 `-h xxxx.proxy.rlwy.net -P 12345`로 나눠 넣는다(합쳐 넣으면 `Unknown server host`).
 
 ### 2.2 DB 복원
 
@@ -65,14 +65,18 @@ Vercel   web   (Next.js, 저장소의 web/)  ──HTTPS──▶  Railway api (
    | `DATABASE_URL` | `mysql+asyncmy://wj:${{mariadb.MARIADB_PASSWORD}}@${{mariadb.RAILWAY_PRIVATE_DOMAIN}}:3306/worth_joining` |
    | `DATABASE_URL_SYNC` | `mysql+pymysql://wj:${{mariadb.MARIADB_PASSWORD}}@${{mariadb.RAILWAY_PRIVATE_DOMAIN}}:3306/worth_joining` |
    | `DB_SSL_VERIFY` | `false` (사설망 안이라 TLS 없이 붙는다. 6장 참고) |
-   | `CORS_ORIGINS` | `["https://<웹 도메인>.vercel.app"]` (2.4 뒤에 채운다. JSON 배열) |
+   | `CORS_ORIGINS` | 처음엔 `["http://localhost:3000"]`, 2.4 뒤에 `["https://<웹 도메인>.vercel.app","http://localhost:3000"]`. 대괄호 · 큰따옴표까지 그대로, 주소 끝에 `/` 없이 |
+   | `PORT` | `8080` (3에서 도메인에 넣는 포트와 같게. Dockerfile은 `PORT`를 읽는다) |
 
-3. Settings → Networking에서 **공개 도메인을 만든다**(예: `worth-joining-api.up.railway.app`).
+3. Settings → Networking에서 **Generate Domain**, 포트 `8080`(위 `PORT`와 같은 값). 지금 주소: `api-production-30254.up.railway.app`.
+   - 서비스를 만든 직후에는 Networking 칸이 `Could not load public networking`으로 나올 수 있다. 새로고침하거나 첫 배포가 끝난 뒤 다시 연다.
+   - DB 복원 전에 배포되면 헬스 체크가 실패한다. 복원 뒤 다시 배포(Redeploy)하면 된다.
 4. 확인: `https://<api 도메인>/health` → `{"status":"ok","db":"ok","latest_nps_ym":202608}`. `/docs`에서 엔드포인트가 보이는지.
 
 ### 2.4 Vercel: web
 
-1. Vercel에서 저장소를 Import한다. **Root Directory: `web`**, Framework: Next.js(자동).
+1. Vercel에서 저장소를 Import한다. **Root Directory: `web`**, Framework: Next.js(자동). 지금 프로젝트 주소: `web-chi-flax-46.vercel.app`(프로젝트 이름을 바꾸면 주소도 바뀌므로 `CORS_ORIGINS`를 함께 고친다).
+   - Vercel은 보안 취약 버전의 Next.js 배포를 거부한다(troubleshooting TS-019). 의존성을 올릴 때 패치 버전을 쓴다.
 2. 환경 변수 `NEXT_PUBLIC_API_BASE_URL` = `https://<api 도메인>` (끝에 `/` 없이). Production · Preview 모두.
    - `NEXT_PUBLIC_*`는 빌드할 때 코드에 들어간다. 값을 바꾸면 **다시 배포**해야 한다.
 3. 배포 후 나온 Production 도메인을 Railway `api`의 `CORS_ORIGINS`에 넣는다. api가 다시 시작된다.
