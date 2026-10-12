@@ -638,7 +638,7 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 
 | 메서드·경로 | 파라미터 | 응답 핵심 필드 |
 |---|---|---|
-| `GET /companies` | `q`(접두어), `biz_no6`, `industry`, `hiring`(bool, P2), `sort`(name\|growth\|deadline), `limit`(≤50), `cursor` | `items[]{company_id, name, industry{code,name}, region{sido,sigungu}, members, growth_12m, quit_rate_12m, avg_salary_est, open_jobs}`, `next_cursor`. 결과 0건이면 `items: []` |
+| `GET /companies` | `q`(접두어, `normalize_name` 적용), `biz_no6`, `industry`, `region`(시군구 5자리), `hiring`(bool, P2), `sort`(name\|growth, deadline은 Phase 10), `limit`(≤50), `cursor`(정렬값 + `company_id` 키셋, docs/05 A1) | `items[]{company_id, name, industry{code,name}, region{sido,sigungu}, members, growth_12m, quit_rate_12m, avg_salary_est, open_jobs}`, `next_cursor`. 결과 0건이면 `items: []`. 최근 자료 없는(stale) 회사는 검색 결과에서 뺀다(docs/05 A5) |
 | `GET /companies/{id}` | — | `name, industry{code,name}, region{sido,sigungu}, form_type, workplace_count, as_of, members, growth_12m, quit_rate_12m, avg_salary_est, percentiles{growth,stability,salary}, flags[], dart{corp_code,match_type}`. 최근 자료 없음이면 `status:"stale", last_seen_ym`만 내려준다. 없는 ID는 404 |
 | `GET /companies/{id}/trend` | `from_ym`, `to_ym` | `points[]{ym, members, new, lost, hire_rate, quit_rate, avg_salary_est}` |
 | `GET /companies/{id}/financials` | `years`(≤5) | `rows[]{year, revenue, operating_income, net_income, debt_ratio}` |
@@ -651,7 +651,7 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 | `GET /compare` | `ids`(최대 3) | 회사별 `index_series[]`(12개월 전 = 100) + 요약 + `flags[]` |
 | `GET /map/companies` | `industry`, `region`(시도 2자리 또는 시군구 5자리), `metric`(growth\|quit\|salary) | `items[]{company_id, name, lon, lat, accuracy, basis, value}`(최대 200), `truncated` |
 | `GET /meta/methodology` | — | 계산식, 한계, 데이터 기준월, 출처 목록 |
-| `GET /health` | — | `db:"ok"`, `latest_nps_ym`. 확장 시 `latest_rent_ym`, (P2) `match_rate`, `geocode_success_rate` |
+| `GET /health` | — | `status`, `db:"ok"`, `latest_nps_ym`(mart 기준 최신 월). 확장 시 `latest_rent_ym`, (P2) `match_rate`, `geocode_success_rate` |
 
 `flags` 값: `salary_is_lower_bound`, `small_sample`, `short_history`(12개월 미만 이력), `stale`(최신 월에 없음), `approx_location`(좌표 정확도가 building이 아님), `name_matched`, `period_extended_to_24m`.
 
@@ -751,7 +751,7 @@ services:
 ### Phase 4. FastAPI MVP (4일)
 
 1. 라우터: `/companies`, `/companies/{id}`, `/companies/{id}/trend`, `/industries`, `/industries/{code}/distribution`, `/meta/methodology`, `/health`.
-2. 커서 페이지네이션(`company_id > :cursor`), `q`는 `name_norm LIKE 'q%'`.
+2. 키셋 커서 페이지네이션(`(정렬값, company_id)`, docs/05 A1), `q`는 `normalize_name`을 적용한 뒤 `name_norm LIKE 'q%'`(A2).
 3. `services/flags.py`에서 flags 생성(`short_history`, `stale` 포함). summary 행이 없는 회사는 `status:"stale"`로 응답한다.
 4. (P2, 선택) ETag, Cache-Control 미들웨어.
 5. API 테스트: 정상, 404, 422, 페이지네이션 경계, 결과 0건, 최근 자료 없음 회사, 짧은 이력 회사.

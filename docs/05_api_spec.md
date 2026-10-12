@@ -19,7 +19,7 @@
 | 계약 | FastAPI가 만드는 `/openapi.json`이 단일 기준. 프론트는 여기서 타입을 생성 |
 | 공통 필드 | 모든 응답에 `as_of`(데이터 기준월, `YYYYMM`). 추정치가 있으면 `flags[]` |
 | 오류 | `{"detail": "..."}`. 없는 리소스 404, 파라미터 오류 422 |
-| 페이지네이션 | 커서 방식(`cursor`, `next_cursor`), `limit` 최대 50 |
+| 페이지네이션 | 키셋 커서(`cursor`, `next_cursor`), `limit` 최대 50. 커서는 `[sort, 정렬값, company_id]`의 base64url JSON이며, 다른 `sort`의 커서는 422 |
 | 단위 | 비율은 소수(0.183 = 18.3%), 연봉은 원, 전월세는 만 원(`_man` 접미사), 거리는 m |
 | 캐시 | (P2) `ETag` = 마지막 적재 월, `Cache-Control: public, max-age=3600` |
 | CORS | 로컬 `localhost:3000`과 Vercel 배포 도메인만 허용 |
@@ -42,13 +42,13 @@
 
 | 메서드 · 경로 | 단계 | 파라미터 | 응답 핵심 |
 |---|---|---|---|
-| `GET /health` | 4 | — | `db`, `latest_nps_ym` |
-| `GET /companies` | 4 | `q`, `biz_no6`, `industry`, `region`, `sort`, `limit`, `cursor`, (P2) `hiring` | `items[]{company_id, name, industry, region, members, growth_12m, quit_rate_12m, avg_salary_est, open_jobs}`, `next_cursor` |
+| `GET /health` | 4 | — | `status`, `db`, `latest_nps_ym` |
+| `GET /companies` | 4 | `q`, `biz_no6`, `industry`, `region`, `sort`(name\|growth, deadline은 10단계), `limit`, `cursor`, (P2) `hiring` | `items[]{company_id, name, industry, region, members, growth_12m, quit_rate_12m, avg_salary_est, open_jobs}`, `next_cursor` |
 | `GET /companies/{id}` | 4 | — | 기본 정보, 지표, `percentiles{growth,stability,salary}`, `flags[]`, `dart{corp_code,match_type}`. 최근 자료 없음이면 `status:"stale"`, `last_seen_ym` |
 | `GET /companies/{id}/trend` | 4 | `from_ym`, `to_ym` | `points[]{ym, members, new, lost, hire_rate, quit_rate, avg_salary_est}` |
 | `GET /industries` | 4 | `q` | `items[]{code, name, n_companies}` |
 | `GET /industries/{code}/distribution` | 4 | `metric`(salary\|quit\|growth) | `p25, p50, p75, n` |
-| `GET /meta/methodology` | 4 | — | 계산식, 한계, 기준월, 출처 |
+| `GET /meta/methodology` | 4 | — | `formulas[]`, `limitations[]`, `as_of`, `period_from`, `sources[]` |
 | `GET /companies/{id}/financials` | 5 | `years`(≤5) | `rows[]{year, revenue, operating_income, net_income, debt_ratio}` |
 | `GET /map/companies` | 8 | `industry`, `region`, `metric`, **`bbox`(추가 제안)** | `items[]{company_id, name, lon, lat, accuracy, basis, value}`(최대 200), `truncated`. `basis`는 decisions/004 |
 | `GET /compare` | 8 | `ids`(최대 3) | 회사별 `index_series[]`(12개월 전 = 100), 요약, `flags[]` |
@@ -193,10 +193,10 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 
 | # | 심각도 | 문제 | 제안 |
 |---|---|---|---|
-| A1 | 높음 | **커서가 정렬과 맞지 않는다.** SPEC은 `cursor`를 `company_id > :cursor`로 정의하지만, `sort=growth`나 `sort=deadline`이면 `company_id` 순서가 아니라 다음 페이지에서 항목이 빠지거나 겹친다 | 커서를 `(정렬값, company_id)` 쌍으로 인코딩(base64)하고 `WHERE (sort_col, company_id) > (:v, :id)` 키셋 페이지네이션 |
-| A2 | 높음 | **이름 검색이 앞부분 일치뿐이다.** `name_norm LIKE 'q%'`라 "소프트"로 "예시소프트"를 못 찾는다. 사용자 입력에 `normalize_name`을 적용하지 않으면 "(주)예시"도 못 찾는다 | 입력도 `normalize_name`으로 정규화. 앞부분 일치를 우선 정렬하되, MVP 이후 n-gram 전문 검색(`FULLTEXT … WITH PARSER ngram`) 검토 |
+| A1 | 반영 | **커서가 정렬과 맞지 않는다.** SPEC은 `cursor`를 `company_id > :cursor`로 정의하지만, `sort=growth`나 `sort=deadline`이면 `company_id` 순서가 아니라 다음 페이지에서 항목이 빠지거나 겹친다 | 커서를 `(정렬값, company_id)` 쌍으로 인코딩(base64)하고 `WHERE (sort_col, company_id) > (:v, :id)` 키셋 페이지네이션 |
+| A2 | 일부 반영 | **이름 검색이 앞부분 일치뿐이다.** `name_norm LIKE 'q%'`라 "소프트"로 "예시소프트"를 못 찾는다. 사용자 입력에 `normalize_name`을 적용하지 않으면 "(주)예시"도 못 찾는다 | 입력도 `normalize_name`으로 정규화. 앞부분 일치를 우선 정렬하되, MVP 이후 n-gram 전문 검색(`FULLTEXT … WITH PARSER ngram`) 검토. 정규화는 Phase 4에서 반영, 부분 일치는 미정 |
 | A3 | 중간 | **`/stations/{id}/rent`의 `months` 1~24 자유 입력**은 미리 집계가 불가능해 요청 시점 공간 조인이 필요하다 | `months`를 6 · 12 · 24로 제한([04 문서](./04_database_design.md) D7) |
 | A4 | 중간 | **지도 메인 화면에 필요한 필드가 계약에 없다**(위 3장 bbox, 목록 지표, 좌표 없는 회사 수) | 3장 후보를 Phase 8 전에 계약에 반영. T4는 그 전까지 목 응답으로 개발 |
-| A5 | 중간 | **최근 자료 없는 회사는 검색에 안 나온다.** 검색은 `mart_company_summary`를 읽는데 그 회사들은 행이 없다. 상세는 `stale`을 지원하지만 들어갈 경로가 없다 | 검색 결과에 `company`는 있고 summary가 없는 회사를 "최근 자료 없음"으로 뒤에 붙이거나(`include_stale=true`), 의도적으로 제외하고 문서에 명시 |
+| A5 | 반영 | **최근 자료 없는 회사는 검색에 안 나온다.** 검색은 `mart_company_summary`를 읽는데 그 회사들은 행이 없다. 상세는 `stale`을 지원하지만 들어갈 경로가 없다 | 검색 결과에 `company`는 있고 summary가 없는 회사를 "최근 자료 없음"으로 뒤에 붙이거나(`include_stale=true`), 의도적으로 제외하고 문서에 명시. **Phase 4: 제외로 결정**(SPEC 8장). 상세 URL로 들어오면 stale로 보여 준다 |
 | A6 | 낮음 | 응답 단위가 섞여 있다. 연봉은 원, 전월세는 만 원, `monthly_pay_est`는 정의 없음 | 필드명 접미사로 단위를 고정(`_won`, `_man`)하거나 이 문서 1장 단위 규칙을 OpenAPI 설명에 넣는다 |
 | A7 | 낮음 | 공개 API라 대량 수집에 열려 있다 | 배포 후 Railway 앞단 또는 미들웨어에서 IP당 요청 수 제한(P2) |
