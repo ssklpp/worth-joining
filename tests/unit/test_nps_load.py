@@ -67,15 +67,21 @@ def test_withdrawn_only_workplace_creates_no_company(tmp_path, clean_tables):
     assert set(monthly(clean_tables, 202608)) == {"가상A"}
 
 
-def test_withdrawal_month_keeps_lost_members(tmp_path, clean_tables):
-    load(clean_tables, tmp_path, 202607, [Row("가상A", members=8)])
-    load(clean_tables, tmp_path, 202608,
-         [Row("가상A", status="2", members=0, billed=0, lost=8, left_on="2026-08-10")])
-    load(clean_tables, tmp_path, 202609, [Row("가상A", status="2", members=0, billed=0)])
+# 등록 행이 없는 달은 품질 검사에서 실패하므로, 탈퇴 시나리오에는 정상 회사를 하나 함께 둔다
+OTHER = Row("다른회사", biz_no6="777777")
+LEFT_ON_A = "SELECT left_on FROM workplace WHERE workplace_name = '가상A'"
 
-    assert monthly(clean_tables, 202608) == {"가상A": (0, 0, 0, 8)}
-    assert monthly(clean_tables, 202609) == {}  # 이미 탈퇴한 사업장의 남은 행은 넣지 않는다
-    assert str(scalar(clean_tables, "SELECT left_on FROM workplace")) == "2026-08-10"
+
+def test_withdrawal_month_keeps_lost_members(tmp_path, clean_tables):
+    load(clean_tables, tmp_path, 202607, [Row("가상A", members=8), OTHER])
+    load(clean_tables, tmp_path, 202608,
+         [Row("가상A", status="2", members=0, billed=0, lost=8, left_on="2026-08-10"), OTHER])
+    load(clean_tables, tmp_path, 202609, [Row("가상A", status="2", members=0, billed=0), OTHER])
+
+    assert monthly(clean_tables, 202608)["가상A"] == (0, 0, 0, 8)
+    # 이미 탈퇴한 사업장의 남은 행은 넣지 않는다
+    assert "가상A" not in monthly(clean_tables, 202609)
+    assert str(scalar(clean_tables, LEFT_ON_A)) == "2026-08-10"
 
 
 def test_duplicate_natural_key_is_summed(tmp_path, clean_tables):
@@ -89,9 +95,9 @@ def test_duplicate_natural_key_is_summed(tmp_path, clean_tables):
 
 
 def test_reregistered_workplace_clears_left_on(tmp_path, clean_tables):
-    load(clean_tables, tmp_path, 202607, [Row("가상A")])
+    load(clean_tables, tmp_path, 202607, [Row("가상A"), OTHER])
     withdrawn = Row("가상A", status="2", members=0, billed=0, left_on="2026-08-01")
-    load(clean_tables, tmp_path, 202608, [withdrawn])
-    load(clean_tables, tmp_path, 202609, [Row("가상A")])
+    load(clean_tables, tmp_path, 202608, [withdrawn, OTHER])
+    load(clean_tables, tmp_path, 202609, [Row("가상A"), OTHER])
 
-    assert scalar(clean_tables, "SELECT left_on FROM workplace") is None
+    assert scalar(clean_tables, LEFT_ON_A) is None
