@@ -1,7 +1,14 @@
 """회사 조회 SQL. mart_*와 작은 조회용 조인(company, industry, region)만 읽는다(SPEC 0장)."""
 
-from sqlalchemy import RowMapping, text
+from pathlib import Path
+
+from sqlalchemy import RowMapping, bindparam, text
 from sqlalchemy.ext.asyncio import AsyncConnection
+
+SQL_DIR = Path(__file__).resolve().parents[2] / "sql"
+COMPARE = text((SQL_DIR / "q_compare.sql").read_text(encoding="utf-8")).bindparams(
+    bindparam("ids", expanding=True)
+)
 
 LIST_COLUMNS = """
   s.company_id, c.display_name AS name, s.industry_code, i.industry_name,
@@ -113,3 +120,22 @@ async def financials(conn: AsyncConnection, corp_code: str, years: int) -> list[
          ORDER BY bsns_year DESC
          LIMIT :n
     """), {"c": corp_code, "n": years})).mappings())
+
+
+async def summaries(conn: AsyncConnection, ids: list[int]) -> dict[int, RowMapping]:
+    """비교용 요약. 최근 자료 없는(stale) 회사는 summary 컬럼이 NULL이다."""
+    rows = (await conn.execute(text("""
+        SELECT c.company_id, c.display_name AS name, s.industry_code, i.industry_name,
+               r.sido_name, r.sigungu_name, s.members, s.growth_12m, s.quit_rate_12m,
+               s.avg_salary_est, s.small_sample, s.short_history, s.company_id IS NOT NULL AS fresh
+          FROM company c
+          LEFT JOIN mart_company_summary s ON s.company_id = c.company_id
+          LEFT JOIN industry i ON i.industry_code = s.industry_code
+          LEFT JOIN region r ON r.region_code = s.region_code
+         WHERE c.company_id IN :ids
+    """).bindparams(bindparam("ids", expanding=True)), {"ids": ids})).mappings()
+    return {r["company_id"]: r for r in rows}
+
+
+async def compare_series(conn: AsyncConnection, ids: list[int]) -> list[RowMapping]:
+    return list((await conn.execute(COMPARE, {"ids": ids})).mappings())

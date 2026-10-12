@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routers import companies, industries, meta
+from app.routers import companies, compare, industries, meta
 
 app = FastAPI(
     title="다닐만한가 API",
@@ -12,5 +12,6 @@ app = FastAPI(
 )
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=["GET"])
 app.include_router(companies.router)
+app.include_router(compare.router)
 app.include_router(industries.router)
 app.include_router(meta.router)

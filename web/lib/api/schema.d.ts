@@ -77,6 +77,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 회사 비교
+         * @description 회사별 12개월 전 = 100 가입자 지수와 요약 지표. 없는 ID가 있으면 404.
+         */
+        get: operations["compare_compare_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/industries": {
         parameters: {
             query?: never;
@@ -279,6 +299,51 @@ export interface components {
             /** Points */
             points: components["schemas"]["TrendPoint"][];
         };
+        /** CompareItem */
+        CompareItem: {
+            /** Company Id */
+            company_id: number;
+            /** Name */
+            name: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "stale";
+            /** Flags */
+            flags: ("salary_is_lower_bound" | "small_sample" | "short_history" | "stale" | "approx_location" | "name_matched" | "period_extended_to_24m")[];
+            industry?: components["schemas"]["Industry"] | null;
+            region?: components["schemas"]["Region"] | null;
+            /** Members */
+            members?: number | null;
+            /** Growth 12M */
+            growth_12m?: number | null;
+            /** Quit Rate 12M */
+            quit_rate_12m?: number | null;
+            /**
+             * Avg Salary Est
+             * @description 추정 평균 연봉(원, 하한 추정치)
+             */
+            avg_salary_est?: number | null;
+            /**
+             * Index Series
+             * @description 최근 13개월(기준월과 12개월 전 포함)
+             */
+            index_series: components["schemas"]["IndexPoint"][];
+        };
+        /** CompareResult */
+        CompareResult: {
+            /**
+             * As Of
+             * @description 데이터 기준월 YYYYMM. 데이터가 없으면 null
+             */
+            as_of: number | null;
+            /**
+             * Items
+             * @description 요청한 ids 순서
+             */
+            items: components["schemas"]["CompareItem"][];
+        };
         /** DartLink */
         DartLink: {
             /** Corp Code */
@@ -370,6 +435,18 @@ export interface components {
              * @description mart에 반영된 국민연금 최신 월
              */
             latest_nps_ym: number | null;
+        };
+        /** IndexPoint */
+        IndexPoint: {
+            /** Ym */
+            ym: number;
+            /** Members */
+            members: number;
+            /**
+             * Idx
+             * @description 12개월 전 가입자 = 100. 12개월 전 자료가 없으면 null
+             */
+            idx: number | null;
         };
         /** Industry */
         Industry: {
@@ -617,6 +694,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyFinancials"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_compare_get: {
+        parameters: {
+            query: {
+                /** @description 회사 ID를 쉼표로 1 ~ 3개. 예: 12,34,56 */
+                ids: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompareResult"];
                 };
             };
             /** @description Validation Error */

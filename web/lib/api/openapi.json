@@ -341,6 +341,52 @@
     }
    }
   },
+  "/compare": {
+   "get": {
+    "tags": [
+     "compare"
+    ],
+    "summary": "회사 비교",
+    "description": "회사별 12개월 전 = 100 가입자 지수와 요약 지표. 없는 ID가 있으면 404.",
+    "operationId": "compare_compare_get",
+    "parameters": [
+     {
+      "name": "ids",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^[1-9]\\d{0,9}(,[1-9]\\d{0,9}){0,2}$",
+       "description": "회사 ID를 쉼표로 1 ~ 3개. 예: 12,34,56",
+       "title": "Ids"
+      },
+      "description": "회사 ID를 쉼표로 1 ~ 3개. 예: 12,34,56"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CompareResult"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/industries": {
    "get": {
     "tags": [
@@ -918,6 +964,154 @@
     ],
     "title": "CompanyTrend"
    },
+   "CompareItem": {
+    "properties": {
+     "company_id": {
+      "type": "integer",
+      "title": "Company Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "ok",
+       "stale"
+      ],
+      "title": "Status"
+     },
+     "flags": {
+      "items": {
+       "type": "string",
+       "enum": [
+        "salary_is_lower_bound",
+        "small_sample",
+        "short_history",
+        "stale",
+        "approx_location",
+        "name_matched",
+        "period_extended_to_24m"
+       ]
+      },
+      "type": "array",
+      "title": "Flags"
+     },
+     "industry": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Industry"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "region": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Region"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "members": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Members"
+     },
+     "growth_12m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Growth 12M"
+     },
+     "quit_rate_12m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Quit Rate 12M"
+     },
+     "avg_salary_est": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Avg Salary Est",
+      "description": "추정 평균 연봉(원, 하한 추정치)"
+     },
+     "index_series": {
+      "items": {
+       "$ref": "#/components/schemas/IndexPoint"
+      },
+      "type": "array",
+      "title": "Index Series",
+      "description": "최근 13개월(기준월과 12개월 전 포함)"
+     }
+    },
+    "type": "object",
+    "required": [
+     "company_id",
+     "name",
+     "status",
+     "flags",
+     "index_series"
+    ],
+    "title": "CompareItem"
+   },
+   "CompareResult": {
+    "properties": {
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of",
+      "description": "데이터 기준월 YYYYMM. 데이터가 없으면 null"
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/CompareItem"
+      },
+      "type": "array",
+      "title": "Items",
+      "description": "요청한 ids 순서"
+     }
+    },
+    "type": "object",
+    "required": [
+     "as_of",
+     "items"
+    ],
+    "title": "CompareResult"
+   },
    "DartLink": {
     "properties": {
      "corp_code": {
@@ -1159,6 +1353,37 @@
      "latest_nps_ym"
     ],
     "title": "Health"
+   },
+   "IndexPoint": {
+    "properties": {
+     "ym": {
+      "type": "integer",
+      "title": "Ym"
+     },
+     "members": {
+      "type": "integer",
+      "title": "Members"
+     },
+     "idx": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idx",
+      "description": "12개월 전 가입자 = 100. 12개월 전 자료가 없으면 null"
+     }
+    },
+    "type": "object",
+    "required": [
+     "ym",
+     "members",
+     "idx"
+    ],
+    "title": "IndexPoint"
    },
    "Industry": {
     "properties": {
