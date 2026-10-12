@@ -59,7 +59,9 @@ def parse(body: dict, year: int) -> list[dict]:
     has_cfs = {i["corp_code"] for i in items if i.get("fs_div") == "CFS"}
     rows: dict[tuple[str, int], dict] = defaultdict(dict)
     for item in items:
-        code, column = item["corp_code"], ACCOUNTS.get(item.get("account_nm", "").strip())
+        # 실제 응답은 "당기순이익(손실)"처럼 괄호가 붙는다
+        account = item.get("account_nm", "").split("(")[0].strip()
+        code, column = item["corp_code"], ACCOUNTS.get(account)
         if column is None or item.get("fs_div") != ("CFS" if code in has_cfs else "OFS"):
             continue
         for field, back in PERIODS:
