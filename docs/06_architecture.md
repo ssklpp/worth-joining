@@ -104,8 +104,8 @@ GitHub (main 보호, PR + 리뷰 1 + CI)
   ├─ GitHub Actions: ruff check + pytest (mariadb:11.4 서비스 컨테이너)
   ├─ Railway (팀 계정)
   │    ├─ mariadb   : mariadb:11.4 이미지 + 볼륨. 초기 데이터는 로컬 백필 DB를 mariadb-dump로 복원
-  │    ├─ api       : uvicorn app.main:app. 환경 변수: DATABASE_URL, DB_SSL_VERIFY=true
-  │    └─ pipeline  : cron (월 1회 국민연금 + mart, 주 1회 전월세, 일 1회 사람인)
+  │    ├─ api       : Dockerfile(uvicorn app.main:app). 환경 변수: DATABASE_URL, DB_SSL_VERIFY=false(사설망), CORS_ORIGINS
+  │    └─ pipeline  : cron (월 1회 국민연금 + mart, 주 1회 전월세, 일 1회 사람인). MVP에서는 두지 않고 로컬 적재 → 덤프 복원(runbook 4 · 6장)
   └─ Vercel: web. 환경 변수: NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_NAVER_MAP_CLIENT_ID
 ```
 
@@ -121,7 +121,7 @@ GitHub 보호 규칙은 목표 상태다. 지금 적용된 단계는 [decisions/
 
 | # | 심각도 | 문제 | 제안 |
 |---|---|---|---|
-| R1 | 중간 | **스케줄러가 둘이다.** SPEC 2장은 `pipeline/scheduler.py`(APScheduler), 10장은 Railway `pipeline` cron을 둔다. 둘 다 켜면 같은 적재가 겹쳐 돈다 | 운영은 Railway cron 하나(3장 확정 사항). 겹침 방지로 `ingestion_log`에 `running` 행이 있으면 시작하지 않는 잠금 추가 |
+| R1 | 중간 | **스케줄러가 둘이다.** SPEC 2장은 `pipeline/scheduler.py`(APScheduler), 10장은 Railway `pipeline` cron을 둔다. 둘 다 켜면 같은 적재가 겹쳐 돈다 | 운영은 Railway cron 하나(3장 확정 사항). 겹침 방지로 `ingestion_log`에 `running` 행이 있으면 시작하지 않는 잠금 추가. **2026-10-12: MVP는 cron 없이 로컬 적재 → 덤프 복원([runbook](./runbook.md) 4 · 6장)** |
 | R2 | 중간 | **국민연금 월 파일 자동 수집이 정해지지 않았다.** 파일 데이터는 공공데이터포털에서 내려받는 방식일 수 있어 cron만으로 받을 수 있는지 불확실하다 | Phase 1에서 자동 다운로드 가능 여부 확인. 안 되면 runbook에 "월 1회 수동 다운로드 → 업로드 → 적재 명령" 절차를 적는다 |
 | R3 | 중간 | **mart 갱신 중 일관성.** q1 → q2를 한 트랜잭션으로 묶어도 q6(회사-역), 지도용 지오코딩은 별도 단계라, 갱신 사이에 API가 서로 다른 기준월의 데이터를 섞어 볼 수 있다 | `refresh_mart`가 q1 · q2 · q6를 한 트랜잭션에서 실행하고, 마지막에 `as_of`를 기록하는 `mart_meta(latest_ym, refreshed_at)` 한 행을 갱신. API의 `as_of`는 이 행에서 읽는다 |
 | R4 | 중간 | **지오코딩 범위가 지도 기능을 제한한다.** juso 호출 한도 때문에 Phase 8은 일부 회사만 좌표를 얻는다. 지도 메인 화면에서는 좌표 없는 회사가 아예 안 보인다 | 좌표 없는 회사 수를 응답에 넣고 화면에 안내([05 문서](./05_api_spec.md) 3장). 백필은 가입자 많은 순, 담당자 1명이 여러 날 실행 |
