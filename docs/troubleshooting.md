@@ -25,6 +25,8 @@
 | [TS-011](#ts-011-ci에서만-modulenotfounderror-no-module-named-tests) | 2026-10-12 | 테스트 · CI | CI에서만 `ModuleNotFoundError: No module named 'tests'` | 해결 | #14 |
 | [TS-012](#ts-012-백필-중-한-달-core-적재가-10분-넘게-멈춤) | 2026-10-12 | DB · 성능 | 백필 중 한 달 core 적재가 10분 넘게 멈춤 | 해결 | #15 |
 | [TS-013](#ts-013-to_ym에-from_ym-값이-들어감) | 2026-10-12 | API | `to_ym`에 `from_ym` 값이 들어감 | 해결 | #20 |
+| [TS-014](#ts-014-locust-실행-시-gevent-dll-로드-실패) | 2026-10-12 | 환경 · Windows | locust 실행 시 gevent DLL 로드 실패 | 우회 | #21 |
+| [TS-015](#ts-015-localhost-부하-측정에서-최대-응답이-약-2초) | 2026-10-12 | 환경 · Windows | localhost 부하 측정에서 최대 응답이 약 2초 | 우회 | #21 |
 
 ---
 
@@ -157,6 +159,27 @@
 - **원인:** 두 파라미터가 모듈 상수 `YM = Query(None, ...)` 하나를 기본값으로 함께 썼다. FastAPI는 파라미터를 등록할 때 그 `FieldInfo`에 alias(파라미터 이름)를 써 넣으므로, 같은 객체를 공유한 `to_ym`도 쿼리 문자열의 `from_ym`을 읽었다.
 - **해결:** `YM = Annotated[int | None, Query(...)]` 타입 별칭으로 바꾸고 `from_ym: YM = None, to_ym: YM = None`으로 썼다(`app/routers/companies.py`). `tests/api/test_companies.py::test_trend_filters_period`가 from만 · to만 주는 경우를 확인한다.
 - **재발 방지:** `Query()` · `Path()` 객체를 여러 파라미터가 공유하지 않는다. 재사용하려면 `Annotated` 별칭으로 만든다.
+
+---
+
+## TS-014. locust 실행 시 gevent DLL 로드 실패
+
+- **증상:** `python -m locust --version`이 바로 실패했다.
+  ```
+  ImportError: DLL load failed while importing _gevent_c_greenlet_primitives: 응용 프로그램 제어 정책에서 이 파일을 차단했습니다.
+  ```
+  `PURE_PYTHON=1`만 주면 이어서 `Couldn't parse TOML file: 'cp949' codec can't decode byte 0xeb`가 났다.
+- **환경:** Windows 11, 애플리케이션 제어 정책(TS-003과 같은 원인), locust 2.46.7
+- **원인:** 정책이 `.venv` 안의 gevent C 확장(`.pyd`)을 막는다. 순수 Python 구현으로 돌리면 locust가 `pyproject.toml`을 시스템 기본 인코딩(cp949)으로 읽다가 한글 주석에서 실패한다.
+- **해결:** `PURE_PYTHON=1`(gevent 순수 Python 구현)과 `PYTHONUTF8=1`(UTF-8 모드)을 함께 준다. `greenlet`은 정책에 막히지 않았다. 실행 예는 `tests/perf/locustfile.py` 첫 부분에 있다.
+- **재발 방지:** C 확장이 있는 개발 도구가 막히면 먼저 순수 Python 모드가 있는지 찾는다.
+
+## TS-015. localhost 부하 측정에서 최대 응답이 약 2초
+
+- **증상:** `--host http://localhost:8000`으로 locust를 돌리면 p95는 6ms인데 최대가 2,047 ~ 2,100ms로, 요청 종류마다 몇 건씩 튀었다.
+- **원인:** Windows에서 `localhost`가 IPv6 `::1`로 먼저 풀린다. uvicorn은 `127.0.0.1`에만 열려 있어 새 연결마다 `::1` 연결 실패를 기다린 뒤 IPv4로 다시 붙는다. 튀는 건수가 사용자 수(연결 수)와 비슷했다.
+- **해결:** 측정 대상을 `http://127.0.0.1:8000`으로 바꾸자 최대가 75ms가 됐다. 서버 성능 문제가 아니다.
+- **재발 방지:** 로컬 성능 측정은 `127.0.0.1`을 쓴다(`tests/perf/locustfile.py`, `docs/explain.md` 2장).
 
 ---
 
