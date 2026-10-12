@@ -436,11 +436,13 @@ CREATE TABLE job_posting (
 
 ```python
 import re
+import unicodedata
 CORP_TOKENS = re.compile(r"\(주\)|㈜|주식회사|\(유\)|유한회사|\(사\)|사단법인")
 NON_WORD = re.compile(r"[^0-9A-Za-z가-힣]")
 
 def normalize_name(name: str) -> str:
-    return NON_WORD.sub("", CORP_TOKENS.sub("", name)).upper()
+    # NFKC: 전각 "（주）" · "ＡＢＣ"를 반각으로 바꾼 뒤 정규화한다(troubleshooting TS-016)
+    return NON_WORD.sub("", CORP_TOKENS.sub("", unicodedata.normalize("NFKC", name))).upper()
 ```
 
 매칭 순서: ① 정규화 이름 완전 일치(+사업자번호 6자리 일치 가능 시) → `exact` ② rapidfuzz `token_sort_ratio` ≥ 85 → `fuzzy` ③ 그 외 연결하지 않음.
