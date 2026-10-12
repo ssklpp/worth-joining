@@ -718,7 +718,7 @@ services:
    - `INSERT ... SELECT ... ON DUPLICATE KEY UPDATE`로 `company` → `workplace` → `workplace_monthly`
    - `company` · `workplace`는 등록(`status_code=1`) 행에서만 만든다. `workplace_monthly`에는 등록 행과, 전월에 가입자가 있던 사업장의 탈퇴 행(탈퇴한 달의 상실자)을 넣는다. 그래서 월은 오름차순으로 적재한다. 탈퇴 행의 `left_on`으로 `workplace.left_on`을 갱신한다(docs/decisions/003)
    - 자연키 `(biz_no6, name_norm, workplace_name, legal_dong_code)`가 같은 행은 `members` · `billed_amount` · `new_members` · `lost_members`를 합산하고 `joined_on`은 가장 이른 값을 쓴다
-4. 품질 검사(실패 시 `ingestion_log.status='failed'`, mart 갱신 중단. 기준 근거는 docs/decisions/003):
+4. 품질 검사(`pipeline/nps/quality.py`, raw · core 적재와 같은 트랜잭션. 실패 시 그 달의 raw · core를 되돌려 이전 상태를 유지하고 `ingestion_log.status='failed'`에 실패한 검사와 값을 남기며, `--all`은 그 달에서 멈춘다. 기준 근거는 docs/decisions/003):
    - `raw_nps_workplace` 해당 월 행 수가 전월 대비 ±10% 초과
    - 등록 행 중 `members ≤ 0` 비율이 1% 초과(탈퇴 행의 0명은 정상)
    - 등록 행 중 `billed_amount > members × income_cap × rate`인 행이 1건 이상
