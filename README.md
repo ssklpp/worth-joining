@@ -3,13 +3,15 @@
 > 공공데이터로 보는 회사 · 채용 · 주거비
 > "이 회사, 다닐 만한가?"에 숫자로 답하는 구직자용 웹 서비스
 
-![status](https://img.shields.io/badge/status-개발%20중%20(Phase%206%20완료)-blue)
+![status](https://img.shields.io/badge/status-MVP%20배포%20(Phase%207%20완료)-blue)
 ![python](https://img.shields.io/badge/Python-3.12-3776AB)
 ![fastapi](https://img.shields.io/badge/FastAPI-backend-009688)
 ![mariadb](https://img.shields.io/badge/MariaDB-11.4%20LTS-003545)
 ![nextjs](https://img.shields.io/badge/Next.js-frontend-000000)
 
 국민연금 가입 사업장 데이터와 DART 공시로 **서울특별시 사업장** 회사의 **인원 추이 · 입퇴사율 · 추정 연봉**을 보여줍니다. 여기에 **채용공고**(사람인 API)와 **회사 근처 역세권 전월세 시세**를 연결해, 지원부터 출근 이후의 생활비까지 한 화면에서 판단할 수 있게 합니다.
+
+**서비스:** https://web-chi-flax-46.vercel.app · **API 문서:** https://api-production-30254.up.railway.app/docs (2026-08 국민연금 자료 기준)
 
 LLM·RAG 같은 AI 기능 없이 **데이터 수집 → 정제 → DB 모델링 → SQL 분석 → API 제공**의 전 과정을 직접 구현하는 프로젝트입니다.
 
@@ -378,7 +380,7 @@ Windows에서 실행 파일이 막히거나 CI에서만 실패하면 [docs/troub
 > 기간: 2026-10-02 ~ 2026-10-21 (4인 팀)
 
 - [x] **10/02~10/07: 기획 · 설계** (요구사항, SPEC, 화면 시안)
-- [ ] **10/08~10/16: 회사 체력 MVP 개발 · 배포**
+- [x] **10/08~10/16: 회사 체력 MVP 개발 · 배포**
   - [x] 저장소 · CI · 로컬 DB (Phase 0)
   - [x] 데이터 프로파일링 (Phase 1, 서울 13개월)
   - [x] 스키마, 국민연금 적재 파이프라인 · 품질 검사, 13개월 백필 (Phase 2)
@@ -386,8 +388,8 @@ Windows에서 실행 파일이 막히거나 CI에서만 실패하면 [docs/troub
   - [x] FastAPI 엔드포인트, 테스트, 상세 p95 6ms (Phase 4)
   - [x] DART 연동 · 매칭, 재무 API (Phase 5, 서울 본사 상장사 매칭률 69.1%)
   - [x] 웹: 검색 · 회사 상세 · 계산 방법 (Phase 6)
-  - [ ] 배포
-  - [ ] 채용공고 바로가기 링크
+  - [x] 배포: Railway(api · mariadb) + Vercel(web) (Phase 7)
+  - [x] 채용공고 바로가기 링크(사람인 검색)
 - [ ] **10/19~10/21: 회사 비교 · 지도, 검증 · 문서화, `v1.0.0`**
   - [ ] 지도용 회사 좌표 변환 (주소정보누리집)
   - [ ] 비교 · 지도 화면
