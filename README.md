@@ -365,6 +365,10 @@ ruff check .
 
 부하 측정(locust)은 [tests/perf/locustfile.py](./tests/perf/locustfile.py) 첫 부분, 결과는 [docs/explain.md](./docs/explain.md) 2장에 있습니다.
 
+**6. 배포**
+
+Railway(api · mariadb)와 Vercel(web) 배포, DB 복원, 월 갱신 절차는 [docs/runbook.md](./docs/runbook.md)에 있습니다.
+
 Windows에서 실행 파일이 막히거나 CI에서만 실패하면 [docs/troubleshooting.md](./docs/troubleshooting.md)를 먼저 봅니다.
 
 ---

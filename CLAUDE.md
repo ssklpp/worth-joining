@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 다닐만한가(Worth Joining)는 공공데이터(국민연금 사업장 내역(**서울특별시 사업장만**, `docs/decisions/002`), OpenDART, 서울시 전월세 실거래가, 사람인 채용공고)로 회사의 인원 추이 · 입퇴사율 · 추정 연봉을 보여주는 구직자용 웹 서비스다. 4인 팀, 기간은 2026-10-02 ~ 2026-10-21이고 MVP 배포 목표는 10/16이다.
 
-**Phase 6(웹 MVP)까지 끝났다(2026-10-12).** 마이그레이션 `0005`, 서울 13개월(2025-08 ~ 2026-08) 적재 · 품질 검사, `region`, `mart_company_monthly` · `mart_company_summary`(`refresh_mart`), API `/companies` · `/companies/{id}` · `/trend` · `/industries` · `/distribution` · `/meta/methodology` · `/health`까지 있다(키셋 커서, stale 회사는 검색 제외. docs/05 A1 · A2 · A5). DART(Phase 5: `dart_corp` · `company_dart_link` · `dart_financial`, `/companies/{id}/financials`, docs/matching.md)까지 끝났다. 웹(Phase 6): `web/`은 Next.js 15 App Router, `/` 검색 · `/companies/[id]` 상세 · `/methodology`, 회사 지표는 결과표 3행(decisions/005). 데이터는 브라우저에서 `useApi`로 불러온다. 배포(Phase 7)는 아직이다. 팀 공유 드라이브의 DB 덤프는 `worth_joining_20261012_phase5.zip`(Alembic 0005, DART 포함)이다. `SPEC.md`가 구현 지시서이며 다른 문서와 충돌하면 SPEC을 따른다. 무엇이든 만들기 전에 먼저 읽는다.
+**Phase 6(웹 MVP)까지 끝났다(2026-10-12).** 마이그레이션 `0005`, 서울 13개월(2025-08 ~ 2026-08) 적재 · 품질 검사, `region`, `mart_company_monthly` · `mart_company_summary`(`refresh_mart`), API `/companies` · `/companies/{id}` · `/trend` · `/industries` · `/distribution` · `/meta/methodology` · `/health`까지 있다(키셋 커서, stale 회사는 검색 제외. docs/05 A1 · A2 · A5). DART(Phase 5: `dart_corp` · `company_dart_link` · `dart_financial`, `/companies/{id}/financials`, docs/matching.md)까지 끝났다. 웹(Phase 6): `web/`은 Next.js 15 App Router, `/` 검색 · `/companies/[id]` 상세 · `/methodology`, 회사 지표는 결과표 3행(decisions/005). 데이터는 브라우저에서 `useApi`로 불러온다. 배포(Phase 7)는 `Dockerfile` · `railway.json` · docs/runbook.md까지 준비했고 실제 배포 전이다. Railway에서 적재 cron은 돌리지 않는다(로컬 적재 → 덤프 복원). 팀 공유 드라이브의 DB 덤프는 `worth_joining_20261012_phase5.zip`(Alembic 0005, DART 포함)이다. `SPEC.md`가 구현 지시서이며 다른 문서와 충돌하면 SPEC을 따른다. 무엇이든 만들기 전에 먼저 읽는다.
 - `SPEC.md`: 기술 스택, 저장소 구조, DDL(5장), 계산 규칙(6장), 핵심 SQL(7장), API 계약(8장), 화면(9장), 단계별 진행과 완료 조건(10장), 팀 운영 규칙(12장)
 - `docs/01_project_overview.md`, `README.md`: 개요와 범위
 - `docs/02_requirements.md`: 요구사항 ID, 우선순위(P0~P3), Task ID(10장, 예: `T1-04`)
@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docs/04_database_design.md`: ERD, 테이블 관계, SPEC에 없는 DDL 제안, DB 설계 문제점(D1~D9)
 - `docs/05_api_spec.md`: API 구조 · 엔드포인트 · SPEC 밖 후보, 외부 API와 키(4장: 발급 · 보관 · `.env.example` · 한도 · 호출 원칙), API 문제점(A1~A7)
 - `docs/06_architecture.md`: 전체 구조, 데이터 흐름, 최종 기술 스택, 배포, 아키텍처 문제점(R1~R7)과 전체 우선순위표. 이 문서들의 "제안"은 SPEC에 반영되기 전까지 확정이 아니다
+- `docs/runbook.md`: 배포(Railway · Vercel) · DB 복원 · 월 갱신(수동) · 백업 절차
 - `docs/matching.md`: DART 매칭 규칙 · 매칭률 · 연결 안 된 원인
 - `docs/troubleshooting.md`: 겪은 에러 · 버그 · 환경 문제와 해결 방법(TS-NNN). 에러가 나면 먼저 여기서 찾는다
 
