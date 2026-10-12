@@ -704,10 +704,13 @@ services:
    - CSV → UTF-8 변환 → `LOAD DATA LOCAL INFILE`로 `raw_nps_workplace`(해당 월 삭제 후 적재)
    - `normalize_name`으로 `name_norm` 계산
    - `INSERT ... SELECT ... ON DUPLICATE KEY UPDATE`로 `company` → `workplace` → `workplace_monthly`
-4. 품질 검사(실패 시 `ingestion_log.status='failed'`, mart 갱신 중단):
-   - 전월 대비 행 수 ±10% 초과
-   - `members ≤ 0`
-   - `billed_amount > members × income_cap × rate`
+   - `company` · `workplace`는 등록(`status_code=1`) 행에서만 만든다. `workplace_monthly`에는 등록 행과, 이미 있는 사업장의 탈퇴 행(탈퇴한 달의 상실자)을 넣는다. 탈퇴 행의 `left_on`으로 `workplace.left_on`을 갱신한다(docs/decisions/003)
+   - 자연키 `(biz_no6, name_norm, workplace_name, legal_dong_code)`가 같은 행은 `members` · `billed_amount` · `new_members` · `lost_members`를 합산하고 `joined_on`은 가장 이른 값을 쓴다
+4. 품질 검사(실패 시 `ingestion_log.status='failed'`, mart 갱신 중단. 기준 근거는 docs/decisions/003):
+   - `raw_nps_workplace` 해당 월 행 수가 전월 대비 ±10% 초과
+   - 등록 행 중 `members ≤ 0` 비율이 1% 초과(탈퇴 행의 0명은 정상)
+   - 등록 행 중 `billed_amount > members × income_cap × rate`인 행이 1건 이상
+   - 적재 월이 `nps_rate` 기간 밖
 5. 13개월 백필.
 
 완료 조건: 같은 월 2회 적재 시 행 수 동일(테스트), 13개월 적재 완료, 품질 검사 테스트 통과.
