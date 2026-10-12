@@ -33,6 +33,28 @@ def migrated_db() -> str:
     return url
 
 
+@pytest.fixture(scope="session")
+def pipeline_engine(migrated_db: str):
+    """테스트 DB에 붙는 파이프라인용 동기 엔진(local_infile 켬)."""
+    from pipeline.common.db import sync_engine
+
+    engine = sync_engine(migrated_db.replace("+asyncmy", "+pymysql"))
+    yield engine
+    engine.dispose()
+
+
+@pytest.fixture
+def clean_tables(pipeline_engine):
+    """커밋하는 파이프라인 테스트용. 끝나면 적재 관련 테이블을 비운다."""
+    yield pipeline_engine
+    with pipeline_engine.begin() as conn:
+        conn.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
+        for table in ("workplace_monthly", "workplace", "company", "industry",
+                      "raw_nps_workplace", "ingestion_log"):
+            conn.execute(text(f"TRUNCATE TABLE {table}"))
+        conn.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
+
+
 @pytest.fixture
 async def db(migrated_db: str):
     """테스트마다 트랜잭션을 열고 끝나면 롤백한다."""
