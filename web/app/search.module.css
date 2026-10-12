@@ -10,8 +10,11 @@
 .head { width: 100%; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; }
 .sort { font-size: var(--fs-s); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 4px 6px; }
 .items { width: 100%; list-style: none; margin: 0; padding: 0; }
-.items li:last-child .item { border-bottom: 1px solid var(--rule); }
-.item { display: flex; flex-direction: column; gap: 4px; padding: 14px 4px; border-top: 1px solid var(--rule); color: var(--ink); text-decoration: none; }
+.items li:last-child .row { border-bottom: 1px solid var(--rule); }
+.row { display: flex; align-items: flex-start; gap: 12px; border-top: 1px solid var(--rule); }
+.item { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding: 14px 4px; color: var(--ink); text-decoration: none; }
+.compare { flex: none; margin-top: 14px; }
+@media (max-width: 640px) { .row { flex-direction: column; gap: 0; } .compare { margin: 0 4px 14px; } }
 .item:hover { background: var(--surface); }
 .name { font-weight: 600; font-size: var(--fs-l); overflow-wrap: anywhere; }
 .sub { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: var(--fs-s); color: var(--muted); }

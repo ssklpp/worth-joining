@@ -51,6 +51,8 @@ button, select, input { font: inherit; color: inherit; }
 
 .button { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-s); font-weight: 500; padding: 7px 14px; border-radius: 4px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); text-decoration: none; cursor: pointer; }
 .button.quiet { background: transparent; color: var(--ink); border-color: var(--rule); }
+.button.quiet[aria-pressed="true"] { border-color: var(--pen); color: var(--pen); }
+.button:disabled { opacity: .5; cursor: default; }
 
 /* 참고 상자: --caution 글자, --caution-bg 바탕, 왼쪽 강조 막대 없음(docs/03 7장) */
 .note { background: var(--caution-bg); color: var(--caution); font-size: var(--fs-s); padding: 10px 14px; border-radius: 4px; }
