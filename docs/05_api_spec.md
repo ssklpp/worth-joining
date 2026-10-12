@@ -33,7 +33,7 @@
 | `short_history` | 12개월 전 자료 없음 | 회사, 비교 |
 | `stale` | 최신 월에 없음(폐업 · 탈퇴 가능) | 회사 상세 |
 | `approx_location` | 좌표 정확도가 건물 단위가 아님 | 지도, 회사 상세 |
-| `name_matched` | DART · 사람인을 이름 유사도로 연결 | 재무, 채용 |
+| `name_matched` | DART · 사람인을 이름 유사도로 연결(점수 1.0 미만) | 재무, 채용 |
 | `period_extended_to_24m` | 계약이 적어 24개월로 넓힘 | 주거비 |
 
 ## 2. 엔드포인트
@@ -147,7 +147,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 |---|---|---|
 | `corpCode.xml` | 고유번호 전체(ZIP) → `dart_corp` | 월 1회 |
 | `company.json` | 사업자번호 `bizr_no` 획득 → `bizr6` 생성 컬럼 | 필요 시. 호출 우선순위: 상장사 → `company`에 같은 `name_norm`이 있는 법인 |
-| `fnlttSinglAcnt.json` | 단일회사 주요계정 → `dart_financial`. `reprt_code=11011`(사업보고서) 우선 | 분기 1회 |
+| `fnlttMultiAcnt.json` | 다중회사 주요계정 → `dart_financial`. `reprt_code=11011`(사업보고서), 한 번에 100개 법인 · 당기 · 전기 · 전전기. 최근 연도와 3년 전 두 번 불러 6개년 | 분기 1회 |
 
 `company.json` 전수 호출(수만 건)은 하루 한도를 넘으므로 며칠에 나눠 실행한다(4.2의 4번).
 

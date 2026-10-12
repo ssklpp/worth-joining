@@ -94,3 +94,22 @@ async def trend(
          WHERE company_id = :id AND snapshot_ym BETWEEN :from_ym AND :to_ym
          ORDER BY snapshot_ym
     """), {"id": company_id, "from_ym": from_ym or 0, "to_ym": to_ym or 999912})).mappings())
+
+
+async def dart_link(conn: AsyncConnection, company_id: int) -> RowMapping | None:
+    return (await conn.execute(text("""
+        SELECT d.corp_code, d.corp_name, l.match_type, l.match_score
+          FROM company_dart_link l JOIN dart_corp d ON d.corp_code = l.corp_code
+         WHERE l.company_id = :id
+    """), {"id": company_id})).mappings().first()
+
+
+async def financials(conn: AsyncConnection, corp_code: str, years: int) -> list[RowMapping]:
+    return list((await conn.execute(text("""
+        SELECT bsns_year AS year, revenue, operating_income, net_income,
+               total_liabilities / NULLIF(GREATEST(total_equity, 0), 0) AS debt_ratio
+          FROM dart_financial
+         WHERE corp_code = :c AND reprt_code = '11011'
+         ORDER BY bsns_year DESC
+         LIMIT :n
+    """), {"c": corp_code, "n": years})).mappings())
