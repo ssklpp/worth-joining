@@ -1,57 +1,8 @@
 """회사 API 테스트 (T3-04 · 05 · 06). mart 행을 테스트 트랜잭션에 직접 넣고 롤백한다."""
 
-import httpx
 import pytest
-from sqlalchemy import text
 
-from app.core.db import get_conn
-from app.main import app
-from pipeline.common.normalize import normalize_name
-
-LATEST = 202608
-
-
-@pytest.fixture
-async def client(db):
-    async def override():
-        yield db
-
-    app.dependency_overrides[get_conn] = override
-    await db.execute(text("INSERT INTO industry VALUES ('620100', '컴퓨터 프로그래밍 서비스업')"))
-    await db.execute(text("INSERT INTO region VALUES ('11680', '서울특별시', '강남구')"))
-    transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
-        yield c
-    app.dependency_overrides.clear()
-
-
-async def add_company(db, company_id, name, *, form_type=1, biz_no6="123456"):
-    await db.execute(text("INSERT INTO company VALUES (:id, :b, :norm, :name)"),
-                     {"id": company_id, "b": biz_no6, "norm": normalize_name(name), "name": name})
-    await db.execute(text(
-        "INSERT INTO workplace (company_id, workplace_name, form_type, industry_code)"
-        " VALUES (:id, :name, :f, '620100')"
-    ), {"id": company_id, "name": name, "f": form_type})
-
-
-async def add_summary(db, company_id, *, members=50, growth=0.1, salary=50_000_000,
-                      small=False, short=False, pct=(50, 60, 70)):
-    await db.execute(text("""
-        INSERT INTO mart_company_summary
-          (company_id, industry_code, region_code, workplace_count, latest_ym, members,
-           growth_12m, quit_rate_12m, avg_salary_est, pct_growth, pct_stability, pct_salary,
-           small_sample, short_history)
-        VALUES (:id, '620100', '11680', 1, :ym, :m, :g, 0.12, :sal, :p1, :p2, :p3, :small, :short)
-    """), {"id": company_id, "ym": LATEST, "m": members, "g": growth, "sal": salary,
-           "p1": None if small else pct[0], "p2": None if small else pct[1],
-           "p3": None if small else pct[2], "small": small, "short": short})
-
-
-async def add_monthly(db, company_id, yms, members=50):
-    for ym in yms:
-        await db.execute(text(
-            "INSERT INTO mart_company_monthly VALUES (:id, :ym, :m, 2, 1, 0.04, 0.02, 48000000)"
-        ), {"id": company_id, "ym": ym, "m": members})
+from tests.api.seed import LATEST, add_company, add_monthly, add_summary
 
 
 async def test_search_normalizes_query_prefix(client, db):

@@ -3,7 +3,7 @@
 > 공공데이터로 보는 회사 · 채용 · 주거비
 > "이 회사, 다닐 만한가?"에 숫자로 답하는 구직자용 웹 서비스
 
-![status](https://img.shields.io/badge/status-개발%20중%20(Phase%202%20완료)-blue)
+![status](https://img.shields.io/badge/status-개발%20중%20(Phase%204%20완료)-blue)
 ![python](https://img.shields.io/badge/Python-3.12-3776AB)
 ![fastapi](https://img.shields.io/badge/FastAPI-backend-009688)
 ![mariadb](https://img.shields.io/badge/MariaDB-11.4%20LTS-003545)
@@ -276,7 +276,7 @@ WHERE MBRContains(ST_Buffer(s.pt, 0.006), b.pt)
 
 ## 프로젝트 구조
 
-> `app/`의 엔드포인트, `sql/`, `web/`은 아직 비어 있습니다(Phase 3 이후).
+> 회사 · 업종 · 메타 API(Phase 4)까지 있습니다. `web/`과 지도 · 비교 · 재무 API는 이후 Phase에서 추가합니다.
 
 ```
 worth-joining/
@@ -305,7 +305,7 @@ worth-joining/
 
 ## 시작하기
 
-> 지금은 데이터 적재와 `/health`까지 동작합니다. mart 갱신(`refresh_mart`)과 웹은 이후 Phase에서 추가합니다.
+> 지금은 데이터 적재, mart 갱신, 회사 검색 · 상세 · 추이 · 업종 API까지 동작합니다. 웹은 이후 Phase에서 추가합니다.
 
 **필요한 것:** Python 3.12, Node.js 20+, MariaDB 11.4 (Docker는 선택)
 
@@ -340,18 +340,19 @@ Docker를 쓴다면 `docker compose up -d mariadb`로 대신할 수 있습니다
 
 **3. 데이터**
 
-팀원은 공유 드라이브의 DB 덤프(`worth_joining_YYYYMMDD.zip`)를 불러오면 됩니다. 방법은 zip 안의 `README.txt`에 있습니다. 직접 적재하려면 공공데이터포털에서 국민연금 월 파일과 법정동코드 전체자료를 받아 `data/raw/`에 둡니다.
+팀원은 공유 드라이브의 DB 덤프(`worth_joining_YYYYMMDD.zip`)를 불러오면 됩니다. 방법은 zip 안의 `README.txt`에 있습니다. 덤프가 mart 이전 상태면 `python -m alembic upgrade head`와 `python -m pipeline.refresh_mart`를 이어서 실행합니다. 직접 적재하려면 공공데이터포털에서 국민연금 월 파일과 법정동코드 전체자료를 받아 `data/raw/`에 둡니다.
 
 ```bash
 python -m pipeline.nps.extract_seoul data/raw/nps/all/*.csv   # 전국 → 서울 추출
 python -m pipeline.region.load                                # 시군구 이름
 python -m pipeline.nps.load --all                             # 13개월, 월 오름차순 (약 2분)
+python -m pipeline.refresh_mart                               # mart 갱신 (약 23초)
 ```
 
 **4. 실행**
 
 ```bash
-python -m uvicorn app.main:app --reload     # http://localhost:8000/health
+python -m uvicorn app.main:app --reload     # http://localhost:8000/docs
 ```
 
 **5. 테스트**
@@ -360,6 +361,8 @@ python -m uvicorn app.main:app --reload     # http://localhost:8000/health
 python -P -m pytest                         # CI와 같은 조건
 ruff check .
 ```
+
+부하 측정(locust)은 [tests/perf/locustfile.py](./tests/perf/locustfile.py) 첫 부분, 결과는 [docs/explain.md](./docs/explain.md) 2장에 있습니다.
 
 Windows에서 실행 파일이 막히거나 CI에서만 실패하면 [docs/troubleshooting.md](./docs/troubleshooting.md)를 먼저 봅니다.
 
@@ -374,8 +377,8 @@ Windows에서 실행 파일이 막히거나 CI에서만 실패하면 [docs/troub
   - [x] 저장소 · CI · 로컬 DB (Phase 0)
   - [x] 데이터 프로파일링 (Phase 1, 서울 13개월)
   - [x] 스키마, 국민연금 적재 파이프라인 · 품질 검사, 13개월 백필 (Phase 2)
-  - [ ] mart SQL (월별 지표, 요약 · 백분위)
-  - [ ] FastAPI 엔드포인트, 테스트
+  - [x] mart SQL (월별 지표, 요약 · 백분위) (Phase 3)
+  - [x] FastAPI 엔드포인트, 테스트, 상세 p95 6ms (Phase 4)
   - [ ] DART 연동 · 매칭, 배포
   - [ ] 채용공고 바로가기 링크
 - [ ] **10/19~10/21: 회사 비교 · 지도, 검증 · 문서화, `v1.0.0`**

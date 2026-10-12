@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 다닐만한가(Worth Joining)는 공공데이터(국민연금 사업장 내역(**서울특별시 사업장만**, `docs/decisions/002`), OpenDART, 서울시 전월세 실거래가, 사람인 채용공고)로 회사의 인원 추이 · 입퇴사율 · 추정 연봉을 보여주는 구직자용 웹 서비스다. 4인 팀, 기간은 2026-10-02 ~ 2026-10-21이고 MVP 배포 목표는 10/16이다.
 
-**Phase 3(mart SQL)까지 끝났다(2026-10-12).** 마이그레이션 `0003`, 서울 13개월(2025-08 ~ 2026-08) 적재 · 품질 검사, `region`, `mart_company_monthly` · `mart_company_summary`(`refresh_mart`)까지 있다. API 엔드포인트(Phase 4)와 웹은 아직 없다. 13개월 DB 덤프는 팀 공유 드라이브에 있다. `SPEC.md`가 구현 지시서이며 다른 문서와 충돌하면 SPEC을 따른다. 무엇이든 만들기 전에 먼저 읽는다.
+**Phase 4(FastAPI MVP)까지 끝났다(2026-10-12).** 마이그레이션 `0003`, 서울 13개월(2025-08 ~ 2026-08) 적재 · 품질 검사, `region`, `mart_company_monthly` · `mart_company_summary`(`refresh_mart`), API `/companies` · `/companies/{id}` · `/trend` · `/industries` · `/distribution` · `/meta/methodology` · `/health`까지 있다(키셋 커서, stale 회사는 검색 제외. docs/05 A1 · A2 · A5). DART(Phase 5)와 웹은 아직 없다. 13개월 DB 덤프는 팀 공유 드라이브에 있다. `SPEC.md`가 구현 지시서이며 다른 문서와 충돌하면 SPEC을 따른다. 무엇이든 만들기 전에 먼저 읽는다.
 - `SPEC.md`: 기술 스택, 저장소 구조, DDL(5장), 계산 규칙(6장), 핵심 SQL(7장), API 계약(8장), 화면(9장), 단계별 진행과 완료 조건(10장), 팀 운영 규칙(12장)
 - `docs/01_project_overview.md`, `README.md`: 개요와 범위
 - `docs/02_requirements.md`: 요구사항 ID, 우선순위(P0~P3), Task ID(10장, 예: `T1-04`)
@@ -46,6 +46,7 @@ cd web && npm install && npm run dev         # 프론트엔드, :3000
 ruff check .
 pytest                                       # 전체 테스트 (Windows: python -P -m pytest, CI와 같은 조건. TS-011)
 pytest tests/sql/test_x.py::test_name        # 단일 테스트
+python -m locust -f tests/perf/locustfile.py --host http://127.0.0.1:8000 --headless -u 20 -r 5 -t 60s   # 부하 측정 (Windows: PURE_PYTHON=1 PYTHONUTF8=1, TS-014 · 015)
 ```
 
 필요한 것: Python 3.12, Node 20+, MariaDB 11.4(로컬 설치. Docker는 선택). `.env.example`을 `.env`로 복사해 쓴다. 로컬에서는 `DB_SSL_VERIFY=false`로 둔다. 이때 `app/core/db.py`는 TLS 없이 접속한다(Windows asyncmy 문제, TS-001). 새 DB 접속 코드도 `connect_args()`를 재사용한다. 적재기가 `LOAD DATA LOCAL INFILE`을 쓰므로 서버와 클라이언트 연결 양쪽에서 `local_infile`을 켜야 한다. API 키가 비어 있는 수집기는 실패하지 않고 경고 로그를 남긴 뒤 건너뛴다.
@@ -105,7 +106,7 @@ pytest tests/sql/test_x.py::test_name        # 단일 테스트
   - PR: `gh pr create`로 연다. Claude는 PR까지만 만들고, 병합은 사람이 웹에서 Squash and merge한다(저장소는 squash만 허용, 커밋 제목 = PR 제목).
   - 정리: 원격 브랜치는 병합 시 자동 삭제된다. 로컬은 `git switch main; git pull; git branch -D <branch>; git fetch --prune`.
 - 트랙별 담당 영역: T1 `pipeline/`, T2 `migrations/` · `sql/` · `tests/sql/`, T3 `app/` · `tests/api/` · `.github/`, T4 `web/`. 마이그레이션은 T2가 관리하므로 병합 전에 `alembic heads`가 정확히 1개인지 확인한다. API 계약 변경은 별도 PR로 하고 T4의 리뷰를 받는다.
-- 테스트는 실제 API 키 없이 `tests/fixtures/`(국민연금 축소 CSV, DART · 전월세 · 사람인 응답 샘플)로 돌아가야 한다. `tests/conftest.py`는 세션마다 테스트 DB를 비우고 `alembic upgrade head`를 한 번 실행하며, 테스트마다 트랜잭션을 롤백한다.
+- 테스트는 실제 API 키 없이 `tests/fixtures/`(국민연금 축소 CSV, DART · 전월세 · 사람인 응답 샘플)로 돌아가야 한다. `tests/conftest.py`는 세션마다 테스트 DB를 비우고 `alembic upgrade head`를 한 번 실행하며, 테스트마다 트랜잭션을 롤백한다. API 테스트는 `tests/api/conftest.py`의 `client`가 라우터 의존성 `get_conn`을 그 트랜잭션으로 바꾸고, mart 행은 `tests/api/seed.py`로 넣는다.
 - 결정 사항은 `docs/decisions/NNN-제목.md`에 기록한다.
 - 에러 · 버그 · 환경 문제를 해결하면 `docs/troubleshooting.md`에 TS 항목(증상 · 원인 · 해결 · 재발 방지)과 목록 한 줄을 추가하고, 해결 PR 본문에 TS 번호를 적는다. 문서 끝의 양식을 따른다.
 - ponytail 스킬(코드 최소화)을 쓰더라도 SPEC이 정한 구조(`repositories/`, `services/`, 3계층 DB, Alembic)와 위 테스트 규칙(`tests/fixtures/`, SPEC의 회귀 테스트 목록)은 줄이지 않는다. 이것들은 요청된 사항이다.
