@@ -3,7 +3,7 @@
 > 공공데이터로 보는 회사 · 채용 · 주거비
 > "이 회사, 다닐 만한가?"에 숫자로 답하는 구직자용 웹 서비스
 
-![status](https://img.shields.io/badge/status-개발%20중%20(Phase%204%20완료)-blue)
+![status](https://img.shields.io/badge/status-개발%20중%20(Phase%205%20완료)-blue)
 ![python](https://img.shields.io/badge/Python-3.12-3776AB)
 ![fastapi](https://img.shields.io/badge/FastAPI-backend-009688)
 ![mariadb](https://img.shields.io/badge/MariaDB-11.4%20LTS-003545)
@@ -276,7 +276,7 @@ WHERE MBRContains(ST_Buffer(s.pt, 0.006), b.pt)
 
 ## 프로젝트 구조
 
-> 회사 · 업종 · 메타 API(Phase 4)까지 있습니다. `web/`과 지도 · 비교 · 재무 API는 이후 Phase에서 추가합니다.
+> 회사 · 업종 · 메타 API(Phase 4)와 DART 매칭 · 재무 API(Phase 5)까지 있습니다. `web/`과 지도 · 비교 API는 이후 Phase에서 추가합니다.
 
 ```
 worth-joining/
@@ -379,7 +379,8 @@ Windows에서 실행 파일이 막히거나 CI에서만 실패하면 [docs/troub
   - [x] 스키마, 국민연금 적재 파이프라인 · 품질 검사, 13개월 백필 (Phase 2)
   - [x] mart SQL (월별 지표, 요약 · 백분위) (Phase 3)
   - [x] FastAPI 엔드포인트, 테스트, 상세 p95 6ms (Phase 4)
-  - [ ] DART 연동 · 매칭, 배포
+  - [x] DART 연동 · 매칭, 재무 API (Phase 5, 서울 본사 상장사 매칭률 69.1%)
+  - [ ] 배포
   - [ ] 채용공고 바로가기 링크
 - [ ] **10/19~10/21: 회사 비교 · 지도, 검증 · 문서화, `v1.0.0`**
   - [ ] 지도용 회사 좌표 변환 (주소정보누리집)
