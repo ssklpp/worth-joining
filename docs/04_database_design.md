@@ -169,6 +169,7 @@ erDiagram
 | company → mart_company_summary | 1:0..1 | 없음(mart) | 최신 월에 없는 회사는 행이 없다 → API가 `stale`로 응답 |
 | company → company_dart_link → dart_corp | 1:0..1:1 | 없음 | 한 회사는 DART 법인 하나에만 연결. 미연결이면 행 없음 |
 | company ↔ station (company_station) | N:M, 회사당 최대 3 | 없음(mart 성격) | 대표 사업장 기준, 1km 이내 |
+| company → company_location → geocode_cache | 1:0..1:1 | 없음 | 회사별 최종 좌표와 정확도 · 근거(decisions/004) |
 | building → rent_contract | 1:N | 없음 | 좌표 변환 전 계약은 `building_id` NULL |
 | saramin_company_link → company | N:0..1 | 없음 | `match_type='none'`이면 company_id NULL |
 | 대표 사업장 | company당 1 | q2에서 계산 | 최신 월 가입자 수 최대(동률은 `workplace_id` 작은 쪽) |
@@ -226,6 +227,8 @@ CREATE TABLE mart_company_jobs (
   KEY ix_expires (nearest_expires_at)
 );
 ```
+
+`company_location`(회사별 지도 좌표)과 `dart_corp.adres`(본사 주소)는 [decisions/004](./decisions/004-회사-좌표-정확도.md)로 채택되어 SPEC 5.2에 DDL이 들어갔다.
 
 `raw_nps_workplace`, `raw_rent_contract`, `raw_saramin_job`의 컬럼은 원본 헤더를 그대로 따르므로 Phase 1 프로파일링(`pipeline/nps/columns.py`, `docs/profiling.md`) 뒤에 확정한다. 공통으로 `snapshot_ym`(또는 수집일)과 적재 `run_id`를 둔다.
 

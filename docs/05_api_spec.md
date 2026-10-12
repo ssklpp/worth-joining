@@ -50,7 +50,7 @@
 | `GET /industries/{code}/distribution` | 4 | `metric`(salary\|quit\|growth) | `p25, p50, p75, n` |
 | `GET /meta/methodology` | 4 | — | 계산식, 한계, 기준월, 출처 |
 | `GET /companies/{id}/financials` | 5 | `years`(≤5) | `rows[]{year, revenue, operating_income, net_income, debt_ratio}` |
-| `GET /map/companies` | 8 | `industry`, `region`, `metric`, **`bbox`(추가 제안)** | `items[]{company_id, name, lon, lat, accuracy, value}`(최대 200), `truncated` |
+| `GET /map/companies` | 8 | `industry`, `region`, `metric`, **`bbox`(추가 제안)** | `items[]{company_id, name, lon, lat, accuracy, basis, value}`(최대 200), `truncated`. `basis`는 decisions/004 |
 | `GET /compare` | 8 | `ids`(최대 3) | 회사별 `index_series[]`(12개월 전 = 100), 요약, `flags[]` |
 | `GET /stations` | 9 | `q`, `line`, `sort` | `items[]{station_id, name, lines[], monthly_median, n}` |
 | `GET /stations/{id}/rent` | 9 | `months`, `contract` | 분포, 전세 비중, `trend[]{ym, median}` |
@@ -94,7 +94,7 @@
 | `/map/companies` 응답에 `members`, `growth_12m`, `quit_rate_12m`, `avg_salary_est`, `open_jobs` | 왼쪽 목록이 핀마다 지표 3개와 공고 수를 보여준다. 없으면 회사마다 상세를 따로 불러야 한다 | **채택 권장** |
 | `/map/companies` 응답에 `ungeocoded_count` | 좌표가 없는 회사는 지도에 안 나온다. "지도 안의 회사 N곳"이 전체처럼 보이지 않게 알려야 한다 | **채택 권장** |
 | `/compare` 응답에 `open_jobs`, `nearest_station_rent`, `burden_mid` | 비교 표에 채용 · 주거비 행이 있다 | 채택(확장 단계에서 필드 추가) |
-| `/companies/{id}` 응답에 `rep_location{lon,lat,accuracy}` | 상세를 열 때 지도를 그 회사로 이동해야 한다 | 채택 |
+| `/companies/{id}` 응답에 `rep_location{lon,lat,accuracy,basis}` (`company_location`에서) | 상세를 열 때 지도를 그 회사로 이동해야 한다 | 채택 |
 | `GET /search/suggest?q=` (자동완성) | 검색창 편의 | 보류(P3). `/companies?q=&limit=5`로 대체 |
 | `GET /regions` | 지역 필터 목록 | 보류. 시안 범위가 서울이라 프론트 상수로 충분 |
 
