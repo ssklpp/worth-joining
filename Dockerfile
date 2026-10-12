@@ -7,6 +7,7 @@ WORKDIR /srv
 COPY pyproject.toml README.md LICENSE ./
 COPY app ./app
 COPY pipeline ./pipeline
+COPY sql ./sql
 RUN pip install .
 
 # Railway가 PORT를 넣어 준다. 로컬에서는 8000

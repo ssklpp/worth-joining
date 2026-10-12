@@ -77,6 +77,7 @@ MariaDB 11.4.13 로컬, 서울 13개월 실데이터(`mart_company_summary` 126,
 | 업종 목록 | `industry` `ALL`(1,428행) + summary `ix_ind_salary` 커버링 | 23ms |
 | 업종 분포(salary · quit) | summary `ref` `ix_ind_region` + 임시 테이블 | 7ms |
 | `/meta/methodology` 시작월 `MIN(snapshot_ym)` | `mart_company_monthly` `ALL`(165만 행) | 133ms |
+| 비교 `/compare`(3곳, `sql/q_compare.sql`) | `mart_company_monthly` PK `range` · `ref`, 기준월은 summary `LIMIT 1` | 9ms (기준월을 `MAX(snapshot_ym)`으로 구하면 275 ~ 378ms) |
 
 ### name 정렬 조인 순서 고정
 

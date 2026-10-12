@@ -31,6 +31,7 @@
 | [TS-017](#ts-017-company-json-수집이-data-too-long-for-column-bizr_no로-중단) | 2026-10-12 | 데이터 · DART | company.json 수집이 `Data too long for column 'bizr_no'`로 중단 | 해결 | #24 |
 | [TS-018](#ts-018-dart-재무의-순이익이-모두-비어-있음) | 2026-10-12 | 데이터 · DART | DART 재무의 순이익이 모두 비어 있음 | 해결 | #25 |
 | [TS-019](#ts-019-vercel이-취약한-nextjs-배포를-거부함) | 2026-10-12 | 배포 · 보안 | Vercel이 취약한 Next.js 배포를 거부함 | 해결 | #30 |
+| [TS-020](#ts-020-sql-파일-주석의-콜론이-바인드-파라미터로-읽힘) | 2026-10-12 | API · SQL | SQL 파일 주석의 콜론이 바인드 파라미터로 읽힘 | 해결 | #32 |
 
 ---
 
@@ -227,6 +228,18 @@
 - **원인:** `create-next-app@15.5.4`로 `web/`을 만들어 Next.js 15.5.4 · React 19.1.0이 들어갔다. 이 버전은 React Server Components 원격 코드 실행 취약점(CVE-2025-66478, React 쪽 CVE-2025-55182) 패치 전이라 Vercel이 배포를 막는다. 로컬 빌드와 CI는 경고 없이 통과했다.
 - **해결:** 같은 15.5 계열의 패치 버전으로 올렸다. `next` 15.5.27, `react` · `react-dom` 19.1.9, `eslint-config-next` 15.5.27. 코드 변경 없이 lint · 타입 검사 · 빌드가 통과했다.
 - **재발 방지:** 프레임워크를 새로 만들 때 버전을 고르기 전에 `npm view <패키지>@<계열> version`으로 최신 패치를 확인하고, `npm install` 로그의 `deprecated ... security vulnerability` 경고를 넘기지 않는다.
+
+---
+
+## TS-020. SQL 파일 주석의 콜론이 바인드 파라미터로 읽힘
+
+- **증상:** `sql/q_compare.sql`을 `text()`로 실행하자 `/compare` 테스트가 실패했다.
+  ```
+  sqlalchemy.exc.InvalidRequestError: A value is required for bind parameter 'ids는'
+  ```
+- **원인:** SQL 주석에 `-- :ids는 회사 ID 목록`이라고 썼다. SQLAlchemy `text()`는 주석 안도 가리지 않고 `:이름`을 바인드 파라미터로 찾는데, 한글도 이름 글자로 보아 `ids는`이라는 파라미터가 하나 더 생겼다.
+- **해결:** 주석에서 콜론을 뺐다("ids 파라미터는 …").
+- **재발 방지:** `sql/` 파일 주석에는 `:이름` 형태를 쓰지 않는다. 파일 첫머리 주석에 이 규칙을 적었다.
 
 ---
 

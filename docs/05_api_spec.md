@@ -51,7 +51,7 @@
 | `GET /meta/methodology` | 4 | — | `formulas[]`, `limitations[]`, `as_of`, `period_from`, `sources[]` |
 | `GET /companies/{id}/financials` | 5 | `years`(≤5) | `rows[]{year, revenue, operating_income, net_income, debt_ratio}` |
 | `GET /map/companies` | 8 | `industry`, `region`, `metric`, **`bbox`(추가 제안)** | `items[]{company_id, name, lon, lat, accuracy, basis, value}`(최대 200), `truncated`. `basis`는 decisions/004 |
-| `GET /compare` | 8 | `ids`(최대 3) | 회사별 `index_series[]`(12개월 전 = 100), 요약, `flags[]` |
+| `GET /compare` | 8 | `ids`(쉼표로 1 ~ 3개) | `items[]`: 요약 지표, `status`(ok · stale), `flags[]`, `index_series[]{ym, members, idx}`(12개월 전 = 100) |
 | `GET /stations` | 9 | `q`, `line`, `sort` | `items[]{station_id, name, lines[], monthly_median, n}` |
 | `GET /stations/{id}/rent` | 9 | `months`, `contract` | 분포, 전세 비중, `trend[]{ym, median}` |
 | `GET /companies/{id}/housing` | 9 | `months`(6\|12\|24) | `monthly_pay_est`, `stations[]{name, lines[], distance_m, monthly_median, jeonse_median_man, n, burden{low,mid,high}, flags[]}` |
