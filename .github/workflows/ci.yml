@@ -50,3 +50,17 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
+
+  api-image:  # 필수 검사는 아니다. Railway가 빌드할 Dockerfile이 깨지지 않았는지 본다
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - run: docker build -t worth-joining-api .
+      - name: 앱을 불러올 수 있는지 (DB 연결 없이)
+        run: >-
+          docker run --rm
+          -e DATABASE_URL=mysql+asyncmy://u:p@db:3306/x
+          -e DATABASE_URL_SYNC=mysql+pymysql://u:p@db:3306/x
+          -e 'CORS_ORIGINS=["https://example.vercel.app"]'
+          worth-joining-api
+          python -c "from app.main import app; from app.core.config import settings; print(len(app.routes), settings.cors_origins)"
