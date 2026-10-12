@@ -49,7 +49,7 @@ worth-joining/
 │  └─ services/        # flags 생성
 ├─ pipeline/
 │  ├─ common/          # http 클라이언트(재시도·호출 수 집계), normalize.py, ingestion_log
-│  ├─ nps/  dart/  rent/  stations/  geocode/  saramin/
+│  ├─ nps/  dart/  rent/  stations/  geocode/  saramin/  region/
 │  ├─ refresh_mart.py
 │  └─ scheduler.py
 ├─ sql/                # mart 갱신 SQL (q1_company_monthly.sql ...)
@@ -711,7 +711,7 @@ services:
 ### Phase 2. 스키마와 국민연금 적재 (3~4일)
 
 1. Alembic으로 5.2의 회사 관련 테이블 + `nps_rate`, `ingestion_log`, `api_call_log`, `raw_nps_workplace` 생성.
-2. `nps_rate` 초기값 시드 마이그레이션. `region`은 법정동코드 전체자료에서, `industry`는 국민연금 파일의 업종 코드 · 이름에서 채운다.
+2. `nps_rate` 초기값 시드 마이그레이션. `region`은 법정동코드 전체자료(서울 행만 남긴 `data/raw/region/legal_dong_codes_seoul.txt`)에서 `python -m pipeline.region.load`로, `industry`는 국민연금 파일의 업종 코드 · 이름에서 채운다.
 3. 적재기 `python -m pipeline.nps.load --ym YYYYMM`:
    - CSV → UTF-8 변환 → `LOAD DATA LOCAL INFILE`로 `raw_nps_workplace`(해당 월 삭제 후 적재)
    - `normalize_name`으로 `name_norm` 계산
