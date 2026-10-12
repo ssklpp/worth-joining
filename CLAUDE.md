@@ -28,7 +28,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 7 | 핵심 SQL (q1, q2, 지도, 비교, q5, q6, 파티션 순환) | 424 |
 | 8 · 9 | API 계약 · 화면 | 618 · 645 |
 | 10 | 진행 단계 (Phase 0~11과 완료 조건) | 660 |
-| 11 · 12 | 하지 않는 것 · 팀 운영 | 848 · 861 |
+| 11 · 12 | 하지 않는 것 · 팀 운영 | 851 · 864 |
 
 ## 명령어 (SPEC 3장 · 10장 참고. pipeline · web은 예정)
 
@@ -56,7 +56,7 @@ pytest tests/sql/test_x.py::test_name        # 단일 테스트
 
 - **3계층 DB.** `raw_*`는 원본을 받은 그대로 보존한다. core 테이블(`company`, `workplace`, `workplace_monthly`, `dart_*`, `geocode_cache`, `station`, `building`, `rent_contract` 등)은 정규화된 데이터, `mart_*`는 미리 집계한 데이터다. **API는 `mart_*`만 읽고**, `company` · `region` · `industry` · `geocode_cache` 같은 작은 조회용 조인만 허용한다. 요청 시점에 집계하지 않는다. 정제 규칙이 바뀌면 raw에서 다시 만든다.
 - **회사 식별**은 `biz_no6` + `name_norm`(`pipeline/common/normalize.py`의 `normalize_name`)이다. 출처 사이에 공통 키가 없다. DART · 사람인 매칭 순서는 정규화 이름 완전 일치(+사업자번호 6자리) → rapidfuzz `token_sort_ratio ≥ 85` → 그 외에는 연결하지 않음. `match_type`과 `match_score`는 항상 기록한다.
-- **멱등 적재.** `INSERT … ON DUPLICATE KEY UPDATE` 또는 `REPLACE`와 해시 키(`row_hash`)를 쓴다. 같은 월을 다시 넣어도 행 수와 값이 같아야 한다. 모든 실행은 체크섬과 함께 `ingestion_log`에 기록하고, 이미 `success`인 체크섬은 건너뛴다. 소스별 일일 호출 수는 `api_call_log`에 남기고 한도에 닿으면 수집을 멈춘다. 품질 검사(전월 대비 행 수 ±10% 초과, `members ≤ 0`, 고지금액이 상한 초과)에 걸리면 `status='failed'`로 남기고 mart를 갱신하지 않는다.
+- **멱등 적재.** `INSERT … ON DUPLICATE KEY UPDATE` 또는 `REPLACE`와 해시 키(`row_hash`)를 쓴다. 같은 월을 다시 넣어도 행 수와 값이 같아야 한다. 모든 실행은 체크섬과 함께 `ingestion_log`에 기록하고, 이미 `success`인 체크섬은 건너뛴다. 소스별 일일 호출 수는 `api_call_log`에 남기고 한도에 닿으면 수집을 멈춘다. 품질 검사(전월 대비 행 수 ±10% 초과, **등록 행 중** `members ≤ 0` 비율 1% 초과, 고지금액이 상한 초과, `nps_rate` 기간 밖)에 걸리면 `status='failed'`로 남기고 mart를 갱신하지 않는다. 탈퇴 행은 0명이 정상이다. 회사 · 사업장은 등록 행에서만 만들고, 자연키 중복 행은 합산한다(`docs/decisions/003`).
 - **기준값은 코드 상수가 아니라 테이블에 둔다.** 보험료율 · 소득 상한은 `nps_rate`(2025년까지 9%, 2026년부터 9.5%), 전월세전환율은 `conversion_rate`에 둔다.
 - **통계는 SQL로 작성한다**(윈도 함수, CTE, 조건부 집계). SQL은 `sql/`에 파일로 두고, `app/repositories/`에서는 `text()`로 실행한다. pandas는 파일 정제에만 쓴다.
 - **모든 응답에 `as_of`를 넣는다.** 추정치가 들어간 응답에는 `flags`(`salary_is_lower_bound`, `small_sample`, `short_history`, `stale`, `approx_location`, `name_matched`, `period_extended_to_24m`)도 넣으며, `app/services/flags.py`에서 만든다. `company` 행은 있는데 `mart_company_summary` 행이 없는 회사는 `status:"stale"`과 `last_seen_ym`을 내려준다.
