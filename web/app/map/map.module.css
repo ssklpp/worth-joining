@@ -1,0 +1,18 @@
+.layout { display: flex; flex-direction: column; gap: 16px; }
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: var(--fs-s); }
+.filters label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.filters select, .filters input { font-size: var(--fs-s); color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 5px 8px; }
+.filters input { width: 220px; max-width: 60vw; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.seg button { font-size: var(--fs-s); padding: 4px 10px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); color: var(--muted); cursor: pointer; }
+.seg button[aria-checked="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.status { display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-s); }
+.picked { display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.card h3 a { color: var(--ink); }
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 16px; margin: 0; }
+@media (max-width: 640px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.facts dt { font-size: var(--fs-xs); color: var(--muted); }
+.facts dd { margin: 0; font-weight: 500; font-size: var(--fs-s); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.compare { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
