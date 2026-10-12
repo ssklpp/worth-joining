@@ -33,7 +33,7 @@
 | `short_history` | 12개월 전 자료 없음 | 회사, 비교 |
 | `stale` | 최신 월에 없음(폐업 · 탈퇴 가능) | 회사 상세 |
 | `approx_location` | 좌표 정확도가 건물 단위가 아님 | 지도, 회사 상세 |
-| `name_matched` | DART · 사람인을 이름 유사도로 연결 | 재무, 채용 |
+| `name_matched` | DART · 사람인을 이름 유사도로 연결(점수 1.0 미만) | 재무, 채용 |
 | `period_extended_to_24m` | 계약이 적어 24개월로 넓힘 | 주거비 |
 
 ## 2. 엔드포인트
@@ -120,7 +120,7 @@
 1. 키는 `.env`(백엔드)와 `.env.local`(프론트)에만 넣고 `.gitignore`에 포함한다. 저장소에는 값이 빈 `.env.example`만 커밋한다.
 2. 키를 메신저 · 이슈 · PR 본문에 붙여넣지 않는다. 실수로 커밋하면 즉시 재발급하고 이력에서 제거한다.
 3. CI와 테스트는 키 없이 `tests/fixtures/`로만 돌아간다.
-4. 대용량 백필(국민연금 13개월, DART 전수, 전월세 24개월 좌표 변환)은 담당자 1명이 실행하고 결과를 `mariadb-dump`로 공유한다. 여러 명이 동시에 돌려 한도를 나눠 쓰지 않는다.
+4. 대용량 백필(국민연금 13개월, DART 전수, 전월세 24개월 좌표 변환)은 담당자 1명이 실행하고 결과를 `mariadb-dump`로 공유한다. 여러 명이 동시에 돌려 한도를 나눠 쓰지 않는다. 예외: 한 키의 하루 한도를 다 쓴 뒤 남은 양을 같은 날 끝내야 하면, 키 주인의 동의를 받아 담당자가 그 키로 이어서 실행한다(2026-10-12 DART company.json). `api_call_log`는 키마다 따로 센다.
 
 ```dotenv
 # backend (.env)
@@ -147,7 +147,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 |---|---|---|
 | `corpCode.xml` | 고유번호 전체(ZIP) → `dart_corp` | 월 1회 |
 | `company.json` | 사업자번호 `bizr_no` 획득 → `bizr6` 생성 컬럼 | 필요 시. 호출 우선순위: 상장사 → `company`에 같은 `name_norm`이 있는 법인 |
-| `fnlttSinglAcnt.json` | 단일회사 주요계정 → `dart_financial`. `reprt_code=11011`(사업보고서) 우선 | 분기 1회 |
+| `fnlttMultiAcnt.json` | 다중회사 주요계정 → `dart_financial`. `reprt_code=11011`(사업보고서), 한 번에 100개 법인 · 당기 · 전기 · 전전기. 최근 연도와 3년 전 두 번 불러 6개년 | 분기 1회 |
 
 `company.json` 전수 호출(수만 건)은 하루 한도를 넘으므로 며칠에 나눠 실행한다(4.2의 4번).
 

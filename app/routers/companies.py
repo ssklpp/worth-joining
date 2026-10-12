@@ -9,9 +9,12 @@ from app.repositories import companies as repo
 from app.schemas.common import Industry, Region
 from app.schemas.company import (
     CompanyDetail,
+    CompanyFinancials,
     CompanyList,
     CompanyListItem,
     CompanyTrend,
+    DartLink,
+    FinancialRow,
     Percentiles,
     TrendPoint,
 )
@@ -31,6 +34,13 @@ def _industry(row) -> Industry:
 
 def _region(row) -> Region:
     return Region(sido=row["sido_name"], sigungu=row["sigungu_name"])
+
+
+def _dart(link) -> DartLink | None:
+    if link is None:
+        return None
+    return DartLink(corp_code=link["corp_code"], corp_name=link["corp_name"],
+                    match_type=link["match_type"])
 
 
 def _num(value):
@@ -82,6 +92,7 @@ async def company_detail(company_id: CompanyId, conn: Conn):
         raise HTTPException(404, "회사를 찾을 수 없다")
     as_of = await repo.latest_ym(conn)
     s = await repo.get_summary(conn, company_id)
+    link = await repo.dart_link(conn, company_id)
     if s is None:
         stale = CompanyDetail(company_id=company_id, name=company["name"], as_of=as_of,
                               status="stale", flags=company_flags(None),
@@ -96,6 +107,7 @@ async def company_detail(company_id: CompanyId, conn: Conn):
         avg_salary_est=s["avg_salary_est"],
         percentiles=Percentiles(growth=s["pct_growth"], stability=s["pct_stability"],
                                 salary=s["pct_salary"]),
+        dart=_dart(link),
     )
 
 
@@ -115,4 +127,26 @@ async def company_trend(
         points=[TrendPoint(ym=r["ym"], members=r["members"], new=r["new"], lost=r["lost"],
                            hire_rate=_num(r["hire_rate"]), quit_rate=_num(r["quit_rate"]),
                            avg_salary_est=r["avg_salary_est"]) for r in rows],
+    )
+
+
+@router.get("/{company_id}/financials", response_model=CompanyFinancials, summary="재무")
+async def company_financials(
+    company_id: CompanyId, conn: Conn, years: int = Query(5, ge=1, le=5),
+) -> CompanyFinancials:
+    """DART와 연결된 회사만 rows가 있다. 연결되지 않았으면 dart null, rows []."""
+    if await repo.get_company(conn, company_id) is None:
+        raise HTTPException(404, "회사를 찾을 수 없다")
+    link = await repo.dart_link(conn, company_id)
+    rows = await repo.financials(conn, link["corp_code"], years) if link else []
+    return CompanyFinancials(
+        company_id=company_id, as_of=await repo.latest_ym(conn),
+        # 영문 · &를 한글로 읽어 같아진 1.0점 연결은 이름이 같은 것으로 본다(docs/matching.md)
+        flags=["name_matched"] if link and link["match_type"] == "fuzzy"
+        and link["match_score"] < 1 else [],
+        dart=_dart(link),
+        rows=[FinancialRow(year=r["year"], revenue=r["revenue"],
+                           operating_income=r["operating_income"], net_income=r["net_income"],
+                           debt_ratio=None if r["debt_ratio"] is None
+                           else round(float(r["debt_ratio"]), 4)) for r in rows],
     )

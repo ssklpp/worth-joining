@@ -34,3 +34,17 @@ async def add_monthly(db, company_id, yms, members=50):
         await db.execute(text(
             "INSERT INTO mart_company_monthly VALUES (:id, :ym, :m, 2, 1, 0.04, 0.02, 48000000)"
         ), {"id": company_id, "ym": ym, "m": members})
+
+
+async def add_dart(db, company_id, *, corp_code="00000001", match_type="exact",
+                   score=1, years=None):
+    """DART 법인 연결과 재무. years: {연도: (매출, 영업이익, 순이익, 부채, 자본)}."""
+    await db.execute(text("INSERT INTO dart_corp (corp_code, corp_name, corp_name_norm)"
+                          " VALUES (:c, '가상소프트', '가상소프트')"), {"c": corp_code})
+    await db.execute(text("INSERT INTO company_dart_link VALUES (:id, :c, :t, :s)"),
+                     {"id": company_id, "c": corp_code, "t": match_type, "s": score})
+    for year, (rev, op, net, debt, equity) in (years or {}).items():
+        await db.execute(text(
+            "INSERT INTO dart_financial VALUES (:c, :y, '11011', :rev, :op, :net, :debt, :eq)"
+        ), {"c": corp_code, "y": year, "rev": rev, "op": op, "net": net, "debt": debt,
+            "eq": equity})

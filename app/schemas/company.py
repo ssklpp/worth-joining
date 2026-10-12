@@ -38,6 +38,14 @@ class Percentiles(BaseModel):
     salary: int | None
 
 
+class DartLink(BaseModel):
+    corp_code: str
+    corp_name: str
+    match_type: Literal["exact", "fuzzy", "manual"] = Field(
+        description="exact: 사업자번호 6자리 + 이름 일치, fuzzy: 이름 유사도(docs/matching.md)"
+    )
+
+
 class CompanyDetail(BaseModel):
     company_id: int
     name: str
@@ -57,7 +65,7 @@ class CompanyDetail(BaseModel):
     percentiles: Percentiles | None = Field(
         None, description="서울 사업장 중 대표 업종 안 백분위. 표본 부족이면 모두 null"
     )
-    dart: dict | None = Field(None, description="DART 연결(Phase 5 전에는 null)")
+    dart: DartLink | None = Field(None, description="DART 연결. 연결되지 않았으면 null")
 
 
 class TrendPoint(BaseModel):
@@ -75,3 +83,21 @@ class CompanyTrend(BaseModel):
     as_of: int | None = AS_OF
     flags: list[Flag]
     points: list[TrendPoint]
+
+
+class FinancialRow(BaseModel):
+    year: int
+    revenue: int | None = Field(description="매출액(금융업은 영업수익), 원")
+    operating_income: int | None
+    net_income: int | None
+    debt_ratio: float | None = Field(description="부채총계 ÷ 자본총계. 자본이 0 이하이면 null")
+
+
+class CompanyFinancials(BaseModel):
+    company_id: int
+    as_of: int | None = AS_OF
+    flags: list[Flag] = Field(description="이름 유사도(1.0 미만)로 연결했으면 name_matched")
+    dart: DartLink | None
+    rows: list[FinancialRow] = Field(
+        description="사업보고서 기준, 연결 우선 · 없으면 별도. 최근 연도부터"
+    )
