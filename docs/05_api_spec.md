@@ -50,7 +50,7 @@
 | `GET /industries/{code}/distribution` | 4 | `metric`(salary\|quit\|growth) | `p25, p50, p75, n` |
 | `GET /meta/methodology` | 4 | — | `formulas[]`, `limitations[]`, `as_of`, `period_from`, `sources[]` |
 | `GET /companies/{id}/financials` | 5 | `years`(≤5) | `rows[]{year, revenue, operating_income, net_income, debt_ratio}` |
-| `GET /map/companies` | 8 | `industry`, `region`, `metric`, **`bbox`(추가 제안)** | `items[]{company_id, name, lon, lat, accuracy, basis, value}`(최대 200), `truncated`. `basis`는 decisions/004 |
+| `GET /map/companies` | 8 | `industry`, `region`, `metric`, `bbox` | `items[]{company_id, name, lon, lat, accuracy, basis, value, members, growth_12m, quit_rate_12m, avg_salary_est}`(최대 200), `truncated`, `ungeocoded_count`. `basis`는 decisions/004 |
 | `GET /compare` | 8 | `ids`(쉼표로 1 ~ 3개) | `items[]`: 요약 지표, `status`(ok · stale), `flags[]`, `index_series[]{ym, members, idx}`(12개월 전 = 100) |
 | `GET /stations` | 9 | `q`, `line`, `sort` | `items[]{station_id, name, lines[], monthly_median, n}` |
 | `GET /stations/{id}/rent` | 9 | `months`, `contract` | 분포, 전세 비중, `trend[]{ym, median}` |
@@ -90,9 +90,9 @@
 
 | 후보 | 이유 | 판단 |
 |---|---|---|
-| `/map/companies`에 `bbox=min_lon,min_lat,max_lon,max_lat` | 지도 메인 화면은 "지금 지도 범위 안의 회사"로 목록을 갱신한다. 업종 · 지역만으로는 지도를 움직일 때 목록을 만들 수 없다 | **채택 권장** (Phase 8) |
-| `/map/companies` 응답에 `members`, `growth_12m`, `quit_rate_12m`, `avg_salary_est`, `open_jobs` | 왼쪽 목록이 핀마다 지표 3개와 공고 수를 보여준다. 없으면 회사마다 상세를 따로 불러야 한다 | **채택 권장** |
-| `/map/companies` 응답에 `ungeocoded_count` | 좌표가 없는 회사는 지도에 안 나온다. "지도 안의 회사 N곳"이 전체처럼 보이지 않게 알려야 한다 | **채택 권장** |
+| `/map/companies`에 `bbox=min_lon,min_lat,max_lon,max_lat` | 지도 메인 화면은 "지금 지도 범위 안의 회사"로 목록을 갱신한다. 업종 · 지역만으로는 지도를 움직일 때 목록을 만들 수 없다 | **채택**(Phase 8, #34) |
+| `/map/companies` 응답에 `members`, `growth_12m`, `quit_rate_12m`, `avg_salary_est`, `open_jobs` | 왼쪽 목록이 핀마다 지표 3개와 공고 수를 보여준다. 없으면 회사마다 상세를 따로 불러야 한다 | **채택**(#34). `open_jobs`는 Phase 10 |
+| `/map/companies` 응답에 `ungeocoded_count` | 좌표가 없는 회사는 지도에 안 나온다. "지도 안의 회사 N곳"이 전체처럼 보이지 않게 알려야 한다 | **채택**(#34) |
 | `/compare` 응답에 `open_jobs`, `nearest_station_rent`, `burden_mid` | 비교 표에 채용 · 주거비 행이 있다 | 채택(확장 단계에서 필드 추가) |
 | `/companies/{id}` 응답에 `rep_location{lon,lat,accuracy,basis}` (`company_location`에서) | 상세를 열 때 지도를 그 회사로 이동해야 한다 | 채택 |
 | `GET /search/suggest?q=` (자동완성) | 검색창 편의 | 보류(P3). `/companies?q=&limit=5`로 대체 |
@@ -196,7 +196,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 | A1 | 반영 | **커서가 정렬과 맞지 않는다.** SPEC은 `cursor`를 `company_id > :cursor`로 정의하지만, `sort=growth`나 `sort=deadline`이면 `company_id` 순서가 아니라 다음 페이지에서 항목이 빠지거나 겹친다 | 커서를 `(정렬값, company_id)` 쌍으로 인코딩(base64)하고 `WHERE (sort_col, company_id) > (:v, :id)` 키셋 페이지네이션 |
 | A2 | 일부 반영 | **이름 검색이 앞부분 일치뿐이다.** `name_norm LIKE 'q%'`라 "소프트"로 "예시소프트"를 못 찾는다. 사용자 입력에 `normalize_name`을 적용하지 않으면 "(주)예시"도 못 찾는다 | 입력도 `normalize_name`으로 정규화. 앞부분 일치를 우선 정렬하되, MVP 이후 n-gram 전문 검색(`FULLTEXT … WITH PARSER ngram`) 검토. 정규화는 Phase 4에서 반영, 부분 일치는 미정 |
 | A3 | 중간 | **`/stations/{id}/rent`의 `months` 1~24 자유 입력**은 미리 집계가 불가능해 요청 시점 공간 조인이 필요하다 | `months`를 6 · 12 · 24로 제한([04 문서](./04_database_design.md) D7) |
-| A4 | 중간 | **지도 메인 화면에 필요한 필드가 계약에 없다**(위 3장 bbox, 목록 지표, 좌표 없는 회사 수) | 3장 후보를 Phase 8 전에 계약에 반영. T4는 그 전까지 목 응답으로 개발 |
+| A4 | 반영 | **지도 메인 화면에 필요한 필드가 계약에 없다**(위 3장 bbox, 목록 지표, 좌표 없는 회사 수) | 3장 후보를 Phase 8 전에 계약에 반영. T4는 그 전까지 목 응답으로 개발 |
 | A5 | 반영 | **최근 자료 없는 회사는 검색에 안 나온다.** 검색은 `mart_company_summary`를 읽는데 그 회사들은 행이 없다. 상세는 `stale`을 지원하지만 들어갈 경로가 없다 | 검색 결과에 `company`는 있고 summary가 없는 회사를 "최근 자료 없음"으로 뒤에 붙이거나(`include_stale=true`), 의도적으로 제외하고 문서에 명시. **Phase 4: 제외로 결정**(SPEC 8장). 상세 URL로 들어오면 stale로 보여 준다 |
 | A6 | 낮음 | 응답 단위가 섞여 있다. 연봉은 원, 전월세는 만 원, `monthly_pay_est`는 정의 없음 | 필드명 접미사로 단위를 고정(`_won`, `_man`)하거나 이 문서 1장 단위 규칙을 OpenAPI 설명에 넣는다 |
 | A7 | 낮음 | 공개 API라 대량 수집에 열려 있다 | 배포 후 Railway 앞단 또는 미들웨어에서 IP당 요청 수 제한(P2) |
