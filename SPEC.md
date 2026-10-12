@@ -154,7 +154,7 @@ GRANT ALL PRIVILEGES ON worth_joining_test.* TO 'wj'@'localhost';
 | 기준 | `nps_rate`, `conversion_rate`, `industry`(업종 코드 · 이름, 국민연금 파일에서 추출), `region`(시군구 코드 · 이름) |
 | raw | `raw_nps_workplace`, `raw_rent_contract`, `raw_saramin_job` |
 | core (회사) | `company`, `workplace`, `workplace_monthly`, `dart_corp`, `company_dart_link`, `dart_financial` |
-| core (주거) | `geocode_cache`, `station`, `building`, `rent_contract`, `company_station` |
+| core (주거 · 위치) | `geocode_cache`, `company_location`, `station`, `building`, `rent_contract`, `company_station` |
 | core (채용) | `saramin_company_link`, `job_posting` |
 | mart | `mart_company_monthly`, `mart_company_summary`, `mart_station_rent`, `mart_company_jobs` |
 
@@ -218,6 +218,7 @@ CREATE TABLE dart_corp (
   stock_code     CHAR(6),
   bizr_no        VARCHAR(10),
   corp_cls       CHAR(1),
+  adres          VARCHAR(300),     -- company.json 본사 주소 (Phase 8 좌표, decisions/004)
   bizr6          CHAR(6) AS (LEFT(bizr_no, 6)) PERSISTENT,
   KEY ix_bizr6 (bizr6)
 );
@@ -278,6 +279,17 @@ CREATE TABLE geocode_cache (
   provider     VARCHAR(20) NOT NULL,             -- 'juso'만 허용 (5.3, 4장 이용 조건)
   fail_reason  VARCHAR(100),
   requested_at DATETIME NOT NULL
+);
+-- addr_key 예: 'dong:1117013100'(법정동 중심), 'road:11170:독서당로14길'(도로 중심), 정규화한 주소 문자열
+
+CREATE TABLE company_location (     -- 회사별 지도 좌표 (decisions/004)
+  company_id   INT PRIMARY KEY,
+  lon          DECIMAL(10,7) NOT NULL,
+  lat          DECIMAL(10,7) NOT NULL,
+  accuracy     ENUM('building','road','dong') NOT NULL,
+  basis        ENUM('dart_hq','name_search','road','dong') NOT NULL,
+  addr_key     VARCHAR(200) NOT NULL,
+  refreshed_at DATETIME NOT NULL
 );
 
 CREATE TABLE station (
@@ -513,10 +525,10 @@ FROM (
 
 ```sql
 SELECT s.company_id, c.display_name, s.members, s.growth_12m, s.quit_rate_12m, s.avg_salary_est,
-       g.lon, g.lat, g.accuracy
+       l.lon, l.lat, l.accuracy, l.basis
 FROM mart_company_summary s
-JOIN company c        ON c.company_id = s.company_id
-JOIN geocode_cache g  ON g.addr_key = s.rep_addr_key AND g.status = 'ok'
+JOIN company c           ON c.company_id = s.company_id
+JOIN company_location l  ON l.company_id = s.company_id
 WHERE s.industry_code = '620100'
   AND s.region_code LIKE '11%'
 ORDER BY s.members DESC
@@ -632,7 +644,7 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 | `GET /industries` | `q`(이름 일부) | `items[]{code, name, n_companies}` |
 | `GET /industries/{code}/distribution` | `metric`(salary\|quit\|growth) | `p25, p50, p75, n` |
 | `GET /compare` | `ids`(최대 3) | 회사별 `index_series[]`(12개월 전 = 100) + 요약 + `flags[]` |
-| `GET /map/companies` | `industry`, `region`(시도 2자리 또는 시군구 5자리), `metric`(growth\|quit\|salary) | `items[]{company_id, name, lon, lat, accuracy, value}`(최대 200), `truncated` |
+| `GET /map/companies` | `industry`, `region`(시도 2자리 또는 시군구 5자리), `metric`(growth\|quit\|salary) | `items[]{company_id, name, lon, lat, accuracy, basis, value}`(최대 200), `truncated` |
 | `GET /meta/methodology` | — | 계산식, 한계, 데이터 기준월, 출처 목록 |
 | `GET /health` | — | `db:"ok"`, `latest_nps_ym`. 확장 시 `latest_rent_ym`, (P2) `match_rate`, `geocode_success_rate` |
 
@@ -690,7 +702,7 @@ services:
 1. 국민연금 최근 13개월 파일을 내려받아 `data/raw/nps/all/`(gitignore)에 두고, `python -m pipeline.nps.extract_seoul data/raw/nps/all/*.csv`로 서울 사업장만 `data/raw/nps/YYYYMM.csv`(자료 월 이름)에 추출한다.
 2. `notebooks/` 대신 `pipeline/nps/profile.py`로 다음을 출력한다: 인코딩, 실제 헤더명, 행 수, 컬럼별 결측률, 사업자번호 6자리 중복률, 가입자 0 이하 행 수, **주소 상세 수준(도로명 주소에 건물번호가 있는지)**.
    - 과거 월 파일을 몇 개월까지 구할 수 있는지 확인한다. 13개월이 안 되면 확보 범위를 기록하고 팀장에게 알린다.
-   - 건물번호가 없으면 Phase 8의 회사 좌표는 건물 단위가 아니다. 대체 방법(예: 법정동 경계 공개 데이터의 중심점)을 정하고 `accuracy`를 `road` 또는 `dong`으로 저장한다.
+   - 건물번호가 없으면 Phase 8의 회사 좌표는 건물 단위가 아니다. 대체 방법을 정하고 `accuracy`를 `road` 또는 `dong`으로 저장한다. → 확인 결과 건물번호 0건, 대체 방법은 docs/decisions/004.
 3. 실제 헤더명과 6장의 필드 매핑을 `pipeline/nps/columns.py`에 고정한다.
 4. 결과를 `docs/profiling.md`에 기록한다.
 
@@ -745,7 +757,7 @@ services:
 
 1. `dart_corp`, `company_dart_link`, `dart_financial` 마이그레이션.
 2. corpCode.xml 적재 → `corp_name_norm` 계산.
-3. company.json 호출 우선순위: 상장사 → `name_norm`이 `company`에 존재하는 법인. 일 20,000건 한도 관리.
+3. company.json 호출 우선순위: 상장사 → `name_norm`이 `company`에 존재하는 법인. 일 20,000건 한도 관리. 응답의 본사 주소 `adres`를 `dart_corp.adres`에 함께 저장한다(Phase 8 좌표, docs/decisions/004).
 4. 정확 매칭 SQL(`d.bizr6 = c.biz_no6 AND d.corp_name_norm = c.name_norm`) → 실패분 rapidfuzz.
 5. 사업보고서 주요계정 적재, `/companies/{id}/financials`.
 6. 매칭률을 `docs/matching.md`에 기록한다(`/health` 노출은 P2).
@@ -779,12 +791,17 @@ services:
 ### Phase 8. 지도 비교 (3일)
 
 1. 지오코더(`pipeline/geocode/juso.py`)를 먼저 만든다: 검색 API(주소 → 도로명 키) → 좌표제공 API → pyproj(EPSG:5179 → 4326) → `geocode_cache`(`accuracy`, 실패 사유 포함). 일일 호출 수는 `api_call_log`로 관리. Phase 9도 이 모듈을 그대로 쓴다.
-2. 지도 대상 회사 좌표 변환: `mart_company_summary.rep_addr_key` 중 아직 캐시에 없는 주소만 호출한다. 대상은 서울 회사이며, 호출 한도를 보고 가입자 많은 순으로 정한다. 건물번호가 없는 주소는 Phase 1에서 정한 대체 방법으로 저장하고 `accuracy`를 낮춘다. 성공률은 로그와 `docs/validation.md`에 기록한다.
+2. 회사 좌표(`company_location`, docs/decisions/004): 회사마다 아래 순서로 정하고, 앞 단계에서 얻으면 뒤 단계는 건너뛴다. 모든 좌표는 juso에서 얻고 캐시에 없는 주소만 호출한다.
+   1. DART 본사 주소(`dart_corp.adres`, 대표 사업장과 같은 자치구일 때만) → `building`, `basis='dart_hq'`
+   2. 상위 회사(가입자 많은 순, 호출 한도 안)의 "자치구 + 도로명 + 사업장명" 검색 결과가 같은 도로에 정확히 1건 → `building`, `basis='name_search'`
+   3. 자치구 · 도로명별 건물 좌표 중앙값 → `road`
+   4. 법정동별 건물 좌표 중앙값 → `dong`(모든 회사의 최종 대체)
+   - 단계별 회사 수 · 비율을 로그와 `docs/validation.md`에 기록한다.
 3. 네이버 지도 Dynamic Map을 `react-naver-maps`로 연동. 스크립트는 `ncpKeyId`(Client ID)로 불러온다.
 4. 지도 컴포넌트를 `web/components/map/NaverMap.tsx`로 분리하고, 화면은 `markers`, `onSelect`, `center` 같은 공통 props만 사용한다(SDK 교체 대비).
 5. `/map/companies` API(7장 `q_map_companies.sql`): 업종 · 지역 필터, 최대 200개, `truncated`.
 6. `/compare` API(7장 `q_compare.sql`): 12개월 전 = 100 지수 시계열.
-7. `/map`: 필터, 지표 토글, 핀(대략 위치는 다른 모양), 팝업, 비교 패널(최대 3). 검색 결과 · 상세의 "비교에 담기"와 같은 상태를 쓴다.
+7. `/map`: 필터, 지표 토글, 핀(대략 위치는 다른 모양, 같은 위치의 핀은 묶어서 개수 표시), 팝업(`dart_hq`이면 "본사 주소 기준"), 비교 패널(최대 3). 검색 결과 · 상세의 "비교에 담기"와 같은 상태를 쓴다.
 8. (선택, P2) 지도 검색창: 네이버 Geocoding으로 입력 주소 · 역 위치로 이동, 주변 회사는 DB 좌표로 조회. 결과 저장 금지.
 9. (선택, P2) 비교 상태 URL 공유(`/map?ids=1,2,3`), Map Style Editor 스타일.
 

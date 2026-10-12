@@ -21,6 +21,7 @@
 | [TS-007](#ts-007-headless-edge-스크린샷이-저장되지-않음) | 2026-10-08 | 문서 · 도구 | headless Edge 스크린샷이 저장되지 않음 | 해결 | — |
 | [TS-008](#ts-008-claude-code가-pr-병합--보호-규칙-변경을-거부함) | 2026-10-08 | 협업 도구 | Claude Code가 PR 병합 · 보호 규칙 변경을 거부함 | 우회 | — |
 | [TS-009](#ts-009-git-lf--crlf-변환-경고) | 2026-10-08 | Git | `LF will be replaced by CRLF` 경고 | 보류 | — |
+| [TS-010](#ts-010-쌓은-pr이-앞-pr의-squash-merge-후-충돌) | 2026-10-12 | Git · 협업 | 쌓은 PR이 앞 PR의 squash merge 후 충돌 | 해결 | #12 |
 
 ---
 
@@ -113,6 +114,19 @@
   ```
 - **원인:** Windows git의 `core.autocrlf=true` 기본값. 저장소에는 LF로 들어가고 작업 폴더에서는 CRLF로 바뀐다.
 - **상태:** 보류. 팀원 OS가 섞이면 줄 끝 차이로 diff가 커질 수 있다. 필요해지면 `.gitattributes`에 `* text=auto eol=lf`를 넣는다.
+
+## TS-010. 쌓은 PR이 앞 PR의 squash merge 후 충돌
+
+- **증상:** PR B를 PR A의 브랜치 위에 쌓아 두고 A를 먼저 병합하자, base가 `main`으로 바뀐 B에 "This branch has conflicts that must be resolved"가 뜬다. 충돌 파일은 A와 B가 함께 고친 파일(`CLAUDE.md`, `docs/06_architecture.md`)이다.
+- **원인:** squash merge는 A의 커밋들을 `main`에 **새 커밋 하나**로 넣는다. B 브랜치에는 A의 원래 커밋이 그대로 남아 있어, git은 같은 줄을 두 커밋이 다르게 고친 것으로 본다.
+- **해결:** B 브랜치에서 A의 원래 커밋을 빼고, B의 커밋만 최신 `main` 위로 옮긴 뒤 PR 브랜치를 덮어쓴다. `main`이 아니라 PR 브랜치를 덮어쓰므로 ruleset에 걸리지 않는다.
+  ```
+  git fetch
+  git rebase --onto origin/main <A의 마지막 원래 커밋> <B 브랜치>
+  git push --force-with-lease origin <B 브랜치>
+  ```
+  옮긴 뒤 `git diff origin/main HEAD`가 B 원래 커밋의 diff와 같은지 확인한다.
+- **재발 방지:** 가능하면 PR을 쌓지 않고 앞 PR이 병합된 뒤 최신 `main`에서 브랜치를 만든다. 쌓아야 하면 A 병합 직후 B를 위 방법으로 옮긴다.
 
 ---
 

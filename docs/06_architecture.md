@@ -69,7 +69,7 @@ flowchart LR
 |---|---|---|---|
 | 국민연금 | 월 1회 | CSV → UTF-8 → `LOAD DATA LOCAL INFILE` → `raw_nps_workplace`(해당 월 삭제 후 적재) → `company` → `workplace` → `workplace_monthly` → 품질 검사 → `refresh_mart` | 해당 월 raw 교체, 자연키 UNIQUE, 체크섬 |
 | DART | 월 1회(고유번호) · 분기 1회(재무) | corpCode.xml → `dart_corp` → 매칭 → `company_dart_link` → 주요계정 → `dart_financial` | PK 기준 UPSERT |
-| 지오코딩 | 신규 주소만 | `rep_addr_key` 중 캐시에 없는 것 → juso 검색 → 좌표 → pyproj(5179→4326) → `geocode_cache` | `addr_key` PK, 실패도 기록 |
+| 지오코딩 | 신규 주소만 | 회사마다 DART 본사 주소 → 도로명 + 사업장명 검색 → 도로 중심 → 동 중심 순서(decisions/004). juso 검색 → 좌표 → pyproj(5179→4326) → `geocode_cache` → `company_location` | `addr_key` · `company_id` PK, 실패도 기록 |
 | 전월세 | 주 1회(최근 3개월 재수집) | CSV(초기) · Open API(증분) → `raw_rent_contract` → 필터 → `rent_contract` → `building` 연결 → q5 | `row_hash` UNIQUE, 월 파티션 |
 | 사람인 | 일 1회 | 검색 API → `raw_saramin_job` → 매칭 → `job_posting`(본문 없음) → `mart_company_jobs` | `job_id` PK, 마감 30일 뒤 삭제 |
 
@@ -125,7 +125,7 @@ GitHub 보호 규칙은 목표 상태다. 지금 적용된 단계는 [decisions/
 | R2 | 중간 | **국민연금 월 파일 자동 수집이 정해지지 않았다.** 파일 데이터는 공공데이터포털에서 내려받는 방식일 수 있어 cron만으로 받을 수 있는지 불확실하다 | Phase 1에서 자동 다운로드 가능 여부 확인. 안 되면 runbook에 "월 1회 수동 다운로드 → 업로드 → 적재 명령" 절차를 적는다 |
 | R3 | 중간 | **mart 갱신 중 일관성.** q1 → q2를 한 트랜잭션으로 묶어도 q6(회사-역), 지도용 지오코딩은 별도 단계라, 갱신 사이에 API가 서로 다른 기준월의 데이터를 섞어 볼 수 있다 | `refresh_mart`가 q1 · q2 · q6를 한 트랜잭션에서 실행하고, 마지막에 `as_of`를 기록하는 `mart_meta(latest_ym, refreshed_at)` 한 행을 갱신. API의 `as_of`는 이 행에서 읽는다 |
 | R4 | 중간 | **지오코딩 범위가 지도 기능을 제한한다.** juso 호출 한도 때문에 Phase 8은 일부 회사만 좌표를 얻는다. 지도 메인 화면에서는 좌표 없는 회사가 아예 안 보인다 | 좌표 없는 회사 수를 응답에 넣고 화면에 안내([05 문서](./05_api_spec.md) 3장). 백필은 가입자 많은 순, 담당자 1명이 여러 날 실행 |
-| R5 | 중간 | **화면 구조가 SPEC과 다르다.** 지도 메인 + 패널 구조(03 문서)는 SPEC 9장(검색 메인, `/map` 별도)과 다르고, API에도 bbox 같은 필드가 더 필요하다 | 팀장이 채택 여부를 정하고 `docs/decisions/004-지도-메인-화면.md`로 기록. 채택하면 SPEC 8 · 9장 수정 PR |
+| R5 | 중간 | **화면 구조가 SPEC과 다르다.** 지도 메인 + 패널 구조(03 문서)는 SPEC 9장(검색 메인, `/map` 별도)과 다르고, API에도 bbox 같은 필드가 더 필요하다 | 팀장이 채택 여부를 정하고 `docs/decisions/NNN-지도-메인-화면.md`(번호는 기록할 때 다음 번호로)로 기록. 채택하면 SPEC 8 · 9장 수정 PR |
 | R6 | 낮음 | **단일 DB에서 배치 쓰기와 API 읽기를 같이 한다.** 월 1회 대량 `LOAD DATA`와 mart 재계산 동안 API 응답이 느려질 수 있다 | MVP 규모에서는 허용. 적재는 새벽 시간대 cron. p95 300ms 목표는 locust로 적재 중에도 한 번 측정 |
 | R7 | 낮음 | **백업이 정해지지 않았다.** Railway 볼륨 하나에 모든 데이터가 있다 | 월 적재 후 `mariadb-dump`를 받아 보관하는 절차를 runbook에 추가 |
 
