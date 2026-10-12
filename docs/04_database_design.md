@@ -230,7 +230,9 @@ CREATE TABLE mart_company_jobs (
 
 `company_location`(회사별 지도 좌표)과 `dart_corp.adres`(본사 주소)는 [decisions/004](./decisions/004-회사-좌표-정확도.md)로 채택되어 SPEC 5.2에 DDL이 들어갔다.
 
-`raw_nps_workplace`, `raw_rent_contract`, `raw_saramin_job`의 컬럼은 원본 헤더를 그대로 따르므로 Phase 1 프로파일링(`pipeline/nps/columns.py`, `docs/profiling.md`) 뒤에 확정한다. 공통으로 `snapshot_ym`(또는 수집일)과 적재 `run_id`를 둔다.
+위 제안 중 `industry`, `ingestion_log`, `api_call_log`는 마이그레이션 `0001`로 만들었다(2026-10-12). `dart_financial`, `mart_company_jobs`는 해당 Phase에서 만든다.
+
+`raw_nps_workplace`는 프로파일링 결과대로 확정해 `0001`로 만들었다. 컬럼은 `pipeline/nps/columns.py`의 22개 필드 + `snapshot_ym`, `run_id`, `name_norm`이고, 인덱스는 `0002`의 `(snapshot_ym, biz_no6, name_norm)`이다(troubleshooting TS-012). `raw_rent_contract`, `raw_saramin_job`은 각 Phase의 프로파일링 뒤에 확정한다. 공통으로 `snapshot_ym`(또는 수집일)과 적재 `run_id`를 둔다.
 
 ## 4. 설계 검토: 발견한 문제점
 
