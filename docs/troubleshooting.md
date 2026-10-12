@@ -24,6 +24,7 @@
 | [TS-010](#ts-010-쌓은-pr이-앞-pr의-squash-merge-후-충돌) | 2026-10-12 | Git · 협업 | 쌓은 PR이 앞 PR의 squash merge 후 충돌 | 해결 | #12 |
 | [TS-011](#ts-011-ci에서만-modulenotfounderror-no-module-named-tests) | 2026-10-12 | 테스트 · CI | CI에서만 `ModuleNotFoundError: No module named 'tests'` | 해결 | #14 |
 | [TS-012](#ts-012-백필-중-한-달-core-적재가-10분-넘게-멈춤) | 2026-10-12 | DB · 성능 | 백필 중 한 달 core 적재가 10분 넘게 멈춤 | 해결 | #15 |
+| [TS-013](#ts-013-to_ym에-from_ym-값이-들어감) | 2026-10-12 | API | `to_ym`에 `from_ym` 값이 들어감 | 해결 | #20 |
 
 ---
 
@@ -147,6 +148,15 @@
 - **원인:** `raw_nps_workplace`의 인덱스가 `snapshot_ym` 하나뿐이었다(카디널리티 9~13). 행이 늘면서 통계가 갱신되자 11.4 비용 기반 옵티마이저가 `company`를 먼저 읽고 `raw`를 회사마다 다시 훑는 계획을 고른 것으로 보인다. 같은 SELECT를 다른 세션에서 EXPLAIN하면 `raw` 전체 스캔(`ALL`) + `company` `eq_ref`로 나와, 계획이 통계에 따라 흔들린다는 점을 확인했다.
 - **해결:** 마이그레이션 `0002`로 `ix_snapshot`을 `ix_snapshot_company (snapshot_ym, biz_no6, name_norm)`로 바꿨다. 월 조건과 회사 조인을 한 인덱스로 받는다. 멈춘 쿼리는 같은 계정으로 `KILL <id>`했다(`PROCESS` 권한이 없어도 자기 연결은 끊을 수 있다).
 - **재발 방지:** 조인 키로 쓰는 raw · core 컬럼에는 처음부터 복합 인덱스를 둔다. 백필은 백그라운드로 돌리고 `ingestion_log`의 월별 소요 시간을 본다. 11.4 계획은 `EXPLAIN` 결과를 기준으로 삼는다(SPEC 5.3).
+
+---
+
+## TS-013. `to_ym`에 `from_ym` 값이 들어감
+
+- **증상:** `GET /companies/{id}/trend?from_ym=202606`이 202606 ~ 202608이 아니라 202606 한 달만 돌려줬다. `to_ym`만 주면 무시됐다.
+- **원인:** 두 파라미터가 모듈 상수 `YM = Query(None, ...)` 하나를 기본값으로 함께 썼다. FastAPI는 파라미터를 등록할 때 그 `FieldInfo`에 alias(파라미터 이름)를 써 넣으므로, 같은 객체를 공유한 `to_ym`도 쿼리 문자열의 `from_ym`을 읽었다.
+- **해결:** `YM = Annotated[int | None, Query(...)]` 타입 별칭으로 바꾸고 `from_ym: YM = None, to_ym: YM = None`으로 썼다(`app/routers/companies.py`). `tests/api/test_companies.py::test_trend_filters_period`가 from만 · to만 주는 경우를 확인한다.
+- **재발 방지:** `Query()` · `Path()` 객체를 여러 파라미터가 공유하지 않는다. 재사용하려면 `Annotated` 별칭으로 만든다.
 
 ---
 
