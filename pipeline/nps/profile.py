@@ -112,10 +112,38 @@ def profile(path: Path) -> None:
             print(f"  도로명 {level} 예시: {sample}")
 
 
+WP_KEY = ["biz_no6", "name_norm", "workplace_name", "legal_dong_code"]
+
+
+def compare_months(paths: list[Path]) -> None:
+    """월 사이 행 수 변동(품질 검사 ±10%)과 등록 사업장 자연키가 다음 달로 이어지는 비율."""
+    print("\n=== 월별 비교 (등록 상태 사업장 기준) ===")
+    print("월 | 전체 행 | 전월 대비 | 등록 행 | 등록 0명 | 전월 키 유지 | 신규 키 | 자연키 중복")
+    prev_rows, prev_keys = None, None
+    for path in sorted(paths):
+        df = read_csv(path)
+        df["name_norm"] = df["workplace_name"].map(normalize_name)
+        active = df[df["status_code"] == "1"]
+        keys = set(map(tuple, active[WP_KEY].to_numpy()))
+        change = f"{len(df) / prev_rows - 1:+.2%}" if prev_rows else "-"
+        kept = f"{len(keys & prev_keys) / len(prev_keys):.2%}" if prev_keys else "-"
+        new = f"{len(keys - prev_keys):,}" if prev_keys else "-"
+        zero = int((active["members"] <= 0).sum())
+        dup = int(active.duplicated(WP_KEY, keep=False).sum())
+        cells = [df["data_ym"].iloc[0], f"{len(df):,}", change, f"{len(active):,}", f"{zero:,}",
+                 kept, new, str(dup)]
+        print(" | ".join(cells))
+        prev_rows, prev_keys = len(df), keys
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("files", nargs="+", type=Path)
+    parser.add_argument("--compare", action="store_true", help="월별 비교만 출력")
     args = parser.parse_args(argv)
+    if args.compare:
+        compare_months(args.files)
+        return 0
     for path in args.files:
         profile(path)
     return 0
