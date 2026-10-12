@@ -1,6 +1,12 @@
 import ssl
+from collections.abc import AsyncIterator
 
-from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncConnection,
+    AsyncEngine,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from app.core.config import settings
 
@@ -22,3 +28,9 @@ def make_engine(url: str) -> AsyncEngine:
 
 engine = make_engine(settings.database_url)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+
+
+async def get_conn() -> AsyncIterator[AsyncConnection]:
+    """라우터용 DB 연결(읽기 전용). 테스트는 이 의존성을 테스트 DB 트랜잭션으로 바꾼다."""
+    async with engine.connect() as conn:
+        yield conn

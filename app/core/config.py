@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     database_url_sync: str
     test_database_url: str = ""
     db_ssl_verify: bool = True
+    # 웹 도메인(docs/05 1장). 배포 시 Vercel 주소를 JSON 배열로 넣는다
+    cors_origins: list[str] = ["http://localhost:3000"]
 
     # 비어 있으면 해당 수집기는 경고 후 건너뛴다(SPEC 3장)
     data_go_kr_service_key: str = ""
