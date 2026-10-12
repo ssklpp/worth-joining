@@ -7,6 +7,7 @@ import { FinancialSection } from "@/components/company/FinancialSection";
 import { HealthSheet } from "@/components/company/HealthSheet";
 import { TrendSection } from "@/components/company/TrendSection";
 import styles from "@/components/company/company.module.css";
+import { CompareButton } from "@/components/CompareButton";
 import { ErrorBox, Loading } from "@/components/Status";
 import { ApiError, useApi, type Schemas } from "@/lib/api";
 import { formatCount, formatYm, industryLabel } from "@/lib/format";
@@ -61,6 +62,7 @@ export function CompanyPage({ id }: { id: number | null }) {
           <a className="button" href={saraminUrl(c.name)} target="_blank" rel="noopener noreferrer">
             사람인에서 채용공고 보기
           </a>
+          <CompareButton id={c.company_id} name={c.name} />
         </div>
       </section>
 
