@@ -123,6 +123,7 @@ API 키(DART · 공공데이터포털 등)는 배포 서비스에 넣지 않는�
 3. 로컬 API와 웹으로 회사 몇 곳을 열어 본다(기준월이 바뀌었는지, 추이에 새 달이 붙었는지).
 4. 덤프를 만들어 공유 드라이브에 올린다(이름 `worth_joining_YYYYMMDD.zip`, zip 안에 행 수 · Alembic 버전을 적은 `README.txt`).
 5. 2.1의 TCP Proxy를 켜고 2.2처럼 복원한 뒤 끈다. 복원하는 몇 분 동안은 API가 오류를 낼 수 있다. 사용자가 적은 시간에 한다.
+   - **스키마 버전을 맞춘다.** main에 새 마이그레이션이 병합됐는데 배포 DB에 없으면 그 테이블을 읽는 API가 500을 낸다(2026-10-13 `/map/companies`, 배포 DB 0005 · 코드 0006). 복원한 뒤 `SELECT version_num FROM alembic_version`이 `python -m alembic heads`와 같은지 본다. 로컬 DB에서 만든 덤프면 같다
 6. 2.5 확인 목록을 다시 본다. `/health`의 `latest_nps_ym`이 새 달이어야 한다.
 
 ### 다음 갱신 확인 계획
@@ -150,5 +151,6 @@ API 키(DART · 공공데이터포털 등)는 배포 서비스에 넣지 않는�
 | 웹은 뜨는데 데이터가 안 보이고 하단 기준월이 "확인하지 못함" | 브라우저 개발자 도구 콘솔의 CORS 오류 → `CORS_ORIGINS`에 웹 도메인이 정확히 있는지(끝 `/` 없이) |
 | `/health`가 500 | api 로그의 DB 접속 오류 → `DATABASE_URL`, mariadb 서비스 상태 |
 | api 배포가 헬스 체크에서 실패 | DB가 아직 복원되지 않았거나 mariadb가 꺼져 있다 |
+| 특정 API만 500, 웹에는 "Failed to fetch" | 배포 DB에 그 API가 읽는 테이블이 없다(스키마 버전이 코드보다 낮다). 4장 5단계로 맞춘다. 500 응답에는 CORS 헤더가 없어 브라우저는 요청 실패로만 보인다 |
 | api 로그에 `Can't connect` · `Connection refused` (사설 도메인) | 사설망 주소가 IPv6로 풀리는데 DB가 IPv4만 받는 경우다. mariadb 서비스의 시작 명령(Custom Start Command)에 `mariadbd --bind-address=::`를 넣고 다시 시작한다 |
 | 그 밖의 에러 | [troubleshooting.md](./troubleshooting.md)에서 찾고, 해결하면 TS 항목을 추가한다 |

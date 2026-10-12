@@ -15,6 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docs/05_api_spec.md`: API 구조 · 엔드포인트 · SPEC 밖 후보, 외부 API와 키(4장: 발급 · 보관 · `.env.example` · 한도 · 호출 원칙), API 문제점(A1~A7)
 - `docs/06_architecture.md`: 전체 구조, 데이터 흐름, 최종 기술 스택, 배포, 아키텍처 문제점(R1~R7)과 전체 우선순위표. 이 문서들의 "제안"은 SPEC에 반영되기 전까지 확정이 아니다
 - `docs/runbook.md`: 배포(Railway · Vercel) · DB 복원 · 월 갱신(수동) · 백업 절차
+- `docs/validation.md`: 회사 지도 좌표 단계별 성공률 · 지도에 나오는 회사 비율(이후 회사 대조 검증도 여기에)
 - `docs/matching.md`: DART 매칭 규칙 · 매칭률 · 연결 안 된 원인
 - `docs/troubleshooting.md`: 겪은 에러 · 버그 · 환경 문제와 해결 방법(TS-NNN). 에러가 나면 먼저 여기서 찾는다
 
@@ -47,6 +48,7 @@ python -m pipeline.dart.corp_code            # DART 고유번호 → dart_corp (
 python -m pipeline.dart.company_info         # company.json → 사업자번호 · 본사 주소 (하루 2만 건, 다음 실행에서 이어 받음)
 python -m pipeline.dart.match                # company ↔ dart_corp → company_dart_link (docs/matching.md)
 python -m pipeline.dart.financials           # 연결된 법인의 사업보고서 주요계정 → dart_financial (약 270건)
+python -m pipeline.geocode.company_location  # 회사 지도 좌표: DART 본사 → 상위 300곳 상호 검색 (juso, 캐시로 이어 받음. docs/validation.md)
 uvicorn app.main:app --reload                # API, :8000/docs
 cd web && npm install && npm run dev         # 프론트엔드, :3000 (lint · typecheck · build, API 계약이 바뀌면 npm run gen:api. web/README.md)
 ruff check .
