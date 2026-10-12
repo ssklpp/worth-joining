@@ -109,7 +109,7 @@ GRANT ALL PRIVILEGES ON worth_joining_test.* TO 'wj'@'localhost';
 | 국민연금 가입 사업장 내역 | CSV(ZIP), 월별 스냅샷 | 월 1회 | 인코딩 CP949. 사업자번호는 앞 6자리만 제공. 전국 파일에서 **법정동 시도 코드 `11`(서울)만 추출해 적재**(`pipeline.nps.extract_seoul`, docs/decisions/002). 파일 이름이 자료 월보다 한 달 늦을 수 있으므로 자료생성년월로 판단 |
 | OpenDART corpCode.xml | ZIP(XML) | 월 1회 | 회사 고유번호 마스터 |
 | OpenDART company.json | JSON | 필요 시 | 일 20,000건 한도. bizr_no 획득용 |
-| OpenDART fnlttSinglAcnt.json | JSON | 분기 1회 | reprt_code 11011(사업보고서) 우선 |
+| OpenDART fnlttMultiAcnt.json (다중회사 주요계정) | JSON | 분기 1회 | reprt_code 11011(사업보고서). 한 번에 100개 법인 · 3개년. 단일회사 API는 법인 수만큼 불러야 해 하루 한도를 넘는다 |
 | 서울시 부동산 전월세가 정보 (서울 열린데이터광장 OA-21276) | 연도별 CSV 파일 + Open API | 일 1회 갱신, 수집은 주 1회 | 서울 전체 자치구. 초기 적재는 CSV(2024 · 2025 · 2026), 증분은 Open API(최근 3년만 제공). 최근 24개월만 보관. [https://data.seoul.go.kr/dataList/OA-21276/S/1/datasetView.do](https://data.seoul.go.kr/dataList/OA-21276/S/1/datasetView.do) |
 | 전국도시철도역사정보 표준데이터 | XLSX | 연 1회 | 위도·경도 포함 |
 | 주소정보누리집 검색 API + 좌표제공 API | REST | 신규 주소만 | Phase 8: 지도 대상 회사의 대표 사업장, Phase 9: 전월세 건물. 좌표계 EPSG:5179 → pyproj로 EPSG:4326 변환 후 저장 |
@@ -669,7 +669,7 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 | `GET /meta/methodology` | — | 계산식, 한계, 데이터 기준월, 출처 목록 |
 | `GET /health` | — | `status`, `db:"ok"`, `latest_nps_ym`(mart 기준 최신 월). 확장 시 `latest_rent_ym`, (P2) `match_rate`, `geocode_success_rate` |
 
-`flags` 값: `salary_is_lower_bound`, `small_sample`, `short_history`(12개월 미만 이력), `stale`(최신 월에 없음), `approx_location`(좌표 정확도가 building이 아님), `name_matched`, `period_extended_to_24m`.
+`flags` 값: `salary_is_lower_bound`, `small_sample`, `short_history`(12개월 미만 이력), `stale`(최신 월에 없음), `approx_location`(좌표 정확도가 building이 아님), `name_matched`(이름 유사도 1.0 미만으로 연결), `period_extended_to_24m`.
 
 `months`는 Pydantic `Query(12, ge=1, le=24)`로 검증한다.
 
@@ -780,7 +780,7 @@ services:
 2. corpCode.xml 적재 → `corp_name_norm` 계산.
 3. company.json 호출 우선순위: 상장사 → `name_norm`이 `company`에 존재하는 법인. 일 20,000건 한도 관리. 응답의 본사 주소 `adres`를 `dart_corp.adres`에 함께 저장한다(Phase 8 좌표, docs/decisions/004).
 4. 정확 매칭 SQL(`d.bizr6 = c.biz_no6 AND d.corp_name_norm = c.name_norm`) → 실패분 rapidfuzz.
-5. 사업보고서 주요계정 적재, `/companies/{id}/financials`.
+5. 사업보고서 주요계정 적재(`python -m pipeline.dart.financials`, 연결 우선 · 없으면 별도), `/companies/{id}/financials`.
 6. 매칭률을 `docs/matching.md`에 기록한다(`/health` 노출은 P2).
 
 완료 조건: 상장사 매칭률 측정·기록, financials API 테스트 통과.

@@ -45,6 +45,7 @@ python -m pipeline.refresh_mart              # mart를 비우고 sql/q1 → q2�
 python -m pipeline.dart.corp_code            # DART 고유번호 → dart_corp (OPENDART_API_KEY, 또는 --file ZIP)
 python -m pipeline.dart.company_info         # company.json → 사업자번호 · 본사 주소 (하루 2만 건, 다음 실행에서 이어 받음)
 python -m pipeline.dart.match                # company ↔ dart_corp → company_dart_link (docs/matching.md)
+python -m pipeline.dart.financials           # 연결된 법인의 사업보고서 주요계정 → dart_financial (약 270건)
 uvicorn app.main:app --reload                # API, :8000/docs
 cd web && npm install && npm run dev         # 프론트엔드, :3000
 ruff check .
