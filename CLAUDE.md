@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 다닐만한가(Worth Joining)는 공공데이터(국민연금 사업장 내역(**서울특별시 사업장만**, `docs/decisions/002`), OpenDART, 서울시 전월세 실거래가, 사람인 채용공고)로 회사의 인원 추이 · 입퇴사율 · 추정 연봉을 보여주는 구직자용 웹 서비스다. 4인 팀, 기간은 2026-10-02 ~ 2026-10-21이고 MVP 배포 목표는 10/16이다.
 
-**Phase 2(스키마와 국민연금 적재)까지 끝났다(2026-10-12).** 마이그레이션 `0002`, 서울 13개월(2025-08 ~ 2026-08) 적재 · 품질 검사, `region`까지 있다. mart(Phase 3)와 API 엔드포인트는 아직 없다. 13개월 DB 덤프는 팀 공유 드라이브에 있다. `SPEC.md`가 구현 지시서이며 다른 문서와 충돌하면 SPEC을 따른다. 무엇이든 만들기 전에 먼저 읽는다.
+**Phase 3(mart SQL)까지 끝났다(2026-10-12).** 마이그레이션 `0003`, 서울 13개월(2025-08 ~ 2026-08) 적재 · 품질 검사, `region`, `mart_company_monthly` · `mart_company_summary`(`refresh_mart`)까지 있다. API 엔드포인트(Phase 4)와 웹은 아직 없다. 13개월 DB 덤프는 팀 공유 드라이브에 있다. `SPEC.md`가 구현 지시서이며 다른 문서와 충돌하면 SPEC을 따른다. 무엇이든 만들기 전에 먼저 읽는다.
 - `SPEC.md`: 기술 스택, 저장소 구조, DDL(5장), 계산 규칙(6장), 핵심 SQL(7장), API 계약(8장), 화면(9장), 단계별 진행과 완료 조건(10장), 팀 운영 규칙(12장)
 - `docs/01_project_overview.md`, `README.md`: 개요와 범위
 - `docs/02_requirements.md`: 요구사항 ID, 우선순위(P0~P3), Task ID(10장, 예: `T1-04`)
@@ -26,11 +26,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 5 | DB (5.2 DDL 161, 5.3 MariaDB 주의사항 383) | 147 |
 | 6 | 계산 규칙 · 상호 정규화 · 매칭 순서 | 398 |
 | 7 | 핵심 SQL (q1, q2, 지도, 비교, q5, q6, 파티션 순환) | 436 |
-| 8 · 9 | API 계약 · 화면 | 630 · 657 |
-| 10 | 진행 단계 (Phase 0~11과 완료 조건) | 672 |
-| 11 · 12 | 하지 않는 것 · 팀 운영 | 868 · 881 |
+| 8 · 9 | API 계약 · 화면 | 635 · 662 |
+| 10 | 진행 단계 (Phase 0~11과 완료 조건) | 677 |
+| 11 · 12 | 하지 않는 것 · 팀 운영 | 873 · 886 |
 
-## 명령어 (SPEC 3장 · 10장 참고. refresh_mart · web은 예정)
+## 명령어 (SPEC 3장 · 10장 참고. web은 예정)
 
 Windows에서 `.venv\Scripts\*.exe` 실행이 막히면 `python -m <도구>`로 실행한다(troubleshooting TS-003).
 
@@ -40,7 +40,7 @@ alembic upgrade head                         # 스키마 적용 (DB: worth_joini
 python -m pipeline.region.load               # 시군구 이름 (data/raw/region/legal_dong_codes_seoul.txt)
 python -m pipeline.nps.extract_seoul data/raw/nps/all/*.csv   # 전국 원본 → 서울 추출
 python -m pipeline.nps.load --all            # 국민연금 전체 월 오름차순 적재 (--ym 202608은 한 달, 멱등)
-python -m pipeline.refresh_mart              # sql/q1 → q2를 한 트랜잭션으로 실행
+python -m pipeline.refresh_mart              # mart를 비우고 sql/q1 → q2를 한 트랜잭션으로 (약 23초)
 uvicorn app.main:app --reload                # API, :8000/docs
 cd web && npm install && npm run dev         # 프론트엔드, :3000
 ruff check .
@@ -70,7 +70,8 @@ pytest tests/sql/test_x.py::test_name        # 단일 테스트
 - 지표가 NULL인 행은 윈도 파티션을 따로 나눠(`PARTITION BY industry_code, 지표 IS NULL`) 백분위 0을 받지 않게 한다.
 - N개월 기간 조건은 `contract_ym > PERIOD_ADD(최신월, -N)`이다. `>=`가 아니라 `>`다.
 - 대표 사업장은 최신 월 가입자 수가 가장 많은 사업장이다. 회사-역 순위는 대표 사업장 하나로만 매긴다. 모든 사업장으로 매기면 같은 역이 중복된다(검증된 버그).
-- 추정 연봉은 소득 상한 때문에 **하한 추정치**다. 표본 부족 기준은 회사 가입자 10명 미만, 역 계약 20건 미만이다.
+- 추정 연봉은 소득 상한 때문에 **하한 추정치**다. 표본 부족 기준은 회사 가입자 10명 미만, 역 계약 20건 미만이다. 표본 부족 회사는 업종 백분위 분포에서 빼고 백분위를 NULL로 둔다(docs/04 D6, 서울 회사의 약 61%).
+- 최신 월에 없거나 가입자 0명인 회사는 `mart_company_summary`에 행이 없다(stale). `last_seen_ym`은 가입자가 있던 마지막 달이다.
 
 ## MariaDB 주의사항 (SPEC 5.3장. SQL 회귀 테스트로도 확인)
 

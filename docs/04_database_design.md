@@ -240,12 +240,12 @@ CREATE TABLE mart_company_jobs (
 
 | # | 심각도 | 문제 | 근거 | 제안 |
 |---|---|---|---|---|
-| D1 | 높음 | **q2가 사라진 회사의 요약을 지우지 않는다.** `REPLACE INTO`는 결과에 있는 행만 바꾼다. 지난달 있다가 이번 달 없어진 회사는 지난달 요약이 그대로 남아, SPEC의 "최신 월에 없는 회사는 summary에 행이 없다"가 깨진다 | SPEC 7장 q2, 5.2 주석 | q2 앞에 `DELETE FROM mart_company_summary`(같은 트랜잭션), 또는 새 테이블에 만든 뒤 `RENAME TABLE`로 교체. 회귀 테스트 "최신 월에 없는 회사는 행 없음"을 **두 달 연속 적재** 시나리오로 작성 |
-| D2 | 높음 | **q1이 `nps_rate`와 INNER JOIN이라, 기준표에 없는 달은 조용히 빠진다.** 초기값이 202407부터라 그 이전 파일을 백필하면 행이 사라진다 | SPEC 7장 q1 | 적재 전 품질 검사에 "적재 월이 `nps_rate` 범위 안인가"를 추가하고, 범위 밖이면 `failed` |
+| D1 | 반영 | **q2가 사라진 회사의 요약을 지우지 않는다.** `REPLACE INTO`는 결과에 있는 행만 바꾼다. 지난달 있다가 이번 달 없어진 회사는 지난달 요약이 그대로 남아, SPEC의 "최신 월에 없는 회사는 summary에 행이 없다"가 깨진다 | SPEC 7장 q2, 5.2 주석 | q2 앞에 `DELETE FROM mart_company_summary`(같은 트랜잭션), 또는 새 테이블에 만든 뒤 `RENAME TABLE`로 교체. 회귀 테스트 "최신 월에 없는 회사는 행 없음"을 **두 달 연속 적재** 시나리오로 작성 |
+| D2 | 반영 | **q1이 `nps_rate`와 INNER JOIN이라, 기준표에 없는 달은 조용히 빠진다.** 초기값이 202407부터라 그 이전 파일을 백필하면 행이 사라진다 | SPEC 7장 q1 | 적재 전 품질 검사에 "적재 월이 `nps_rate` 범위 안인가"를 추가하고, 범위 밖이면 `failed` |
 | D3 | 중간 | **상호가 바뀌면 회사가 둘로 갈린다.** `company`의 키가 `biz_no6 + name_norm`이라 "예시소프트" → "예시소프트웨어"면 새 회사가 생기고 추이가 끊긴다 | SPEC 5.2 `uk_company` | MVP는 그대로 두고 한계로 표시. 이후 같은 `biz_no6` · 같은 주소 · 이름 유사도 높은 회사를 묶는 `company_alias` 검토 |
-| D4 | 중간 | **q1도 사라진 행을 지우지 않는다.** raw를 정정해 어떤 회사-월이 없어져도 `mart_company_monthly`에는 남는다 | SPEC 7장 q1 | 갱신 대상 월 범위를 지운 뒤 다시 넣는다(`DELETE … WHERE snapshot_ym BETWEEN`) |
+| D4 | 반영 | **q1도 사라진 행을 지우지 않는다.** raw를 정정해 어떤 회사-월이 없어져도 `mart_company_monthly`에는 남는다 | SPEC 7장 q1 | 갱신 대상 월 범위를 지운 뒤 다시 넣는다(`DELETE … WHERE snapshot_ym BETWEEN`) |
 | D5 | 중간 | **q6가 `DELETE` 후 `INSERT`라 그 사이 API가 빈 결과를 볼 수 있다.** 또 대표 사업장을 `workplace_monthly`에서 다시 계산해 q2와 기준이 둘이 된다 | SPEC 7장 q6 | 한 트랜잭션으로 묶고, 대표 주소는 `mart_company_summary.rep_addr_key`를 쓴다 |
-| D6 | 중간 | **표본 부족 회사가 백분위 계산에 그대로 들어간다.** 가입자 3~9명 회사의 극단값(퇴사율 50% 등)이 업종 분포를 흔든다 | SPEC 7장 q2 | 백분위 분모에서 `small_sample` 회사를 빼고, 그 회사들의 백분위는 NULL로 둔다. 업종 분포 API(`p25/p50/p75`)도 같은 기준 |
+| D6 | 반영 | **표본 부족 회사가 백분위 계산에 그대로 들어간다.** 가입자 3~9명 회사의 극단값(퇴사율 50% 등)이 업종 분포를 흔든다 | SPEC 7장 q2 | 백분위 분모에서 `small_sample` 회사를 빼고, 그 회사들의 백분위는 NULL로 둔다. 업종 분포 API(`p25/p50/p75`)도 같은 기준 |
 | D7 | 중간 | **`mart_station_rent`는 12 · 24개월만 미리 집계하는데, 화면은 6개월도 고른다.** `/stations/{id}/rent`는 1~24개월을 "요청 시 계산"이라 "요청 시점에 집계하지 않는다" 원칙과 충돌한다 | SPEC 7장 q5, 8장 | `window_months`에 6을 추가하고, API의 `months`는 6 · 12 · 24만 받는다. 1~24 자유 입력은 뺀다 |
 | D8 | 낮음 | SPEC에 DDL이 없는 테이블이 6개다(`industry`, `ingestion_log`, `api_call_log`, `dart_financial`, `mart_company_jobs`, raw 3종) | SPEC 5.1 vs 5.2 | 3장 제안 DDL을 T2가 검토해 SPEC에 반영 |
 | D9 | 낮음 | `workplace_monthly` 파티션이 `p2026`까지라 2027년 데이터는 `pmax`에 쌓인다 | SPEC 5.2 | 연 1회 `REORGANIZE PARTITION pmax`를 운영 문서(runbook)에 넣는다 |
