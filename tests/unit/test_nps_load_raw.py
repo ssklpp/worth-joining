@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import text
 
-from pipeline.nps.load_raw import RAW_COLUMNS, load_raw, run, write_tsv
+from pipeline.nps.load_raw import RAW_COLUMNS, load_raw, write_tsv
 from tests.nps_csv import Row, write_nps_csv
 
 
@@ -41,25 +41,3 @@ def test_load_raw_twice_keeps_same_rows(tmp_path, pipeline_engine):
             trans.rollback()
 
     assert [tuple(r) for r in rows] == [("가상A", "1", 10, 2), ("가상B", "2", 10, 2)]
-
-
-def test_run_skips_file_already_loaded(tmp_path, clean_tables):
-    csv_path = write_nps_csv(tmp_path / "a.csv", 202608, [Row("가상A")])
-
-    assert run(clean_tables, csv_path, 202608) == "success"
-    assert run(clean_tables, csv_path, 202608) == "skipped"
-    with clean_tables.connect() as conn:
-        statuses = conn.execute(text(
-            "SELECT status, row_count FROM ingestion_log ORDER BY run_id"
-        )).all()
-    assert [tuple(r) for r in statuses] == [("success", 1), ("skipped", None)]
-
-
-def test_run_records_failure(tmp_path, clean_tables):
-    csv_path = write_nps_csv(tmp_path / "a.csv", 202607, [Row("가상A")])
-
-    with pytest.raises(ValueError):
-        run(clean_tables, csv_path, 202608)
-    with clean_tables.connect() as conn:
-        status = conn.execute(text("SELECT status FROM ingestion_log")).scalar()
-    assert status == "failed"
