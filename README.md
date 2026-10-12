@@ -3,7 +3,7 @@
 > 공공데이터로 보는 회사 · 채용 · 주거비
 > "이 회사, 다닐 만한가?"에 숫자로 답하는 구직자용 웹 서비스
 
-![status](https://img.shields.io/badge/status-개발%20중%20(Phase%205%20완료)-blue)
+![status](https://img.shields.io/badge/status-개발%20중%20(Phase%206%20완료)-blue)
 ![python](https://img.shields.io/badge/Python-3.12-3776AB)
 ![fastapi](https://img.shields.io/badge/FastAPI-backend-009688)
 ![mariadb](https://img.shields.io/badge/MariaDB-11.4%20LTS-003545)
@@ -276,7 +276,7 @@ WHERE MBRContains(ST_Buffer(s.pt, 0.006), b.pt)
 
 ## 프로젝트 구조
 
-> 회사 · 업종 · 메타 API(Phase 4)와 DART 매칭 · 재무 API(Phase 5)까지 있습니다. `web/`과 지도 · 비교 API는 이후 Phase에서 추가합니다.
+> 회사 · 업종 · 메타 API(Phase 4), DART 매칭 · 재무 API(Phase 5), 웹 검색 · 회사 상세 · 계산 방법 화면(Phase 6)까지 있습니다. 지도 · 비교는 이후 Phase에서 추가합니다.
 
 ```
 worth-joining/
@@ -305,7 +305,7 @@ worth-joining/
 
 ## 시작하기
 
-> 지금은 데이터 적재, mart 갱신, 회사 검색 · 상세 · 추이 · 업종 API까지 동작합니다. 웹은 이후 Phase에서 추가합니다.
+> 지금은 데이터 적재, mart 갱신, API, 웹(검색 → 회사 상세 → 사람인 이동)까지 동작합니다.
 
 **필요한 것:** Python 3.12, Node.js 20+, MariaDB 11.4 (Docker는 선택)
 
@@ -353,6 +353,7 @@ python -m pipeline.refresh_mart                               # mart 갱신 (약
 
 ```bash
 python -m uvicorn app.main:app --reload     # http://localhost:8000/docs
+cd web && npm install && npm run dev       # http://localhost:3000
 ```
 
 **5. 테스트**
@@ -380,6 +381,7 @@ Windows에서 실행 파일이 막히거나 CI에서만 실패하면 [docs/troub
   - [x] mart SQL (월별 지표, 요약 · 백분위) (Phase 3)
   - [x] FastAPI 엔드포인트, 테스트, 상세 p95 6ms (Phase 4)
   - [x] DART 연동 · 매칭, 재무 API (Phase 5, 서울 본사 상장사 매칭률 69.1%)
+  - [x] 웹: 검색 · 회사 상세 · 계산 방법 (Phase 6)
   - [ ] 배포
   - [ ] 채용공고 바로가기 링크
 - [ ] **10/19~10/21: 회사 비교 · 지도, 검증 · 문서화, `v1.0.0`**
