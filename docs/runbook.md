@@ -77,7 +77,9 @@ Vercel   web   (Next.js, 저장소의 web/)  ──HTTPS──▶  Railway api (
 
 1. Vercel에서 저장소를 Import한다. **Root Directory: `web`**, Framework: Next.js(자동). 지금 프로젝트 주소: `web-chi-flax-46.vercel.app`(프로젝트 이름을 바꾸면 주소도 바뀌므로 `CORS_ORIGINS`를 함께 고친다).
    - Vercel은 보안 취약 버전의 Next.js 배포를 거부한다(troubleshooting TS-019). 의존성을 올릴 때 패치 버전을 쓴다.
-2. 환경 변수 `NEXT_PUBLIC_API_BASE_URL` = `https://<api 도메인>` (끝에 `/` 없이). Production · Preview 모두.
+2. 환경 변수(Production · Preview 모두):
+   - `NEXT_PUBLIC_API_BASE_URL` = `https://<api 도메인>` (끝에 `/` 없이)
+   - `NEXT_PUBLIC_NAVER_MAP_CLIENT_ID` = NCP Maps Application의 Client ID(공개 값). NCP 콘솔 Application의 Web 서비스 URL에 `http://localhost:3000`과 웹 도메인을 등록해야 지도 인증이 된다. Client Secret은 쓰지 않는다
    - `NEXT_PUBLIC_*`는 빌드할 때 코드에 들어간다. 값을 바꾸면 **다시 배포**해야 한다.
 3. 배포 후 나온 Production 도메인을 Railway `api`의 `CORS_ORIGINS`에 넣는다. api가 다시 시작된다.
    - Preview 배포 주소는 CORS에 없으므로 데이터가 안 보인다. 필요하면 그 주소를 배열에 더한다.
@@ -100,6 +102,7 @@ Vercel   web   (Next.js, 저장소의 web/)  ──HTTPS──▶  Railway api (
 | api | `DB_SSL_VERIFY` | 아니오 | `false` |
 | api | `CORS_ORIGINS` | 아니오 | JSON 배열 |
 | web | `NEXT_PUBLIC_API_BASE_URL` | 아니오(공개) | api 공개 주소 |
+| web | `NEXT_PUBLIC_NAVER_MAP_CLIENT_ID` | 아니오(공개) | 네이버 지도 Client ID. NCP 콘솔에 도메인 등록으로 보호 |
 
 API 키(DART · 공공데이터포털 등)는 배포 서비스에 넣지 않는다. 수집은 로컬에서만 한다.
 
