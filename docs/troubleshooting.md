@@ -30,6 +30,7 @@
 | [TS-016](#ts-016-전각-괄호-주가-정규화되지-않음) | 2026-10-12 | 데이터 · 정규화 | 전각 괄호 `（주）`가 정규화되지 않음 | 해결 | #23 |
 | [TS-017](#ts-017-company-json-수집이-data-too-long-for-column-bizr_no로-중단) | 2026-10-12 | 데이터 · DART | company.json 수집이 `Data too long for column 'bizr_no'`로 중단 | 해결 | #24 |
 | [TS-018](#ts-018-dart-재무의-순이익이-모두-비어-있음) | 2026-10-12 | 데이터 · DART | DART 재무의 순이익이 모두 비어 있음 | 해결 | #25 |
+| [TS-019](#ts-019-vercel이-취약한-nextjs-배포를-거부함) | 2026-10-12 | 배포 · 보안 | Vercel이 취약한 Next.js 배포를 거부함 | 해결 | #30 |
 
 ---
 
@@ -213,6 +214,19 @@
 - **원인:** 다중회사 주요계정 응답의 순이익 계정명이 문서 예시와 달리 `당기순이익(손실)`이었다. 적재기는 `당기순이익`과 완전히 같은 이름만 찾았다. fixture도 문서 예시대로 만들어 테스트가 통과했다.
 - **해결:** 계정명의 괄호 앞까지만 비교한다(`pipeline/dart/financials.py` `parse`). fixture의 계정명을 실제 응답과 같게 바꿨다.
 - **재발 방지:** 외부 API fixture는 공식 문서 예시가 아니라 실제 응답 한 건을 보고 만든다. 새 수집기는 전체 실행 전에 몇 건만 불러 필드를 확인한다.
+
+---
+
+## TS-019. Vercel이 취약한 Next.js 배포를 거부함
+
+- **증상:** Vercel 첫 배포에서 `next build`는 성공했는데 마지막 단계에서 멈췄다.
+  ```
+  Vulnerable version of Next.js detected, please update immediately.
+  ```
+  설치 로그에도 `npm warn deprecated next@15.5.4: This version has a security vulnerability ... CVE-2025-66478`가 있었다.
+- **원인:** `create-next-app@15.5.4`로 `web/`을 만들어 Next.js 15.5.4 · React 19.1.0이 들어갔다. 이 버전은 React Server Components 원격 코드 실행 취약점(CVE-2025-66478, React 쪽 CVE-2025-55182) 패치 전이라 Vercel이 배포를 막는다. 로컬 빌드와 CI는 경고 없이 통과했다.
+- **해결:** 같은 15.5 계열의 패치 버전으로 올렸다. `next` 15.5.27, `react` · `react-dom` 19.1.9, `eslint-config-next` 15.5.27. 코드 변경 없이 lint · 타입 검사 · 빌드가 통과했다.
+- **재발 방지:** 프레임워크를 새로 만들 때 버전을 고르기 전에 `npm view <패키지>@<계열> version`으로 최신 패치를 확인하고, `npm install` 로그의 `deprecated ... security vulnerability` 경고를 넘기지 않는다.
 
 ---
 
