@@ -48,3 +48,9 @@ async def add_dart(db, company_id, *, corp_code="00000001", match_type="exact",
             "INSERT INTO dart_financial VALUES (:c, :y, '11011', :rev, :op, :net, :debt, :eq)"
         ), {"c": corp_code, "y": year, "rev": rev, "op": op, "net": net, "debt": debt,
             "eq": equity})
+
+
+async def add_location(db, company_id, lon=126.98, lat=37.57, accuracy="building", basis="dart_hq"):
+    await db.execute(text(
+        "INSERT INTO company_location VALUES (:id, :lon, :lat, :acc, :basis, 'test', NOW())"
+    ), {"id": company_id, "lon": lon, "lat": lat, "acc": accuracy, "basis": basis})

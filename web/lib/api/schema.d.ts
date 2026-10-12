@@ -137,6 +137,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/map/companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 지도 핀
+         * @description 좌표가 있는 회사 중 가입자 많은 순 최대 200곳. 넘으면 truncated.
+         */
+        get: operations["map_companies_map_companies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/meta/methodology": {
         parameters: {
             query?: never;
@@ -477,6 +497,73 @@ export interface components {
             /** Items */
             items: components["schemas"]["IndustryItem"][];
         };
+        /** MapCompanies */
+        MapCompanies: {
+            /**
+             * As Of
+             * @description 데이터 기준월 YYYYMM. 데이터가 없으면 null
+             */
+            as_of: number | null;
+            /**
+             * Metric
+             * @enum {string}
+             */
+            metric: "growth" | "quit" | "salary";
+            /**
+             * Items
+             * @description 가입자 많은 순 최대 200곳
+             */
+            items: components["schemas"]["MapCompany"][];
+            /**
+             * Truncated
+             * @description 조건에 맞는 회사가 200곳보다 많다. 범위를 좁히라고 안내
+             */
+            truncated: boolean;
+            /**
+             * Ungeocoded Count
+             * @description 업종 · 지역 조건에 맞지만 좌표가 없어 빠진 회사 수
+             */
+            ungeocoded_count: number;
+        };
+        /** MapCompany */
+        MapCompany: {
+            /** Company Id */
+            company_id: number;
+            /** Name */
+            name: string;
+            /** Lon */
+            lon: number;
+            /** Lat */
+            lat: number;
+            /**
+             * Accuracy
+             * @description building이 아니면 대략 위치
+             * @enum {string}
+             */
+            accuracy: "building" | "road" | "dong";
+            /**
+             * Basis
+             * @description dart_hq: DART 본사 주소 기준(decisions/004)
+             * @enum {string}
+             */
+            basis: "dart_hq" | "name_search" | "road" | "dong";
+            /**
+             * Value
+             * @description metric으로 고른 값. 비율은 소수, 연봉은 원
+             */
+            value: number | null;
+            /** Members */
+            members: number;
+            /** Growth 12M */
+            growth_12m: number | null;
+            /** Quit Rate 12M */
+            quit_rate_12m: number | null;
+            /**
+             * Avg Salary Est
+             * @description 추정 평균 연봉(원, 하한 추정치)
+             */
+            avg_salary_est: number | null;
+        };
         /** Methodology */
         Methodology: {
             /**
@@ -791,6 +878,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Distribution"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    map_companies_map_companies_get: {
+        parameters: {
+            query?: {
+                /** @description 업종 코드 6자리 */
+                industry?: string | null;
+                /** @description 시도 2자리 또는 시군구 5자리 */
+                region?: string | null;
+                metric?: "growth" | "quit" | "salary";
+                /** @description min_lon,min_lat,max_lon,max_lat (WGS84) */
+                bbox?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapCompanies"];
                 };
             };
             /** @description Validation Error */

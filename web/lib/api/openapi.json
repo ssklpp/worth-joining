@@ -499,6 +499,111 @@
     }
    }
   },
+  "/map/companies": {
+   "get": {
+    "tags": [
+     "map"
+    ],
+    "summary": "지도 핀",
+    "description": "좌표가 있는 회사 중 가입자 많은 순 최대 200곳. 넘으면 truncated.",
+    "operationId": "map_companies_map_companies_get",
+    "parameters": [
+     {
+      "name": "industry",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "pattern": "^\\d{6}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "업종 코드 6자리",
+       "title": "Industry"
+      },
+      "description": "업종 코드 6자리"
+     },
+     {
+      "name": "region",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "pattern": "^\\d{2}(\\d{3})?$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "시도 2자리 또는 시군구 5자리",
+       "title": "Region"
+      },
+      "description": "시도 2자리 또는 시군구 5자리"
+     },
+     {
+      "name": "metric",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "enum": [
+        "growth",
+        "quit",
+        "salary"
+       ],
+       "type": "string",
+       "default": "growth",
+       "title": "Metric"
+      }
+     },
+     {
+      "name": "bbox",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "min_lon,min_lat,max_lon,max_lat (WGS84)",
+       "title": "Bbox"
+      },
+      "description": "min_lon,min_lat,max_lon,max_lat (WGS84)"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MapCompanies"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/meta/methodology": {
    "get": {
     "tags": [
@@ -1469,6 +1574,164 @@
      "items"
     ],
     "title": "IndustryList"
+   },
+   "MapCompanies": {
+    "properties": {
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of",
+      "description": "데이터 기준월 YYYYMM. 데이터가 없으면 null"
+     },
+     "metric": {
+      "type": "string",
+      "enum": [
+       "growth",
+       "quit",
+       "salary"
+      ],
+      "title": "Metric"
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/MapCompany"
+      },
+      "type": "array",
+      "title": "Items",
+      "description": "가입자 많은 순 최대 200곳"
+     },
+     "truncated": {
+      "type": "boolean",
+      "title": "Truncated",
+      "description": "조건에 맞는 회사가 200곳보다 많다. 범위를 좁히라고 안내"
+     },
+     "ungeocoded_count": {
+      "type": "integer",
+      "title": "Ungeocoded Count",
+      "description": "업종 · 지역 조건에 맞지만 좌표가 없어 빠진 회사 수"
+     }
+    },
+    "type": "object",
+    "required": [
+     "as_of",
+     "metric",
+     "items",
+     "truncated",
+     "ungeocoded_count"
+    ],
+    "title": "MapCompanies"
+   },
+   "MapCompany": {
+    "properties": {
+     "company_id": {
+      "type": "integer",
+      "title": "Company Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "lon": {
+      "type": "number",
+      "title": "Lon"
+     },
+     "lat": {
+      "type": "number",
+      "title": "Lat"
+     },
+     "accuracy": {
+      "type": "string",
+      "enum": [
+       "building",
+       "road",
+       "dong"
+      ],
+      "title": "Accuracy",
+      "description": "building이 아니면 대략 위치"
+     },
+     "basis": {
+      "type": "string",
+      "enum": [
+       "dart_hq",
+       "name_search",
+       "road",
+       "dong"
+      ],
+      "title": "Basis",
+      "description": "dart_hq: DART 본사 주소 기준(decisions/004)"
+     },
+     "value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Value",
+      "description": "metric으로 고른 값. 비율은 소수, 연봉은 원"
+     },
+     "members": {
+      "type": "integer",
+      "title": "Members"
+     },
+     "growth_12m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Growth 12M"
+     },
+     "quit_rate_12m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Quit Rate 12M"
+     },
+     "avg_salary_est": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Avg Salary Est",
+      "description": "추정 평균 연봉(원, 하한 추정치)"
+     }
+    },
+    "type": "object",
+    "required": [
+     "company_id",
+     "name",
+     "lon",
+     "lat",
+     "accuracy",
+     "basis",
+     "value",
+     "members",
+     "growth_12m",
+     "quit_rate_12m",
+     "avg_salary_est"
+    ],
+    "title": "MapCompany"
    },
    "Methodology": {
     "properties": {
