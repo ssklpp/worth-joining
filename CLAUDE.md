@@ -37,7 +37,9 @@ Windows에서 `.venv\Scripts\*.exe` 실행이 막히면 `python -m <도구>`로 
 ```bash
 python -m venv .venv && pip install -e ".[dev]"   # 최초 1회
 alembic upgrade head                         # 스키마 적용 (DB: worth_joining, worth_joining_test)
-python -m pipeline.nps.load --ym 202608      # 국민연금 한 달치 적재 (멱등)
+python -m pipeline.region.load               # 시군구 이름 (data/raw/region/legal_dong_codes_seoul.txt)
+python -m pipeline.nps.extract_seoul data/raw/nps/all/*.csv   # 전국 원본 → 서울 추출
+python -m pipeline.nps.load --all            # 국민연금 전체 월 오름차순 적재 (--ym 202608은 한 달, 멱등)
 python -m pipeline.refresh_mart              # sql/q1 → q2를 한 트랜잭션으로 실행
 uvicorn app.main:app --reload                # API, :8000/docs
 cd web && npm install && npm run dev         # 프론트엔드, :3000

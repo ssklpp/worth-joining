@@ -49,7 +49,7 @@ def clean_tables(pipeline_engine):
     yield pipeline_engine
     with pipeline_engine.begin() as conn:
         conn.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
-        for table in ("workplace_monthly", "workplace", "company", "industry",
+        for table in ("workplace_monthly", "workplace", "company", "industry", "region",
                       "raw_nps_workplace", "ingestion_log"):
             conn.execute(text(f"TRUNCATE TABLE {table}"))
         conn.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
