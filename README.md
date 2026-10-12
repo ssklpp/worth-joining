@@ -3,7 +3,7 @@
 > 공공데이터로 보는 회사 · 채용 · 주거비
 > "이 회사, 다닐 만한가?"에 숫자로 답하는 구직자용 웹 서비스
 
-![status](https://img.shields.io/badge/status-설계%20단계-lightgrey)
+![status](https://img.shields.io/badge/status-개발%20중%20(Phase%202%20완료)-blue)
 ![python](https://img.shields.io/badge/Python-3.12-3776AB)
 ![fastapi](https://img.shields.io/badge/FastAPI-backend-009688)
 ![mariadb](https://img.shields.io/badge/MariaDB-11.4%20LTS-003545)
@@ -276,7 +276,7 @@ WHERE MBRContains(ST_Buffer(s.pt, 0.006), b.pt)
 
 ## 프로젝트 구조
 
-> 계획 중인 구조이며, 구현하면서 바뀔 수 있습니다.
+> `app/`의 엔드포인트, `sql/`, `web/`은 아직 비어 있습니다(Phase 3 이후).
 
 ```
 worth-joining/
@@ -288,13 +288,15 @@ worth-joining/
 │  ├─ repositories/      # SQL
 │  └─ services/          # 플래그 · 문구 생성
 ├─ pipeline/             # 수집 · 정제 · mart 갱신 배치
-│  ├─ nps/  dart/  rent/  stations/  geocode/  saramin/
-│  └─ scheduler.py
+│  ├─ common/            # DB 연결, ingestion_log, 상호 정규화
+│  ├─ nps/               # 국민연금: 서울 추출 · 프로파일링 · 적재 · 품질 검사
+│  ├─ region/            # 법정동코드 → 시군구
+│  └─ dart/  rent/  stations/  geocode/  saramin/   # 이후 Phase
 ├─ migrations/           # Alembic
 ├─ sql/                  # mart 갱신 SQL
 ├─ web/                  # Next.js
 ├─ tests/                # pytest (unit, sql, api)
-├─ docs/                 # 개요 · 요구사항 · API 키 · 프로파일링 · 검증 · 성능 · 운영 문서
+├─ docs/                 # 개요 · 요구사항 · 설계 · 프로파일링 · 결정 기록 · 트러블슈팅
 ├─ docker-compose.yml    # 선택: Docker로 로컬 DB를 띄울 때
 └─ .env.example
 ```
@@ -303,65 +305,63 @@ worth-joining/
 
 ## 시작하기
 
-> 구현 전 단계라 아래는 예정된 실행 방법입니다.
+> 지금은 데이터 적재와 `/health`까지 동작합니다. mart 갱신(`refresh_mart`)과 웹은 이후 Phase에서 추가합니다.
 
 **필요한 것:** Python 3.12, Node.js 20+, MariaDB 11.4 (Docker는 선택)
 
-**1. 환경 변수**
+**1. 설치와 환경 변수**
 
 ```bash
-cp .env.example .env
+python -m venv .venv
+.venv\Scripts\activate            # macOS · Linux: source .venv/bin/activate
+pip install -e ".[dev]"
+cp .env.example .env              # DB 계정 비밀번호를 채운다
 ```
 
-```dotenv
-DATABASE_URL=mysql+asyncmy://user:password@localhost:3306/worth_joining
-TEST_DATABASE_URL=mysql+asyncmy://user:password@localhost:3306/worth_joining_test
-DB_SSL_VERIFY=false       # 로컬 11.4 자동 인증서 검증 여부
-DATA_GO_KR_SERVICE_KEY=   # 공공데이터포털
-SEOUL_OPENDATA_KEY=       # 서울 열린데이터광장 (전월세가 정보)
-OPENDART_API_KEY=         # OpenDART
-JUSO_SEARCH_KEY=          # 주소정보누리집 검색 API
-JUSO_COORD_KEY=           # 주소정보누리집 좌표제공 API
-SARAMIN_ACCESS_KEY=       # 사람인 API (승인 후)
-NEXT_PUBLIC_NAVER_MAP_CLIENT_ID=   # 네이버 클라우드 플랫폼 Maps Client ID (도메인 등록 필요)
-```
-
-API 키는 저장소에 올리지 않습니다. `.env`는 `.gitignore`에 포함합니다.
+`.env.example`에 DB 접속 정보(`DATABASE_URL`, `DATABASE_URL_SYNC`, `TEST_DATABASE_URL`, `DB_SSL_VERIFY=false`)와 외부 API 키 항목이 있습니다. API 키는 저장소에 올리지 않습니다. 비어 있는 키의 수집기는 건너뜁니다.
 
 **2. DB와 스키마**
 
-설치된 MariaDB 11.4에 DB를 만든 뒤 스키마를 적용합니다.
+설치된 MariaDB 11.4에 DB와 계정을 만든 뒤 스키마를 적용합니다.
 
 ```sql
 CREATE DATABASE worth_joining      CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE DATABASE worth_joining_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'wj'@'localhost' IDENTIFIED BY '...';
+GRANT ALL PRIVILEGES ON worth_joining.*      TO 'wj'@'localhost';
+GRANT ALL PRIVILEGES ON worth_joining_test.* TO 'wj'@'localhost';
 ```
 
 ```bash
-alembic upgrade head
+python -m alembic upgrade head
 ```
 
 Docker를 쓴다면 `docker compose up -d mariadb`로 대신할 수 있습니다.
 
-**3. 데이터 적재**
+**3. 데이터**
+
+팀원은 공유 드라이브의 DB 덤프(`worth_joining_YYYYMMDD.zip`)를 불러오면 됩니다. 방법은 zip 안의 `README.txt`에 있습니다. 직접 적재하려면 공공데이터포털에서 국민연금 월 파일과 법정동코드 전체자료를 받아 `data/raw/`에 둡니다.
 
 ```bash
-python -m pipeline.nps.load --ym 202608     # 국민연금 월 파일 적재
-python -m pipeline.refresh_mart             # mart 갱신
+python -m pipeline.nps.extract_seoul data/raw/nps/all/*.csv   # 전국 → 서울 추출
+python -m pipeline.region.load                                # 시군구 이름
+python -m pipeline.nps.load --all                             # 13개월, 월 오름차순 (약 2분)
 ```
 
 **4. 실행**
 
 ```bash
-uvicorn app.main:app --reload               # http://localhost:8000/docs
-cd web && npm install && npm run dev        # http://localhost:3000
+python -m uvicorn app.main:app --reload     # http://localhost:8000/health
 ```
 
 **5. 테스트**
 
 ```bash
-pytest
+python -P -m pytest                         # CI와 같은 조건
+ruff check .
 ```
+
+Windows에서 실행 파일이 막히거나 CI에서만 실패하면 [docs/troubleshooting.md](./docs/troubleshooting.md)를 먼저 봅니다.
 
 ---
 
@@ -371,8 +371,9 @@ pytest
 
 - [x] **10/02~10/07: 기획 · 설계** (요구사항, SPEC, 화면 시안)
 - [ ] **10/08~10/16: 회사 체력 MVP 개발 · 배포**
-  - [ ] 데이터 프로파일링, ERD 확정
-  - [ ] 국민연금 적재 파이프라인, 과거 월 백필
+  - [x] 저장소 · CI · 로컬 DB (Phase 0)
+  - [x] 데이터 프로파일링 (Phase 1, 서울 13개월)
+  - [x] 스키마, 국민연금 적재 파이프라인 · 품질 검사, 13개월 백필 (Phase 2)
   - [ ] mart SQL (월별 지표, 요약 · 백분위)
   - [ ] FastAPI 엔드포인트, 테스트
   - [ ] DART 연동 · 매칭, 배포
@@ -423,5 +424,5 @@ pytest
 
 ## 라이선스
 
-- 코드: MIT License (예정)
+- 코드: [MIT License](./LICENSE)
 - 데이터: 각 제공 기관의 이용 조건을 따르며, 출처를 서비스 내에 표시합니다.

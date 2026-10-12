@@ -23,7 +23,7 @@
 | [TS-009](#ts-009-git-lf--crlf-변환-경고) | 2026-10-08 | Git | `LF will be replaced by CRLF` 경고 | 보류 | — |
 | [TS-010](#ts-010-쌓은-pr이-앞-pr의-squash-merge-후-충돌) | 2026-10-12 | Git · 협업 | 쌓은 PR이 앞 PR의 squash merge 후 충돌 | 해결 | #12 |
 | [TS-011](#ts-011-ci에서만-modulenotfounderror-no-module-named-tests) | 2026-10-12 | 테스트 · CI | CI에서만 `ModuleNotFoundError: No module named 'tests'` | 해결 | #14 |
-| [TS-012](#ts-012-백필-중-한-달-core-적재가-10분-넘게-멈춤) | 2026-10-12 | DB · 성능 | 백필 중 한 달 core 적재가 10분 넘게 멈춤 | 해결 | T1-04 PR |
+| [TS-012](#ts-012-백필-중-한-달-core-적재가-10분-넘게-멈춤) | 2026-10-12 | DB · 성능 | 백필 중 한 달 core 적재가 10분 넘게 멈춤 | 해결 | #15 |
 
 ---
 
