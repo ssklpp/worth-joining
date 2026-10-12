@@ -664,7 +664,7 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 | `GET /stations/{id}/rent` | `months`(1~24, 기본 12), `contract`(all\|monthly\|jeonse) | 분포, 전세 비중, `trend[]{ym, median}` |
 | `GET /industries` | `q`(이름 일부) | `items[]{code, name, n_companies}` |
 | `GET /industries/{code}/distribution` | `metric`(salary\|quit\|growth) | `p25, p50, p75, n` |
-| `GET /compare` | `ids`(최대 3) | 회사별 `index_series[]`(12개월 전 = 100) + 요약 + `flags[]` |
+| `GET /compare` | `ids`(쉼표로 1 ~ 3개, 중복 · 형식 오류 422, 없는 ID 404) | `items[]{company_id, name, status, flags[], industry, region, members, growth_12m, quit_rate_12m, avg_salary_est, index_series[]{ym, members, idx}}`(요청 순서, 12개월 전 = 100, 없으면 `idx` null) |
 | `GET /map/companies` | `industry`, `region`(시도 2자리 또는 시군구 5자리), `metric`(growth\|quit\|salary) | `items[]{company_id, name, lon, lat, accuracy, basis, value}`(최대 200), `truncated` |
 | `GET /meta/methodology` | — | 계산식, 한계, 데이터 기준월, 출처 목록 |
 | `GET /health` | — | `status`, `db:"ok"`, `latest_nps_ym`(mart 기준 최신 월). 확장 시 `latest_rent_ym`, (P2) `match_rate`, `geocode_success_rate` |
