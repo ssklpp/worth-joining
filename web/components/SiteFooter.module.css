@@ -1,0 +1,2 @@
+.footer { max-width: 880px; margin: 0 auto; padding: 20px 20px 32px; border-top: 1px solid var(--rule); color: var(--muted); font-size: var(--fs-s); display: flex; flex-direction: column; gap: 6px; }
+@media (max-width: 640px) { .footer { padding-inline: 16px; } }
