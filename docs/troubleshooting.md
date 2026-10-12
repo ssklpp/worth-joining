@@ -22,6 +22,7 @@
 | [TS-008](#ts-008-claude-code가-pr-병합--보호-규칙-변경을-거부함) | 2026-10-08 | 협업 도구 | Claude Code가 PR 병합 · 보호 규칙 변경을 거부함 | 우회 | — |
 | [TS-009](#ts-009-git-lf--crlf-변환-경고) | 2026-10-08 | Git | `LF will be replaced by CRLF` 경고 | 보류 | — |
 | [TS-010](#ts-010-쌓은-pr이-앞-pr의-squash-merge-후-충돌) | 2026-10-12 | Git · 협업 | 쌓은 PR이 앞 PR의 squash merge 후 충돌 | 해결 | #12 |
+| [TS-011](#ts-011-ci에서만-modulenotfounderror-no-module-named-tests) | 2026-10-12 | 테스트 · CI | CI에서만 `ModuleNotFoundError: No module named 'tests'` | 해결 | #14 |
 
 ---
 
@@ -127,6 +128,16 @@
   ```
   옮긴 뒤 `git diff origin/main HEAD`가 B 원래 커밋의 diff와 같은지 확인한다.
 - **재발 방지:** 가능하면 PR을 쌓지 않고 앞 PR이 병합된 뒤 최신 `main`에서 브랜치를 만든다. 쌓아야 하면 A 병합 직후 B를 위 방법으로 옮긴다.
+
+## TS-011. CI에서만 `ModuleNotFoundError: No module named 'tests'`
+
+- **증상:** 로컬에서는 통과하는데 CI의 `pytest -v`가 테스트 수집 단계에서 실패한다.
+  ```
+  E   ModuleNotFoundError: No module named 'tests'
+  ```
+- **원인:** 테스트가 공용 도우미를 `from tests.nps_csv import ...`로 가져온다. 로컬은 `python -m pytest`로 실행해 현재 폴더가 `sys.path`에 들어가지만, CI는 `pytest`를 바로 실행해 저장소 루트가 `sys.path`에 없다.
+- **해결:** `pyproject.toml`의 `[tool.pytest.ini_options]`에 `pythonpath = ["."]`를 넣었다. 실행 방식과 관계없이 루트를 `sys.path`에 넣는다.
+- **재발 방지:** push 전에 `python -P -m pytest`로 돌린다. `-P`(Python 3.11+)는 현재 폴더를 `sys.path`에 넣지 않아 CI와 조건이 같다. 이 PC는 `pytest.exe`도 애플리케이션 제어에 막힌다(TS-003). 설정 없이 이 명령으로 같은 오류를 재현하고, 설정 후 통과를 확인했다.
 
 ---
 

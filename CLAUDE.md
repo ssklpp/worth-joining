@@ -42,7 +42,7 @@ python -m pipeline.refresh_mart              # sql/q1 → q2를 한 트랜잭션
 uvicorn app.main:app --reload                # API, :8000/docs
 cd web && npm install && npm run dev         # 프론트엔드, :3000
 ruff check .
-pytest                                       # 전체 테스트
+pytest                                       # 전체 테스트 (Windows: python -P -m pytest, CI와 같은 조건. TS-011)
 pytest tests/sql/test_x.py::test_name        # 단일 테스트
 ```
 
