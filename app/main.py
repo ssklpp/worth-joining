@@ -1,10 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
 
 from app.core.config import settings
-from app.core.db import engine
-from app.routers import companies
+from app.routers import companies, industries, meta
 
 app = FastAPI(
     title="다닐만한가 API",
@@ -14,11 +12,5 @@ app = FastAPI(
 )
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=["GET"])
 app.include_router(companies.router)
-
-
-@app.get("/health")
-async def health() -> dict[str, str]:
-    # Phase 0 접속 확인용. as_of 등은 T3-07에서 추가한다.
-    async with engine.connect() as conn:
-        await conn.execute(text("SELECT 1"))
-    return {"status": "ok"}
+app.include_router(industries.router)
+app.include_router(meta.router)
