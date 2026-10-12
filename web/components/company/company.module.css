@@ -1,0 +1,48 @@
+/* 회사 상세(docs/03 4 · 6 · 7장, 시안 map-home.html의 결과지) */
+.block { display: flex; flex-direction: column; gap: 12px; }
+.head { display: flex; flex-direction: column; gap: 4px; }
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 16px; margin: 0; }
+@media (max-width: 640px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.facts dt { font-size: var(--fs-xs); color: var(--muted); }
+.facts dd { margin: 0; font-weight: 500; font-size: var(--fs-s); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* 결과표: 면을 가진 요소는 이것뿐 */
+.sheet { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 16px 18px 6px; display: flex; flex-direction: column; gap: 8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--fs-xs); color: var(--muted); align-items: center; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.swBand { width: 18px; height: 10px; background: var(--band); border-radius: 2px; }
+.swMedian { width: 2px; height: 12px; background: var(--muted); }
+.swPen { width: 10px; height: 10px; border-radius: 50%; background: var(--pen); }
+.swTail { width: 16px; border-top: 2px dashed var(--pen); }
+
+.row { display: grid; grid-template-columns: 4.5rem 9.5rem minmax(0, 1fr) 9rem; grid-template-areas: "name value pos verdict"; align-items: start; gap: 4px 16px; padding-block: 14px; border-top: 1px solid var(--rule); }
+@media (max-width: 640px) {
+  .row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name verdict" "value value" "pos pos"; }
+}
+.name { grid-area: name; font-weight: 600; }
+.verdict { grid-area: verdict; text-align: right; display: flex; flex-direction: column; font-size: var(--fs-s); }
+.verdict span { color: var(--muted); font-size: var(--fs-xs); }
+.value { grid-area: value; display: flex; flex-direction: column; }
+.value strong { font-size: var(--fs-xl); font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.3; }
+.value span { font-size: var(--fs-xs); color: var(--muted); }
+.pos { grid-area: pos; min-width: 0; margin-top: 4px; }
+.row :global(.note) { grid-column: 1 / -1; margin-top: 6px; }
+
+.track { position: relative; height: 26px; }
+.base { position: absolute; left: 0; right: 0; top: 12px; height: 2px; background: var(--rule); }
+.band { position: absolute; top: 5px; height: 16px; background: var(--band); border-radius: 3px; }
+.median { position: absolute; top: 2px; width: 2px; height: 22px; margin-left: -1px; background: var(--muted); }
+.tail { position: absolute; top: 12px; border-top: 2px dashed var(--pen); }
+.marker { position: absolute; top: 5px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--pen); border: 3px solid var(--surface); }
+.hollow { background: var(--surface); border: 3px solid var(--pen); }
+.axis { display: flex; justify-content: space-between; font-size: var(--fs-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.chart { overflow-x: auto; overflow-y: hidden; }
+.chartInner { min-width: 380px; height: 240px; }
+.tableWrap { overflow-x: auto; }
+.table { border-collapse: collapse; width: 100%; font-size: var(--fs-s); font-variant-numeric: tabular-nums; }
+.table th, .table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.table th:first-child, .table td:first-child { text-align: left; }
+.table thead th { font-weight: 500; color: var(--muted); }
+.missing { text-align: left !important; color: var(--caution); }
