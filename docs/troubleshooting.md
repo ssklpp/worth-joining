@@ -28,6 +28,7 @@
 | [TS-014](#ts-014-locust-실행-시-gevent-dll-로드-실패) | 2026-10-12 | 환경 · Windows | locust 실행 시 gevent DLL 로드 실패 | 우회 | #21 |
 | [TS-015](#ts-015-localhost-부하-측정에서-최대-응답이-약-2초) | 2026-10-12 | 환경 · Windows | localhost 부하 측정에서 최대 응답이 약 2초 | 우회 | #21 |
 | [TS-016](#ts-016-전각-괄호-주가-정규화되지-않음) | 2026-10-12 | 데이터 · 정규화 | 전각 괄호 `（주）`가 정규화되지 않음 | 해결 | #23 |
+| [TS-017](#ts-017-company-json-수집이-data-too-long-for-column-bizr_no로-중단) | 2026-10-12 | 데이터 · DART | company.json 수집이 `Data too long for column 'bizr_no'`로 중단 | 해결 | #24 |
 
 ---
 
@@ -190,6 +191,18 @@
 - **원인:** 국민연금 원본 상호에 전각 괄호 `（주）`(U+FF08 · U+FF09)와 전각 영숫자가 섞여 있다. `normalize_name`의 `CORP_TOKENS`는 반각 `(주)`만 지우고, 전각 괄호는 `NON_WORD`가 괄호만 지워 `주`가 이름에 남았다. 서울 회사 159,048개 중 7,621개(4.8%)의 `name_norm`이 이 때문에 달랐고, 그중 13개는 같은 회사가 반각 · 전각 표기로 둘로 나뉘어 있었다.
 - **해결:** `normalize_name`이 먼저 `unicodedata.normalize("NFKC", name)`을 적용한다(SPEC 6장 함수도 수정). `tests/unit/test_normalize.py`에 전각 괄호 · 전각 영문 사례를 넣었다. 로컬 DB는 국민연금 테이블과 mart를 비우고 13개월을 다시 적재했다(회사 159,035개, 품질 검사 모두 통과). `dart_corp.corp_name_norm`은 10행이 바뀌어 같은 함수로 다시 계산했다.
 - **재발 방지:** 외부 문자열을 키로 쓰기 전에는 NFKC를 거친다. 정규화 규칙을 바꾸면 회사 식별 키가 바뀌므로 raw부터 다시 적재하고 DB 덤프도 새로 만든다.
+
+---
+
+## TS-017. company.json 수집이 `Data too long for column 'bizr_no'`로 중단
+
+- **증상:** `python -m pipeline.dart.company_info`가 2,910건을 받은 뒤 멈췄다.
+  ```
+  sqlalchemy.exc.DataError: (pymysql.err.DataError) (1406, "Data too long for column 'bizr_no' at row 1")
+  ```
+- **원인:** 홍콩 법인(`00694003`)의 `bizr_no`가 16자리 현지 번호였다. `dart_corp.bizr_no`는 `VARCHAR(10)`이다. 국내 사업자번호는 항상 10자리다.
+- **해결:** 숫자만 남긴 뒤 10자리가 아니면 `bizr_no`를 비운다(`pipeline/dart/company_info.py` `parse`). 해외 번호는 국민연금 사업자번호와 비교할 수 없으므로 매칭에 쓰지 않는다. 받은 법인은 한 건씩 `fetched_at`을 남기므로 다시 실행하면 이어 받았다. `ingestion_log.message`에 API 키가 없는 것도 확인했다.
+- **재발 방지:** 외부 응답 값은 컬럼 길이 · 형식을 확인한 뒤 저장한다. `tests/unit/test_dart_company_info.py`에 해외 번호 사례를 넣었다.
 
 ---
 

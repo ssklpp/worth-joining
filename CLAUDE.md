@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docs/04_database_design.md`: ERD, 테이블 관계, SPEC에 없는 DDL 제안, DB 설계 문제점(D1~D9)
 - `docs/05_api_spec.md`: API 구조 · 엔드포인트 · SPEC 밖 후보, 외부 API와 키(4장: 발급 · 보관 · `.env.example` · 한도 · 호출 원칙), API 문제점(A1~A7)
 - `docs/06_architecture.md`: 전체 구조, 데이터 흐름, 최종 기술 스택, 배포, 아키텍처 문제점(R1~R7)과 전체 우선순위표. 이 문서들의 "제안"은 SPEC에 반영되기 전까지 확정이 아니다
+- `docs/matching.md`: DART 매칭 규칙 · 매칭률 · 연결 안 된 원인
 - `docs/troubleshooting.md`: 겪은 에러 · 버그 · 환경 문제와 해결 방법(TS-NNN). 에러가 나면 먼저 여기서 찾는다
 
 **SPEC.md는 약 950줄(약 27k 토큰)이라 전체를 읽지 않는다.** 먼저 `Grep "^##+ " SPEC.md`로 장 위치를 확인하고, 필요한 장만 줄 범위(offset/limit)로 읽는다. 장별 대략의 시작 줄은 아래와 같다(문서가 수정되면 바뀔 수 있다).
@@ -42,6 +43,8 @@ python -m pipeline.nps.extract_seoul data/raw/nps/all/*.csv   # 전국 원본 �
 python -m pipeline.nps.load --all            # 국민연금 전체 월 오름차순 적재 (--ym 202608은 한 달, 멱등)
 python -m pipeline.refresh_mart              # mart를 비우고 sql/q1 → q2를 한 트랜잭션으로 (약 23초)
 python -m pipeline.dart.corp_code            # DART 고유번호 → dart_corp (OPENDART_API_KEY, 또는 --file ZIP)
+python -m pipeline.dart.company_info         # company.json → 사업자번호 · 본사 주소 (하루 2만 건, 다음 실행에서 이어 받음)
+python -m pipeline.dart.match                # company ↔ dart_corp → company_dart_link (docs/matching.md)
 uvicorn app.main:app --reload                # API, :8000/docs
 cd web && npm install && npm run dev         # 프론트엔드, :3000
 ruff check .

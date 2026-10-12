@@ -445,7 +445,7 @@ def normalize_name(name: str) -> str:
     return NON_WORD.sub("", CORP_TOKENS.sub("", unicodedata.normalize("NFKC", name))).upper()
 ```
 
-매칭 순서: ① 정규화 이름 완전 일치(+사업자번호 6자리 일치 가능 시) → `exact` ② rapidfuzz `token_sort_ratio` ≥ 85 → `fuzzy` ③ 그 외 연결하지 않음.
+매칭 순서: ① 정규화 이름 완전 일치(+사업자번호 6자리 일치 가능 시) → `exact` ② rapidfuzz `token_sort_ratio` ≥ 85 → `fuzzy` ③ 그 외 연결하지 않음. DART 유사 매칭은 같은 사업자번호 6자리 안에서만 비교하고, `&`와 영문을 한글로 읽은 뒤 비교하며, 85 ~ 89점은 한쪽 이름이 다른 쪽으로 시작할 때만 연결한다(docs/matching.md).
 
 ---
 
