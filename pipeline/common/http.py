@@ -1,10 +1,13 @@
 """외부 API 공통 클라이언트 (SPEC 4장 공통 수집기 요구사항).
 
 - httpx 타임아웃 30초, 5xx · 네트워크 오류는 지수 백오프로 3회 재시도
-- 호출마다 api_call_log(source, call_date, count)를 올리고, 한도에 닿으면 QuotaExceeded
+- 호출마다 api_call_log(source, call_date, count)를 올리고, 한도에 닿으면 QuotaExceeded.
+  한도는 키마다 따로라서 source에 키 해시 앞 8자리를 붙여 센다(예: dart:1a2b3c4d).
+  키 원문은 남기지 않는다
 - 오류 메시지 · 로그에 API 키가 남지 않게 가린다(ingestion_log.message에 들어가므로)
 """
 
+import hashlib
 import logging
 import time
 from datetime import date
@@ -30,7 +33,9 @@ class ApiError(RuntimeError):
 class ApiClient:
     def __init__(self, engine: Engine, source: str, daily_limit: int, secret: str = "",
                  transport: httpx.BaseTransport | None = None, backoff: float = 1.0):
-        self.engine, self.source, self.daily_limit = engine, source, daily_limit
+        self.engine, self.daily_limit = engine, daily_limit
+        key_id = hashlib.sha256(secret.encode()).hexdigest()[:8] if secret else ""
+        self.source = f"{source}:{key_id}" if secret else source
         self.secret, self.backoff = secret, backoff
         self.client = httpx.Client(timeout=TIMEOUT, transport=transport)
 
