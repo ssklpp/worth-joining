@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 다닐만한가(Worth Joining)는 공공데이터(국민연금 사업장 내역(**서울특별시 사업장만**, `docs/decisions/002`), OpenDART, 서울시 전월세 실거래가, 사람인 채용공고)로 회사의 인원 추이 · 입퇴사율 · 추정 연봉을 보여주는 구직자용 웹 서비스다. 4인 팀, 기간은 2026-10-02 ~ 2026-10-21이고 MVP 배포 목표는 10/16이다.
 
-**Phase 5(DART 연동)까지 끝났다(2026-10-12).** 마이그레이션 `0005`, 서울 13개월(2025-08 ~ 2026-08) 적재 · 품질 검사, `region`, `mart_company_monthly` · `mart_company_summary`(`refresh_mart`), API `/companies` · `/companies/{id}` · `/trend` · `/industries` · `/distribution` · `/meta/methodology` · `/health`까지 있다(키셋 커서, stale 회사는 검색 제외. docs/05 A1 · A2 · A5). DART(Phase 5: `dart_corp` · `company_dart_link` · `dart_financial`, `/companies/{id}/financials`, docs/matching.md)까지 끝났고 웹은 아직 없다. 팀 공유 드라이브의 13개월 DB 덤프는 정규화 수정(TS-016) 전 것이라 다시 만들어야 한다. `SPEC.md`가 구현 지시서이며 다른 문서와 충돌하면 SPEC을 따른다. 무엇이든 만들기 전에 먼저 읽는다.
+**Phase 5(DART 연동)까지 끝났다(2026-10-12).** 마이그레이션 `0005`, 서울 13개월(2025-08 ~ 2026-08) 적재 · 품질 검사, `region`, `mart_company_monthly` · `mart_company_summary`(`refresh_mart`), API `/companies` · `/companies/{id}` · `/trend` · `/industries` · `/distribution` · `/meta/methodology` · `/health`까지 있다(키셋 커서, stale 회사는 검색 제외. docs/05 A1 · A2 · A5). DART(Phase 5: `dart_corp` · `company_dart_link` · `dart_financial`, `/companies/{id}/financials`, docs/matching.md)까지 끝났다. Phase 6(웹 MVP)을 진행 중이다: `web/`은 Next.js 15 App Router, 첫 화면은 검색, 회사 지표는 결과표 3행(decisions/005). 팀 공유 드라이브의 DB 덤프는 `worth_joining_20261012_phase5.zip`(Alembic 0005, DART 포함)이다. `SPEC.md`가 구현 지시서이며 다른 문서와 충돌하면 SPEC을 따른다. 무엇이든 만들기 전에 먼저 읽는다.
 - `SPEC.md`: 기술 스택, 저장소 구조, DDL(5장), 계산 규칙(6장), 핵심 SQL(7장), API 계약(8장), 화면(9장), 단계별 진행과 완료 조건(10장), 팀 운영 규칙(12장)
 - `docs/01_project_overview.md`, `README.md`: 개요와 범위
 - `docs/02_requirements.md`: 요구사항 ID, 우선순위(P0~P3), Task ID(10장, 예: `T1-04`)
@@ -31,7 +31,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 10 | 진행 단계 (Phase 0~11과 완료 조건) | 691 |
 | 11 · 12 | 하지 않는 것 · 팀 운영 | 887 · 900 |
 
-## 명령어 (SPEC 3장 · 10장 참고. web은 예정)
+## 명령어 (SPEC 3장 · 10장 참고)
 
 Windows에서 `.venv\Scripts\*.exe` 실행이 막히면 `python -m <도구>`로 실행한다(troubleshooting TS-003).
 
@@ -47,7 +47,7 @@ python -m pipeline.dart.company_info         # company.json → 사업자번호 
 python -m pipeline.dart.match                # company ↔ dart_corp → company_dart_link (docs/matching.md)
 python -m pipeline.dart.financials           # 연결된 법인의 사업보고서 주요계정 → dart_financial (약 270건)
 uvicorn app.main:app --reload                # API, :8000/docs
-cd web && npm install && npm run dev         # 프론트엔드, :3000
+cd web && npm install && npm run dev         # 프론트엔드, :3000 (lint · typecheck · build, API 계약이 바뀌면 npm run gen:api. web/README.md)
 ruff check .
 pytest                                       # 전체 테스트 (Windows: python -P -m pytest, CI와 같은 조건. TS-011)
 pytest tests/sql/test_x.py::test_name        # 단일 테스트

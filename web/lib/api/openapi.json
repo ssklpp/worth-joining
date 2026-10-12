@@ -1,0 +1,1513 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "다닐만한가 API",
+  "description": "서울특별시 사업장의 국민연금 공개 자료로 만든 회사 지표. 읽기 전용. 비율은 소수(0.183 = 18.3%), 연봉은 원(하한 추정치).",
+  "version": "0.1.0"
+ },
+ "paths": {
+  "/companies": {
+   "get": {
+    "tags": [
+     "companies"
+    ],
+    "summary": "회사 검색",
+    "description": "최신 월에 가입자가 있는 회사만 검색한다. 최근 자료 없는 회사는 결과에 없다(docs/05 A5).",
+    "operationId": "search_companies_companies_get",
+    "parameters": [
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 100
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "회사명 앞부분. (주) · 공백은 무시",
+       "title": "Q"
+      },
+      "description": "회사명 앞부분. (주) · 공백은 무시"
+     },
+     {
+      "name": "biz_no6",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "pattern": "^\\d{6}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "사업자번호 앞 6자리",
+       "title": "Biz No6"
+      },
+      "description": "사업자번호 앞 6자리"
+     },
+     {
+      "name": "industry",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "pattern": "^\\d{6}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "업종 코드 6자리",
+       "title": "Industry"
+      },
+      "description": "업종 코드 6자리"
+     },
+     {
+      "name": "region",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "pattern": "^\\d{5}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "시군구 코드 5자리",
+       "title": "Region"
+      },
+      "description": "시군구 코드 5자리"
+     },
+     {
+      "name": "sort",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "enum": [
+        "name",
+        "growth"
+       ],
+       "type": "string",
+       "default": "name",
+       "title": "Sort"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 50,
+       "minimum": 1,
+       "default": 20,
+       "title": "Limit"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CompanyList"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/companies/{company_id}": {
+   "get": {
+    "tags": [
+     "companies"
+    ],
+    "summary": "회사 상세",
+    "description": "최근 자료 없음(stale)이면 id · name · as_of · status · flags · last_seen_ym만 준다.",
+    "operationId": "company_detail_companies__company_id__get",
+    "parameters": [
+     {
+      "name": "company_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "title": "Company Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CompanyDetail"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/companies/{company_id}/trend": {
+   "get": {
+    "tags": [
+     "companies"
+    ],
+    "summary": "월별 추이",
+    "operationId": "company_trend_companies__company_id__trend_get",
+    "parameters": [
+     {
+      "name": "company_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "title": "Company Id"
+      }
+     },
+     {
+      "name": "from_ym",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer",
+         "maximum": 209912,
+         "minimum": 200001
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "YYYYMM",
+       "title": "From Ym"
+      },
+      "description": "YYYYMM"
+     },
+     {
+      "name": "to_ym",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer",
+         "maximum": 209912,
+         "minimum": 200001
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "YYYYMM",
+       "title": "To Ym"
+      },
+      "description": "YYYYMM"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CompanyTrend"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/companies/{company_id}/financials": {
+   "get": {
+    "tags": [
+     "companies"
+    ],
+    "summary": "재무",
+    "description": "DART와 연결된 회사만 rows가 있다. 연결되지 않았으면 dart null, rows [].",
+    "operationId": "company_financials_companies__company_id__financials_get",
+    "parameters": [
+     {
+      "name": "company_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "title": "Company Id"
+      }
+     },
+     {
+      "name": "years",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 5,
+       "minimum": 1,
+       "default": 5,
+       "title": "Years"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CompanyFinancials"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/industries": {
+   "get": {
+    "tags": [
+     "industries"
+    ],
+    "summary": "업종 목록",
+    "description": "회사가 있는 업종만, 회사 수가 많은 순.",
+    "operationId": "list_industries_industries_get",
+    "parameters": [
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 50
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "업종 이름 일부",
+       "title": "Q"
+      },
+      "description": "업종 이름 일부"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/IndustryList"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/industries/{code}/distribution": {
+   "get": {
+    "tags": [
+     "industries"
+    ],
+    "summary": "업종 내 분포",
+    "description": "표본 부족(가입자 10명 미만) 회사를 뺀 p25 · p50 · p75. 비율은 소수, 연봉은 원.",
+    "operationId": "industry_distribution_industries__code__distribution_get",
+    "parameters": [
+     {
+      "name": "code",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^\\d{6}$",
+       "title": "Code"
+      }
+     },
+     {
+      "name": "metric",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "enum": [
+        "salary",
+        "quit",
+        "growth"
+       ],
+       "type": "string",
+       "default": "salary",
+       "title": "Metric"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Distribution"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/meta/methodology": {
+   "get": {
+    "tags": [
+     "meta"
+    ],
+    "summary": "계산 방법 · 한계 · 출처",
+    "operationId": "get_methodology_meta_methodology_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Methodology"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/health": {
+   "get": {
+    "tags": [
+     "meta"
+    ],
+    "summary": "상태 확인",
+    "description": "DB에 접속하지 못하면 500이다. latest_nps_ym이 null이면 mart가 비어 있다.",
+    "operationId": "health_health_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Health"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "CompanyDetail": {
+    "properties": {
+     "company_id": {
+      "type": "integer",
+      "title": "Company Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of",
+      "description": "데이터 기준월 YYYYMM. 데이터가 없으면 null"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "ok",
+       "stale"
+      ],
+      "title": "Status",
+      "default": "ok"
+     },
+     "flags": {
+      "items": {
+       "type": "string",
+       "enum": [
+        "salary_is_lower_bound",
+        "small_sample",
+        "short_history",
+        "stale",
+        "approx_location",
+        "name_matched",
+        "period_extended_to_24m"
+       ]
+      },
+      "type": "array",
+      "title": "Flags"
+     },
+     "last_seen_ym": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Seen Ym",
+      "description": "stale일 때 가입자가 있던 마지막 달"
+     },
+     "industry": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Industry"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "region": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Region"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "form_type": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "corporation",
+         "individual"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form Type"
+     },
+     "workplace_count": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Workplace Count"
+     },
+     "members": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Members"
+     },
+     "growth_12m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Growth 12M"
+     },
+     "quit_rate_12m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Quit Rate 12M"
+     },
+     "avg_salary_est": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Avg Salary Est"
+     },
+     "percentiles": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Percentiles"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "서울 사업장 중 대표 업종 안 백분위. 표본 부족이면 모두 null"
+     },
+     "dart": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/DartLink"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "DART 연결. 연결되지 않았으면 null"
+     }
+    },
+    "type": "object",
+    "required": [
+     "company_id",
+     "name",
+     "as_of",
+     "flags"
+    ],
+    "title": "CompanyDetail"
+   },
+   "CompanyFinancials": {
+    "properties": {
+     "company_id": {
+      "type": "integer",
+      "title": "Company Id"
+     },
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of",
+      "description": "데이터 기준월 YYYYMM. 데이터가 없으면 null"
+     },
+     "flags": {
+      "items": {
+       "type": "string",
+       "enum": [
+        "salary_is_lower_bound",
+        "small_sample",
+        "short_history",
+        "stale",
+        "approx_location",
+        "name_matched",
+        "period_extended_to_24m"
+       ]
+      },
+      "type": "array",
+      "title": "Flags",
+      "description": "이름 유사도(1.0 미만)로 연결했으면 name_matched"
+     },
+     "dart": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/DartLink"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "rows": {
+      "items": {
+       "$ref": "#/components/schemas/FinancialRow"
+      },
+      "type": "array",
+      "title": "Rows",
+      "description": "사업보고서 기준, 연결 우선 · 없으면 별도. 최근 연도부터"
+     }
+    },
+    "type": "object",
+    "required": [
+     "company_id",
+     "as_of",
+     "flags",
+     "dart",
+     "rows"
+    ],
+    "title": "CompanyFinancials"
+   },
+   "CompanyList": {
+    "properties": {
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of",
+      "description": "데이터 기준월 YYYYMM. 데이터가 없으면 null"
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/CompanyListItem"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor",
+      "description": "다음 페이지 커서. 마지막 페이지면 null"
+     }
+    },
+    "type": "object",
+    "required": [
+     "as_of",
+     "items",
+     "next_cursor"
+    ],
+    "title": "CompanyList"
+   },
+   "CompanyListItem": {
+    "properties": {
+     "company_id": {
+      "type": "integer",
+      "title": "Company Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "industry": {
+      "$ref": "#/components/schemas/Industry"
+     },
+     "region": {
+      "$ref": "#/components/schemas/Region"
+     },
+     "members": {
+      "type": "integer",
+      "title": "Members"
+     },
+     "growth_12m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Growth 12M",
+      "description": "12개월 증감률. 12개월 전 자료가 없으면 null"
+     },
+     "quit_rate_12m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Quit Rate 12M"
+     },
+     "avg_salary_est": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Avg Salary Est",
+      "description": "추정 평균 연봉(원, 하한 추정치)"
+     },
+     "open_jobs": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Open Jobs",
+      "description": "진행 중 공고 수. 사람인 연동(Phase 10) 전에는 null"
+     }
+    },
+    "type": "object",
+    "required": [
+     "company_id",
+     "name",
+     "industry",
+     "region",
+     "members",
+     "growth_12m",
+     "quit_rate_12m",
+     "avg_salary_est"
+    ],
+    "title": "CompanyListItem"
+   },
+   "CompanyTrend": {
+    "properties": {
+     "company_id": {
+      "type": "integer",
+      "title": "Company Id"
+     },
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of",
+      "description": "데이터 기준월 YYYYMM. 데이터가 없으면 null"
+     },
+     "flags": {
+      "items": {
+       "type": "string",
+       "enum": [
+        "salary_is_lower_bound",
+        "small_sample",
+        "short_history",
+        "stale",
+        "approx_location",
+        "name_matched",
+        "period_extended_to_24m"
+       ]
+      },
+      "type": "array",
+      "title": "Flags"
+     },
+     "points": {
+      "items": {
+       "$ref": "#/components/schemas/TrendPoint"
+      },
+      "type": "array",
+      "title": "Points"
+     }
+    },
+    "type": "object",
+    "required": [
+     "company_id",
+     "as_of",
+     "flags",
+     "points"
+    ],
+    "title": "CompanyTrend"
+   },
+   "DartLink": {
+    "properties": {
+     "corp_code": {
+      "type": "string",
+      "title": "Corp Code"
+     },
+     "corp_name": {
+      "type": "string",
+      "title": "Corp Name"
+     },
+     "match_type": {
+      "type": "string",
+      "enum": [
+       "exact",
+       "fuzzy",
+       "manual"
+      ],
+      "title": "Match Type",
+      "description": "exact: 사업자번호 6자리 + 이름 일치, fuzzy: 이름 유사도(docs/matching.md)"
+     }
+    },
+    "type": "object",
+    "required": [
+     "corp_code",
+     "corp_name",
+     "match_type"
+    ],
+    "title": "DartLink"
+   },
+   "Distribution": {
+    "properties": {
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of",
+      "description": "데이터 기준월 YYYYMM. 데이터가 없으면 null"
+     },
+     "code": {
+      "type": "string",
+      "title": "Code"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "metric": {
+      "type": "string",
+      "enum": [
+       "salary",
+       "quit",
+       "growth"
+      ],
+      "title": "Metric"
+     },
+     "p25": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P25"
+     },
+     "p50": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P50"
+     },
+     "p75": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P75"
+     },
+     "n": {
+      "type": "integer",
+      "title": "N",
+      "description": "분포에 쓴 회사 수. 가입자 10명 미만 회사는 뺀다"
+     }
+    },
+    "type": "object",
+    "required": [
+     "as_of",
+     "code",
+     "name",
+     "metric",
+     "p25",
+     "p50",
+     "p75",
+     "n"
+    ],
+    "title": "Distribution"
+   },
+   "FinancialRow": {
+    "properties": {
+     "year": {
+      "type": "integer",
+      "title": "Year"
+     },
+     "revenue": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Revenue",
+      "description": "매출액(금융업은 영업수익), 원"
+     },
+     "operating_income": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Operating Income"
+     },
+     "net_income": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Net Income"
+     },
+     "debt_ratio": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Debt Ratio",
+      "description": "부채총계 ÷ 자본총계. 자본이 0 이하이면 null"
+     }
+    },
+    "type": "object",
+    "required": [
+     "year",
+     "revenue",
+     "operating_income",
+     "net_income",
+     "debt_ratio"
+    ],
+    "title": "FinancialRow"
+   },
+   "Formula": {
+    "properties": {
+     "metric": {
+      "type": "string",
+      "title": "Metric"
+     },
+     "formula": {
+      "type": "string",
+      "title": "Formula"
+     },
+     "note": {
+      "type": "string",
+      "title": "Note"
+     }
+    },
+    "type": "object",
+    "required": [
+     "metric",
+     "formula",
+     "note"
+    ],
+    "title": "Formula"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "type": "array",
+      "title": "Detail"
+     }
+    },
+    "type": "object",
+    "title": "HTTPValidationError"
+   },
+   "Health": {
+    "properties": {
+     "status": {
+      "type": "string",
+      "title": "Status",
+      "default": "ok"
+     },
+     "db": {
+      "type": "string",
+      "title": "Db",
+      "default": "ok"
+     },
+     "latest_nps_ym": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latest Nps Ym",
+      "description": "mart에 반영된 국민연금 최신 월"
+     }
+    },
+    "type": "object",
+    "required": [
+     "latest_nps_ym"
+    ],
+    "title": "Health"
+   },
+   "Industry": {
+    "properties": {
+     "code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Code"
+     },
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name"
+     }
+    },
+    "type": "object",
+    "required": [
+     "code",
+     "name"
+    ],
+    "title": "Industry"
+   },
+   "IndustryItem": {
+    "properties": {
+     "code": {
+      "type": "string",
+      "title": "Code"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "n_companies": {
+      "type": "integer",
+      "title": "N Companies",
+      "description": "최신 월에 가입자가 있는 회사 수(표본 부족 포함)"
+     }
+    },
+    "type": "object",
+    "required": [
+     "code",
+     "name",
+     "n_companies"
+    ],
+    "title": "IndustryItem"
+   },
+   "IndustryList": {
+    "properties": {
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of",
+      "description": "데이터 기준월 YYYYMM. 데이터가 없으면 null"
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/IndustryItem"
+      },
+      "type": "array",
+      "title": "Items"
+     }
+    },
+    "type": "object",
+    "required": [
+     "as_of",
+     "items"
+    ],
+    "title": "IndustryList"
+   },
+   "Methodology": {
+    "properties": {
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of",
+      "description": "데이터 기준월 YYYYMM. 데이터가 없으면 null"
+     },
+     "period_from": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Period From",
+      "description": "국민연금 자료 첫 달 YYYYMM"
+     },
+     "formulas": {
+      "items": {
+       "$ref": "#/components/schemas/Formula"
+      },
+      "type": "array",
+      "title": "Formulas"
+     },
+     "limitations": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Limitations"
+     },
+     "sources": {
+      "items": {
+       "$ref": "#/components/schemas/Source"
+      },
+      "type": "array",
+      "title": "Sources"
+     }
+    },
+    "type": "object",
+    "required": [
+     "as_of",
+     "period_from",
+     "formulas",
+     "limitations",
+     "sources"
+    ],
+    "title": "Methodology"
+   },
+   "Percentiles": {
+    "properties": {
+     "growth": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Growth"
+     },
+     "stability": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stability",
+      "description": "100 - 퇴사율 백분위"
+     },
+     "salary": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Salary"
+     }
+    },
+    "type": "object",
+    "required": [
+     "growth",
+     "stability",
+     "salary"
+    ],
+    "title": "Percentiles"
+   },
+   "Region": {
+    "properties": {
+     "sido": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sido"
+     },
+     "sigungu": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sigungu"
+     }
+    },
+    "type": "object",
+    "required": [
+     "sido",
+     "sigungu"
+    ],
+    "title": "Region"
+   },
+   "Source": {
+    "properties": {
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "provider": {
+      "type": "string",
+      "title": "Provider"
+     },
+     "url": {
+      "type": "string",
+      "title": "Url"
+     }
+    },
+    "type": "object",
+    "required": [
+     "name",
+     "provider",
+     "url"
+    ],
+    "title": "Source"
+   },
+   "TrendPoint": {
+    "properties": {
+     "ym": {
+      "type": "integer",
+      "title": "Ym"
+     },
+     "members": {
+      "type": "integer",
+      "title": "Members"
+     },
+     "new": {
+      "type": "integer",
+      "title": "New"
+     },
+     "lost": {
+      "type": "integer",
+      "title": "Lost"
+     },
+     "hire_rate": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hire Rate",
+      "description": "직전 달이 없으면 null"
+     },
+     "quit_rate": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Quit Rate"
+     },
+     "avg_salary_est": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Avg Salary Est"
+     }
+    },
+    "type": "object",
+    "required": [
+     "ym",
+     "members",
+     "new",
+     "lost",
+     "hire_rate",
+     "quit_rate",
+     "avg_salary_est"
+    ],
+    "title": "TrendPoint"
+   },
+   "ValidationError": {
+    "properties": {
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "type": "array",
+      "title": "Location"
+     },
+     "msg": {
+      "type": "string",
+      "title": "Message"
+     },
+     "type": {
+      "type": "string",
+      "title": "Error Type"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "ctx": {
+      "type": "object",
+      "title": "Context"
+     }
+    },
+    "type": "object",
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError"
+   }
+  }
+ }
+}

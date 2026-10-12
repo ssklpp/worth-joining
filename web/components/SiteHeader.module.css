@@ -1,0 +1,6 @@
+.header { max-width: 880px; margin: 0 auto; padding: 16px 20px; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; }
+@media (max-width: 640px) { .header { padding-inline: 16px; } }
+.brand { font-size: var(--fs-l); font-weight: 700; color: var(--ink); text-decoration: none; }
+.nav { display: flex; gap: 16px; font-size: var(--fs-s); }
+.nav a { color: var(--muted); text-decoration: none; }
+.nav a:hover { color: var(--ink); text-decoration: underline; }

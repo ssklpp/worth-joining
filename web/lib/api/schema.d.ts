@@ -1,0 +1,738 @@
+// npm run gen:api 로 만든 파일이다. 직접 고치지 않는다.
+export interface paths {
+    "/companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 회사 검색
+         * @description 최신 월에 가입자가 있는 회사만 검색한다. 최근 자료 없는 회사는 결과에 없다(docs/05 A5).
+         */
+        get: operations["search_companies_companies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{company_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 회사 상세
+         * @description 최근 자료 없음(stale)이면 id · name · as_of · status · flags · last_seen_ym만 준다.
+         */
+        get: operations["company_detail_companies__company_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{company_id}/trend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 월별 추이 */
+        get: operations["company_trend_companies__company_id__trend_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{company_id}/financials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 재무
+         * @description DART와 연결된 회사만 rows가 있다. 연결되지 않았으면 dart null, rows [].
+         */
+        get: operations["company_financials_companies__company_id__financials_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/industries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 업종 목록
+         * @description 회사가 있는 업종만, 회사 수가 많은 순.
+         */
+        get: operations["list_industries_industries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/industries/{code}/distribution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 업종 내 분포
+         * @description 표본 부족(가입자 10명 미만) 회사를 뺀 p25 · p50 · p75. 비율은 소수, 연봉은 원.
+         */
+        get: operations["industry_distribution_industries__code__distribution_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meta/methodology": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 계산 방법 · 한계 · 출처 */
+        get: operations["get_methodology_meta_methodology_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 상태 확인
+         * @description DB에 접속하지 못하면 500이다. latest_nps_ym이 null이면 mart가 비어 있다.
+         */
+        get: operations["health_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+}
+export type webhooks = Record<string, never>;
+export interface components {
+    schemas: {
+        /** CompanyDetail */
+        CompanyDetail: {
+            /** Company Id */
+            company_id: number;
+            /** Name */
+            name: string;
+            /**
+             * As Of
+             * @description 데이터 기준월 YYYYMM. 데이터가 없으면 null
+             */
+            as_of: number | null;
+            /**
+             * Status
+             * @default ok
+             * @enum {string}
+             */
+            status: "ok" | "stale";
+            /** Flags */
+            flags: ("salary_is_lower_bound" | "small_sample" | "short_history" | "stale" | "approx_location" | "name_matched" | "period_extended_to_24m")[];
+            /**
+             * Last Seen Ym
+             * @description stale일 때 가입자가 있던 마지막 달
+             */
+            last_seen_ym?: number | null;
+            industry?: components["schemas"]["Industry"] | null;
+            region?: components["schemas"]["Region"] | null;
+            /** Form Type */
+            form_type?: ("corporation" | "individual") | null;
+            /** Workplace Count */
+            workplace_count?: number | null;
+            /** Members */
+            members?: number | null;
+            /** Growth 12M */
+            growth_12m?: number | null;
+            /** Quit Rate 12M */
+            quit_rate_12m?: number | null;
+            /** Avg Salary Est */
+            avg_salary_est?: number | null;
+            /** @description 서울 사업장 중 대표 업종 안 백분위. 표본 부족이면 모두 null */
+            percentiles?: components["schemas"]["Percentiles"] | null;
+            /** @description DART 연결. 연결되지 않았으면 null */
+            dart?: components["schemas"]["DartLink"] | null;
+        };
+        /** CompanyFinancials */
+        CompanyFinancials: {
+            /** Company Id */
+            company_id: number;
+            /**
+             * As Of
+             * @description 데이터 기준월 YYYYMM. 데이터가 없으면 null
+             */
+            as_of: number | null;
+            /**
+             * Flags
+             * @description 이름 유사도(1.0 미만)로 연결했으면 name_matched
+             */
+            flags: ("salary_is_lower_bound" | "small_sample" | "short_history" | "stale" | "approx_location" | "name_matched" | "period_extended_to_24m")[];
+            dart: components["schemas"]["DartLink"] | null;
+            /**
+             * Rows
+             * @description 사업보고서 기준, 연결 우선 · 없으면 별도. 최근 연도부터
+             */
+            rows: components["schemas"]["FinancialRow"][];
+        };
+        /** CompanyList */
+        CompanyList: {
+            /**
+             * As Of
+             * @description 데이터 기준월 YYYYMM. 데이터가 없으면 null
+             */
+            as_of: number | null;
+            /** Items */
+            items: components["schemas"]["CompanyListItem"][];
+            /**
+             * Next Cursor
+             * @description 다음 페이지 커서. 마지막 페이지면 null
+             */
+            next_cursor: string | null;
+        };
+        /** CompanyListItem */
+        CompanyListItem: {
+            /** Company Id */
+            company_id: number;
+            /** Name */
+            name: string;
+            industry: components["schemas"]["Industry"];
+            region: components["schemas"]["Region"];
+            /** Members */
+            members: number;
+            /**
+             * Growth 12M
+             * @description 12개월 증감률. 12개월 전 자료가 없으면 null
+             */
+            growth_12m: number | null;
+            /** Quit Rate 12M */
+            quit_rate_12m: number | null;
+            /**
+             * Avg Salary Est
+             * @description 추정 평균 연봉(원, 하한 추정치)
+             */
+            avg_salary_est: number | null;
+            /**
+             * Open Jobs
+             * @description 진행 중 공고 수. 사람인 연동(Phase 10) 전에는 null
+             */
+            open_jobs?: number | null;
+        };
+        /** CompanyTrend */
+        CompanyTrend: {
+            /** Company Id */
+            company_id: number;
+            /**
+             * As Of
+             * @description 데이터 기준월 YYYYMM. 데이터가 없으면 null
+             */
+            as_of: number | null;
+            /** Flags */
+            flags: ("salary_is_lower_bound" | "small_sample" | "short_history" | "stale" | "approx_location" | "name_matched" | "period_extended_to_24m")[];
+            /** Points */
+            points: components["schemas"]["TrendPoint"][];
+        };
+        /** DartLink */
+        DartLink: {
+            /** Corp Code */
+            corp_code: string;
+            /** Corp Name */
+            corp_name: string;
+            /**
+             * Match Type
+             * @description exact: 사업자번호 6자리 + 이름 일치, fuzzy: 이름 유사도(docs/matching.md)
+             * @enum {string}
+             */
+            match_type: "exact" | "fuzzy" | "manual";
+        };
+        /** Distribution */
+        Distribution: {
+            /**
+             * As Of
+             * @description 데이터 기준월 YYYYMM. 데이터가 없으면 null
+             */
+            as_of: number | null;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /**
+             * Metric
+             * @enum {string}
+             */
+            metric: "salary" | "quit" | "growth";
+            /** P25 */
+            p25: number | null;
+            /** P50 */
+            p50: number | null;
+            /** P75 */
+            p75: number | null;
+            /**
+             * N
+             * @description 분포에 쓴 회사 수. 가입자 10명 미만 회사는 뺀다
+             */
+            n: number;
+        };
+        /** FinancialRow */
+        FinancialRow: {
+            /** Year */
+            year: number;
+            /**
+             * Revenue
+             * @description 매출액(금융업은 영업수익), 원
+             */
+            revenue: number | null;
+            /** Operating Income */
+            operating_income: number | null;
+            /** Net Income */
+            net_income: number | null;
+            /**
+             * Debt Ratio
+             * @description 부채총계 ÷ 자본총계. 자본이 0 이하이면 null
+             */
+            debt_ratio: number | null;
+        };
+        /** Formula */
+        Formula: {
+            /** Metric */
+            metric: string;
+            /** Formula */
+            formula: string;
+            /** Note */
+            note: string;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /** Health */
+        Health: {
+            /**
+             * Status
+             * @default ok
+             */
+            status: string;
+            /**
+             * Db
+             * @default ok
+             */
+            db: string;
+            /**
+             * Latest Nps Ym
+             * @description mart에 반영된 국민연금 최신 월
+             */
+            latest_nps_ym: number | null;
+        };
+        /** Industry */
+        Industry: {
+            /** Code */
+            code: string | null;
+            /** Name */
+            name: string | null;
+        };
+        /** IndustryItem */
+        IndustryItem: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /**
+             * N Companies
+             * @description 최신 월에 가입자가 있는 회사 수(표본 부족 포함)
+             */
+            n_companies: number;
+        };
+        /** IndustryList */
+        IndustryList: {
+            /**
+             * As Of
+             * @description 데이터 기준월 YYYYMM. 데이터가 없으면 null
+             */
+            as_of: number | null;
+            /** Items */
+            items: components["schemas"]["IndustryItem"][];
+        };
+        /** Methodology */
+        Methodology: {
+            /**
+             * As Of
+             * @description 데이터 기준월 YYYYMM. 데이터가 없으면 null
+             */
+            as_of: number | null;
+            /**
+             * Period From
+             * @description 국민연금 자료 첫 달 YYYYMM
+             */
+            period_from: number | null;
+            /** Formulas */
+            formulas: components["schemas"]["Formula"][];
+            /** Limitations */
+            limitations: string[];
+            /** Sources */
+            sources: components["schemas"]["Source"][];
+        };
+        /** Percentiles */
+        Percentiles: {
+            /** Growth */
+            growth: number | null;
+            /**
+             * Stability
+             * @description 100 - 퇴사율 백분위
+             */
+            stability: number | null;
+            /** Salary */
+            salary: number | null;
+        };
+        /** Region */
+        Region: {
+            /** Sido */
+            sido: string | null;
+            /** Sigungu */
+            sigungu: string | null;
+        };
+        /** Source */
+        Source: {
+            /** Name */
+            name: string;
+            /** Provider */
+            provider: string;
+            /** Url */
+            url: string;
+        };
+        /** TrendPoint */
+        TrendPoint: {
+            /** Ym */
+            ym: number;
+            /** Members */
+            members: number;
+            /** New */
+            new: number;
+            /** Lost */
+            lost: number;
+            /**
+             * Hire Rate
+             * @description 직전 달이 없으면 null
+             */
+            hire_rate: number | null;
+            /** Quit Rate */
+            quit_rate: number | null;
+            /** Avg Salary Est */
+            avg_salary_est: number | null;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
+        };
+    };
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
+}
+export type $defs = Record<string, never>;
+export interface operations {
+    search_companies_companies_get: {
+        parameters: {
+            query?: {
+                /** @description 회사명 앞부분. (주) · 공백은 무시 */
+                q?: string | null;
+                /** @description 사업자번호 앞 6자리 */
+                biz_no6?: string | null;
+                /** @description 업종 코드 6자리 */
+                industry?: string | null;
+                /** @description 시군구 코드 5자리 */
+                region?: string | null;
+                sort?: "name" | "growth";
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    company_detail_companies__company_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    company_trend_companies__company_id__trend_get: {
+        parameters: {
+            query?: {
+                /** @description YYYYMM */
+                from_ym?: number | null;
+                /** @description YYYYMM */
+                to_ym?: number | null;
+            };
+            header?: never;
+            path: {
+                company_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyTrend"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    company_financials_companies__company_id__financials_get: {
+        parameters: {
+            query?: {
+                years?: number;
+            };
+            header?: never;
+            path: {
+                company_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyFinancials"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_industries_industries_get: {
+        parameters: {
+            query?: {
+                /** @description 업종 이름 일부 */
+                q?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndustryList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    industry_distribution_industries__code__distribution_get: {
+        parameters: {
+            query?: {
+                metric?: "salary" | "quit" | "growth";
+            };
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Distribution"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_methodology_meta_methodology_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Methodology"];
+                };
+            };
+        };
+    };
+    health_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+}
