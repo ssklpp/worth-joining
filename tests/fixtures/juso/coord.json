@@ -1,0 +1,3 @@
+{"results": {"common": {"errorMessage": "정상", "totalCount": "1", "errorCode": "0"},
+  "juso": [{"admCd": "1199010100", "rnMgtSn": "119904000001", "bdMgtSn": "1199010100100000000000001", "udrtYn": "0", "buldMnnm": "12", "buldSlno": "0",
+    "entX": "953000.0", "entY": "1952000.0", "bdNm": "가상빌딩"}]}}

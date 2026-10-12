@@ -1,0 +1,4 @@
+{"results": {"common": {"errorMessage": "정상", "countPerPage": "10", "totalCount": "1", "errorCode": "0", "currentPage": "1"},
+  "juso": [{"roadAddr": "서울특별시 가상구 가상로 12 (가상동)", "roadAddrPart1": "서울특별시 가상구 가상로 12", "jibunAddr": "서울특별시 가상구 가상동 100",
+    "siNm": "서울특별시", "sggNm": "가상구", "emdNm": "가상동", "rn": "가상로", "bdNm": "가상빌딩",
+    "admCd": "1199010100", "rnMgtSn": "119904000001", "udrtYn": "0", "buldMnnm": "12", "buldSlno": "0", "bdMgtSn": "1199010100100000000000001"}]}}

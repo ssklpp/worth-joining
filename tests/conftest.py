@@ -51,7 +51,7 @@ def clean_tables(pipeline_engine):
         conn.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
         for table in ("workplace_monthly", "workplace", "company", "industry", "region",
                       "raw_nps_workplace", "ingestion_log", "api_call_log", "dart_corp",
-                      "company_dart_link", "dart_financial"):
+                      "company_dart_link", "dart_financial", "geocode_cache", "company_location"):
             conn.execute(text(f"TRUNCATE TABLE {table}"))
         conn.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
 

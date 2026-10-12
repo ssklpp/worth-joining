@@ -92,7 +92,7 @@ python -m locust -f tests/perf/locustfile.py --host http://127.0.0.1:8000 --head
 ## 데이터 이용 조건 (반드시 지킬 것)
 
 - 회사 좌표는 DART 본사 주소 → 도로명 + 사업장명 검색 → 도로 중심 → 동 중심 순서로 정해 `company_location`에 둔다(`docs/decisions/004`). 국민연금 주소에는 건물번호가 없다.
-- DB에 저장하는 좌표는 주소정보누리집(juso)에서 얻은 것만 쓴다. 카카오 · 네이버 · 브이월드 지오코딩 결과는 저장하지 않는다. `geocode_cache.provider`는 모두 `juso`여야 한다. EPSG:5179 → 4326 변환은 pyproj로 한다.
+- DB에 저장하는 좌표는 주소정보누리집(juso)에서 얻은 것만 쓴다. 카카오 · 네이버 · 브이월드 지오코딩 결과는 저장하지 않는다. `geocode_cache.provider`는 모두 `juso`여야 한다. EPSG:5179 → 4326 변환은 pyproj로 한다. pyproj DLL이 막힌 PC에서는 `pipeline/geocode/projection.py`가 같은 공식으로 계산하고 CI가 pyproj와 같은지 확인한다(TS-021). juso 호출은 `pipeline/geocode/juso.py`의 `Juso.geocode`로만 한다.
 - 네이버 지도는 화면 표시용으로만, Web JS와 Client ID로만 쓴다. Client Secret이 필요한 REST API는 쓰지 않는다.
 - 사람인은 공고 번호, 회사 매칭, 마감일, 연봉 코드, 근무지 코드, 원문 링크만 저장하고 본문은 저장하지 않는다. 화면에 "채용정보 제공: 사람인"을 표시한다. 하루 500회 한도다. 키는 대표 1인만 가지고 있으므로 다른 팀원은 fixture로 개발한다.
 - 서비스 어디에도 LLM · RAG · 임베딩 기능을 쓰지 않는다.

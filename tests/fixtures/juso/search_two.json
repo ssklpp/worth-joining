@@ -1,0 +1,3 @@
+{"results": {"common": {"errorMessage": "정상", "countPerPage": "10", "totalCount": "2", "errorCode": "0", "currentPage": "1"},
+  "juso": [{"roadAddr": "서울특별시 가상구 가상로 12", "sggNm": "가상구", "rn": "가상로", "admCd": "1199010100", "rnMgtSn": "119904000001", "udrtYn": "0", "buldMnnm": "12", "buldSlno": "0"},
+           {"roadAddr": "서울특별시 가상구 다른로 3", "sggNm": "가상구", "rn": "다른로", "admCd": "1199010200", "rnMgtSn": "119904000002", "udrtYn": "0", "buldMnnm": "3", "buldSlno": "0"}]}}
