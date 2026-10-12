@@ -23,6 +23,7 @@
 | [TS-009](#ts-009-git-lf--crlf-변환-경고) | 2026-10-08 | Git | `LF will be replaced by CRLF` 경고 | 보류 | — |
 | [TS-010](#ts-010-쌓은-pr이-앞-pr의-squash-merge-후-충돌) | 2026-10-12 | Git · 협업 | 쌓은 PR이 앞 PR의 squash merge 후 충돌 | 해결 | #12 |
 | [TS-011](#ts-011-ci에서만-modulenotfounderror-no-module-named-tests) | 2026-10-12 | 테스트 · CI | CI에서만 `ModuleNotFoundError: No module named 'tests'` | 해결 | #14 |
+| [TS-012](#ts-012-백필-중-한-달-core-적재가-10분-넘게-멈춤) | 2026-10-12 | DB · 성능 | 백필 중 한 달 core 적재가 10분 넘게 멈춤 | 해결 | T1-04 PR |
 
 ---
 
@@ -138,6 +139,14 @@
 - **원인:** 테스트가 공용 도우미를 `from tests.nps_csv import ...`로 가져온다. 로컬은 `python -m pytest`로 실행해 현재 폴더가 `sys.path`에 들어가지만, CI는 `pytest`를 바로 실행해 저장소 루트가 `sys.path`에 없다.
 - **해결:** `pyproject.toml`의 `[tool.pytest.ini_options]`에 `pythonpath = ["."]`를 넣었다. 실행 방식과 관계없이 루트를 `sys.path`에 넣는다.
 - **재발 방지:** push 전에 `python -P -m pytest`로 돌린다. `-P`(Python 3.11+)는 현재 폴더를 `sys.path`에 넣지 않아 CI와 조건이 같다. 이 PC는 `pytest.exe`도 애플리케이션 제어에 막힌다(TS-003). 설정 없이 이 명령으로 같은 오류를 재현하고, 설정 후 통과를 확인했다.
+
+## TS-012. 백필 중 한 달 core 적재가 10분 넘게 멈춤
+
+- **증상:** `python -m pipeline.nps.load --all`에서 2025-08 ~ 2026-05는 달마다 약 11초였는데, 2026-06에서 `INSERT INTO workplace … SELECT`가 `Sending data` 상태로 8분 넘게 끝나지 않았다.
+- **환경:** MariaDB 11.4.13, `raw_nps_workplace` 약 133만 행(10개월분), `company` 약 15만 행
+- **원인:** `raw_nps_workplace`의 인덱스가 `snapshot_ym` 하나뿐이었다(카디널리티 9~13). 행이 늘면서 통계가 갱신되자 11.4 비용 기반 옵티마이저가 `company`를 먼저 읽고 `raw`를 회사마다 다시 훑는 계획을 고른 것으로 보인다. 같은 SELECT를 다른 세션에서 EXPLAIN하면 `raw` 전체 스캔(`ALL`) + `company` `eq_ref`로 나와, 계획이 통계에 따라 흔들린다는 점을 확인했다.
+- **해결:** 마이그레이션 `0002`로 `ix_snapshot`을 `ix_snapshot_company (snapshot_ym, biz_no6, name_norm)`로 바꿨다. 월 조건과 회사 조인을 한 인덱스로 받는다. 멈춘 쿼리는 같은 계정으로 `KILL <id>`했다(`PROCESS` 권한이 없어도 자기 연결은 끊을 수 있다).
+- **재발 방지:** 조인 키로 쓰는 raw · core 컬럼에는 처음부터 복합 인덱스를 둔다. 백필은 백그라운드로 돌리고 `ingestion_log`의 월별 소요 시간을 본다. 11.4 계획은 `EXPLAIN` 결과를 기준으로 삼는다(SPEC 5.3).
 
 ---
 
