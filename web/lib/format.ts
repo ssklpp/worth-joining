@@ -34,3 +34,9 @@ export function formatCount(value: number | null | undefined, unit = "명"): str
   if (value === null || value === undefined) return "–";
   return `${value.toLocaleString("ko-KR")}${unit}`;
 }
+
+/** 국민연금 원본의 업종 코드 999999는 분류가 없다는 뜻이다("BIZ_NO미존재사업장") */
+export function industryLabel(industry: { code: string | null; name: string | null }): string {
+  if (!industry.code || industry.code === "999999") return "업종 분류 없음";
+  return industry.name ?? "업종 분류 없음";
+}
