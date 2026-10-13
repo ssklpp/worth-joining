@@ -74,3 +74,16 @@ async def test_more_than_200_is_truncated(client, db):
 ])
 async def test_invalid_params_return_422(client, params):
     assert (await client.get("/map/companies", params=params)).status_code == 422
+
+
+async def test_ungeocoded_count_is_cached_per_filter(client, db):
+    await add_company(db, 1, "가")
+    await add_summary(db, 1)
+    first = (await client.get("/map/companies")).json()["ungeocoded_count"]
+    await add_location(db, 1)
+
+    cached = (await client.get("/map/companies")).json()["ungeocoded_count"]
+    other_filter = (await client.get("/map/companies", params={"region": "11680"})).json()
+
+    assert (first, cached) == (1, 1)  # 다시 적재하기 전에는 바뀌지 않는다고 보고 기억한 값을 쓴다
+    assert other_filter["ungeocoded_count"] == 0
