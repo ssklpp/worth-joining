@@ -406,7 +406,7 @@ CREATE TABLE job_posting (
 - 공간 인덱스 컬럼은 `NOT NULL`이어야 한다. 좌표가 없는 행은 `building`에 넣지 않는다.
 - 파티션 키는 모든 PK·UNIQUE 키에 포함되어야 한다.
 - `PERCENTILE_CONT`는 윈도 함수로만 동작한다. `OVER (PARTITION BY ...)` + `DISTINCT`로 쓴다.
-- `ST_Distance_Sphere` 단독 조건은 전체 스캔이다. 반드시 `MBRContains(ST_Buffer(pt, deg), other)`를 앞에 붙인다. 500m는 0.006°, 1km는 0.012°.
+- `ST_Distance_Sphere` 단독 조건은 전체 스캔이다. 반드시 `MBRContains(ST_Buffer(pt, deg), other)`를 앞에 붙인다. 500m는 0.006°, 1km는 0.012°. 11.4는 윈도 함수가 있는 파생 테이블 안의 공간 조인에 공간 인덱스를 쓰지 않으므로 쌍을 먼저 만든다(q5a). 공간 인덱스가 없는 숫자 좌표는 위도 · 경도 범위로 거른다(q6, docs/explain.md 3장).
 
 ---
 
@@ -579,31 +579,32 @@ ORDER BY m.company_id, m.snapshot_ym;
 
 - 12개월 전 자료가 없는 회사는 `idx`가 NULL이며, 응답에 `short_history` flag를 붙인다.
 
-### q5_station_rent.sql (월세 부분, 전세는 같은 구조로 `monthly_man = 0` 조건)
+### q5_station_rent.sql (역세권 시세, 기간마다 실행)
+
+`sql/q5a_station_building.sql`로 역에서 500m 안의 건물 쌍을 임시 테이블 `station_building`에 먼저 넣고, `sql/q5_station_rent.sql`이 6 · 12 · 24개월마다 그 쌍과 계약으로 백분위를 낸다(docs/explain.md 3장). 기준월 `:end_ym`은 신고가 끝난 달이다(decisions/007).
 
 ```sql
--- @end_ym: 신고가 끝난 달(자료 받은 날 - 30일이 속한 달의 전월). MAX(contract_ym)이 아니다(decisions/007)
-SET @end_ym = 202608;
-SET @n = 12;  -- 6 · 12 · 24만 미리 집계한다(docs/04 D7)
+-- q5a
+INSERT INTO station_building (station_id, building_id)
+SELECT st.station_id, b.building_id
+FROM station st
+STRAIGHT_JOIN building b
+  ON MBRContains(ST_Buffer(st.pt, 0.006), b.pt)
+ AND ST_Distance_Sphere(st.pt, b.pt) <= 500;
 
-SELECT DISTINCT s.station_id,
-       COUNT(*) OVER (PARTITION BY s.station_id) AS n_monthly,
-       ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY c.conv_rent) OVER (PARTITION BY s.station_id)) AS p25,
-       ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY c.conv_rent) OVER (PARTITION BY s.station_id)) AS p50,
-       ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY c.conv_rent) OVER (PARTITION BY s.station_id)) AS p75
-FROM station s
-JOIN building b
-  ON MBRContains(ST_Buffer(s.pt, 0.006), b.pt)
- AND ST_Distance_Sphere(s.pt, b.pt) <= 500
-JOIN (
-  SELECT r.building_id,
-         (r.monthly_man + r.deposit_man * cr.rate_year / 12) * 10000 AS conv_rent
-  FROM rent_contract r
-  JOIN conversion_rate cr ON cr.ym = r.contract_ym
-  WHERE r.contract_ym > PERIOD_ADD(@end_ym, -@n)
-    AND r.area_m2 <= 33
-    AND r.monthly_man > 0
-) c ON c.building_id = b.building_id;
+-- q5 월세 부분(전세는 같은 구조로 monthly_man = 0, 보증금 백분위)
+SELECT DISTINCT station_id,
+       COUNT(*) OVER (PARTITION BY station_id) AS n_monthly,
+       PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY conv_rent) OVER (PARTITION BY station_id) AS p50
+FROM (
+  SELECT st.station_id,
+         (r.monthly_man + r.deposit_man * (SELECT cr.rate_year FROM conversion_rate cr
+            WHERE cr.ym <= r.contract_ym ORDER BY cr.ym DESC LIMIT 1) / 12) * 10000 AS conv_rent
+  FROM station_building st
+  JOIN rent_contract r ON r.building_id = st.building_id
+  WHERE r.contract_ym <= :end_ym AND r.contract_ym > PERIOD_ADD(:end_ym, 0 - :n)
+    AND r.area_m2 <= 33 AND r.monthly_man > 0
+) near;
 ```
 
 ### q6_company_station.sql
@@ -613,16 +614,18 @@ DELETE FROM company_station;
 INSERT INTO company_station (company_id, station_id, distance_m, rnk)
 SELECT company_id, station_id, distance_m, rnk
 FROM (
-  -- company_location은 회사마다 대표 사업장 기준 좌표 하나다(decisions/004 · 007)
+  -- company_location은 회사마다 대표 사업장 기준 좌표 하나다(decisions/004 · 007).
+  -- 숫자 좌표라 공간 인덱스가 없어, 역을 바깥에 두고 위도 · 경도 범위(약 1km)로 먼저 거른다
   SELECT l.company_id, s.station_id,
          ROUND(ST_Distance_Sphere(s.pt, POINT(l.lon, l.lat))) AS distance_m,
          ROW_NUMBER() OVER (PARTITION BY l.company_id
-                            ORDER BY ST_Distance_Sphere(s.pt, POINT(l.lon, l.lat))) AS rnk
-  FROM company_location l
-  JOIN mart_company_summary m ON m.company_id = l.company_id
-  JOIN station s
-    ON MBRContains(ST_Buffer(POINT(l.lon, l.lat), 0.012), s.pt)
+                            ORDER BY ST_Distance_Sphere(s.pt, POINT(l.lon, l.lat)), s.station_id) AS rnk
+  FROM station s
+  STRAIGHT_JOIN company_location l
+    ON l.lat BETWEEN ST_Y(s.pt) - 0.0091 AND ST_Y(s.pt) + 0.0091
+   AND l.lon BETWEEN ST_X(s.pt) - 0.0114 AND ST_X(s.pt) + 0.0114
    AND ST_Distance_Sphere(s.pt, POINT(l.lon, l.lat)) <= 1000
+  JOIN mart_company_summary m ON m.company_id = l.company_id
 ) t
 WHERE rnk <= 3;
 ```
