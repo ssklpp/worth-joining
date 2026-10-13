@@ -156,7 +156,7 @@ GRANT ALL PRIVILEGES ON worth_joining_test.* TO 'wj'@'localhost';
 | core (회사) | `company`, `workplace`, `workplace_monthly`, `dart_corp`, `company_dart_link`, `dart_financial` |
 | core (주거 · 위치) | `geocode_cache`, `company_location`, `station`, `building`, `rent_contract`, `company_station` |
 | core (채용) | `saramin_company_link`, `job_posting` |
-| mart | `mart_company_monthly`, `mart_company_summary`, `mart_station_rent`, `mart_company_jobs` |
+| mart | `mart_company_monthly`, `mart_company_summary`, `mart_station_rent`, `mart_station_rent_trend`, `mart_company_jobs` |
 
 ### 5.2 핵심 DDL
 
@@ -373,6 +373,19 @@ CREATE TABLE mart_station_rent (
   rent_median_man      INT,                                         -- 월세 계약 월세 중위
   jeonse_p25_man       INT, jeonse_median_man INT, jeonse_p75_man INT,
   PRIMARY KEY (station_id, period_end_ym, window_months)
+);
+
+-- 역세권 시세 최근 24개월 추이(FR-HOUS-04). grain = month(계약 달) | quarter(기준월부터 3개월씩), ym = 구간 마지막 달
+CREATE TABLE mart_station_rent_trend (
+  station_id        INT NOT NULL,
+  period_end_ym     INT NOT NULL,
+  grain             VARCHAR(7) NOT NULL,
+  ym                INT NOT NULL,
+  n_monthly         INT NOT NULL,
+  monthly_p25       INT, monthly_median INT, monthly_p75 INT,   -- 환산 월세(원)
+  n_jeonse          INT NOT NULL,
+  jeonse_median_man INT,
+  PRIMARY KEY (station_id, period_end_ym, grain, ym)
 );
 
 CREATE TABLE saramin_company_link (
@@ -606,6 +619,8 @@ FROM (
     AND r.area_m2 <= 33 AND r.monthly_man > 0
 ) near;
 ```
+
+`sql/q5t_station_rent_trend.sql`은 같은 `station_building`과 조건으로 최근 24개월을 월(`month`) · 분기(`quarter`, 기준월부터 3개월씩 거꾸로)마다 묶어 `mart_station_rent_trend`에 넣는다. 파티션은 `(station_id, 구간, 월세 · 전세)`다. 배포 DB에는 `rent_contract`가 없어 추이도 미리 집계한다.
 
 ### q6_company_station.sql
 

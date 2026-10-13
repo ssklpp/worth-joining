@@ -103,6 +103,33 @@ def test_converted_rent_uses_latest_rate_and_splits_jeonse(conn):
     assert mart(conn, 12) == [(202608, 1, 1, 560000, 1200, 50, 20000)]
 
 
+def trend(conn, grain):
+    return conn.execute(text(
+        "SELECT ym, n_monthly, monthly_median, n_jeonse, jeonse_median_man"
+        " FROM mart_station_rent_trend WHERE grain = :g ORDER BY ym"), {"g": grain}).all()
+
+
+def test_trend_covers_24_months_by_month_and_quarter(conn):
+    add_station(conn)
+    b = add_building(conn, "b", north(100))
+    # 202408은 24개월 밖(>), 202409 · 202608은 끝 달, 202609는 기준월 뒤
+    for ym, monthly in ((202408, 60), (202409, 60), (202606, 50), (202607, 70), (202608, 60),
+                        (202609, 60)):
+        add_contract(conn, b, ym, deposit=0, monthly=monthly)
+    add_contract(conn, b, 202608, deposit=20000, monthly=0)  # 전세
+    conn.execute(text("INSERT INTO conversion_rate VALUES (202401, 0.0600)"))
+    report_date(conn, "20261010")
+
+    refresh(conn)
+
+    assert trend(conn, "month") == [
+        (202409, 1, 600000, 0, None), (202606, 1, 500000, 0, None),
+        (202607, 1, 700000, 0, None), (202608, 1, 600000, 1, 20000)]
+    # 분기는 기준월부터 3개월씩: 202606 ~ 202608 → 202608, 202409 ~ 202411 → 202411
+    assert trend(conn, "quarter") == [(202411, 1, 600000, 0, None),
+                                      (202608, 3, 600000, 1, 20000)]
+
+
 def test_no_rent_data_skips_station_rent(conn):
     add_station(conn)
 
