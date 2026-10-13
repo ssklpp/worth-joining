@@ -35,6 +35,7 @@
 | [TS-021](#ts-021-pyproj-dll-로드-실패) | 2026-10-12 | 환경 · Windows | pyproj DLL 로드 실패 | 우회 | #33 |
 | [TS-022](#ts-022-juso-좌표가-대량으로-좌표-없음으로-캐시됨) | 2026-10-12 | 데이터 · juso | juso 좌표가 대량으로 "좌표 없음"으로 캐시됨 | 해결 | #37 |
 | [TS-023](#ts-023-마이그레이션이-중간에-실패해-테이블-하나만-남음lines-예약어) | 2026-10-13 | DB · MariaDB | 마이그레이션이 중간에 실패해 테이블 하나만 남음(`lines` 예약어) | 해결 | Phase 9 스키마 PR |
+| [TS-024](#ts-024-마이그레이션-왕복-명령이-실패를-가려-0006-테이블이-지워짐) | 2026-10-13 | DB · 작업 실수 | 마이그레이션 왕복 명령이 실패를 가려 0006 테이블이 지워짐 | 해결 | Phase 9 스키마 PR |
 
 ---
 
@@ -282,8 +283,24 @@
   (1050, "Table 'raw_rent_contract' already exists")
   ```
 - **원인:** `LINES`는 MariaDB 예약어다(`LOAD DATA ... LINES TERMINATED BY`). 역의 노선 목록 컬럼을 `lines`로 지었다. 또 MariaDB의 DDL은 트랜잭션으로 되돌릴 수 없어서, 실패 전에 만든 `raw_rent_contract`가 남았고 `alembic_version`은 0006 그대로였다.
-- **해결:** 컬럼을 `line_names`로 바꾸고, 남은 테이블을 손으로 지운 뒤 다시 적용했다. `upgrade` → `downgrade -1` → `upgrade`로 왕복도 확인했다.
-- **재발 방지:** 컬럼 이름은 예약어 목록(`LINES`, `KEY`, `RANGE`, `RANK`, `ROWS` 등)을 피한다. 새 마이그레이션은 로컬에서 up · down · up을 한 번 돌려 본다. 중간에 실패하면 `alembic current`와 `SHOW TABLES`로 남은 테이블을 먼저 확인한다.
+- **해결:** 컬럼을 `line_names`로 바꾸고, 남은 테이블을 손으로 지운 뒤 다시 적용했다. `upgrade` → `downgrade 0006` → `upgrade`로 왕복도 확인했다.
+- **재발 방지:** 컬럼 이름은 예약어 목록(`LINES`, `KEY`, `RANGE`, `RANK`, `ROWS` 등)을 피한다. 새 마이그레이션은 로컬에서 up · down · up을 한 번 돌려 본다. 중간에 실패하면 `alembic current`와 `SHOW TABLES`로 남은 테이블을 먼저 확인한다. 왕복은 목표 버전을 적어서 한다(`alembic downgrade 0006`, TS-024).
+
+---
+
+## TS-024. 마이그레이션 왕복 명령이 실패를 가려 0006 테이블이 지워짐
+
+- **증상:** TS-023 직후 로컬 DB의 `geocode_cache`가 6,946 + 약 4,300행에서 수백 행으로, `company_location`이 약 1.6만 곳에서 수십 곳으로 줄었다. 배포 DB는 그대로였다.
+- **원인:** 0007을 시험하려고 `alembic upgrade head | tail && alembic downgrade -1 && alembic upgrade head`를 한 줄로 실행했다.
+  1. 첫 `upgrade`는 TS-023으로 실패했다. 그러나 파이프의 종료 코드는 `tail`의 것(0)이라 `&&`가 다음 명령을 실행했다.
+  2. DB는 아직 0006이었으므로 `downgrade -1`이 **0006을 되돌려** `company_location` · `geocode_cache`를 DROP했다.
+  3. 다음 `upgrade`가 두 테이블을 빈 채로 다시 만들었다.
+- **해결:** Railway DB(0006, 오늘 반영한 본사 · 상호 좌표)에서 두 테이블을 데이터만(`mariadb-dump --no-create-info --replace`) 받아 로컬에 넣었다. `geocode_cache` 6,946행, `company_location` 본사 11,917 · 상호 44곳으로 돌아왔다. 그사이 지워진 도로 · 동 좌표 약 4,300건은 수집을 한 번 더 돌려 다시 받는다.
+- **재발 방지:**
+  - 마이그레이션 왕복은 상대 지정(`-1`) 대신 목표 버전을 적는다: `alembic downgrade 0006`. 실패하면 그 자리에서 멈춘다.
+  - DB를 지우는 명령(downgrade · DROP · TRUNCATE)은 다른 명령과 한 줄로 잇지 않고, 앞 단계의 `alembic current`를 확인한 뒤 실행한다.
+  - 파이프로 출력을 줄이면 앞 명령의 실패가 사라진다. 실패 여부가 중요한 명령은 파이프 없이 실행하거나 `set -o pipefail`을 쓴다.
+  - 큰 수집을 돌리는 동안에는 로컬 DB 스키마를 바꾸지 않는다. 필요하면 테스트 DB에서 먼저 확인한다.
 
 ---
 
