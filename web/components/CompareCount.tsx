@@ -7,7 +7,7 @@ import { MAX_COMPARE, useCompare } from "@/lib/compare";
 export function CompareCount() {
   const { items } = useCompare();
   return (
-    <Link href="/compare" aria-label={`비교함, ${items.length}곳 담음`}>
+    <Link href="/compare" aria-label={`비교함 ${items.length}/${MAX_COMPARE}, ${items.length}곳 담음`}>
       비교함 <span className="num">{items.length}/{MAX_COMPARE}</span>
     </Link>
   );

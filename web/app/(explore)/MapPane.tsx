@@ -35,11 +35,11 @@ export function MapPane() {
   const markers: MapMarker[] = [...groups].map(([key, items]) => {
     const first = items[0];
     const many = items.length > 1;
+    const label = many ? `${items.length}곳` : pinLabel(first.value, metric);
+    const name = many ? `${first.name} 등` : first.name;
     return {
-      key, lat: first.lat, lon: first.lon,
-      label: many ? `${items.length}곳` : pinLabel(first.value, metric),
-      name: many ? `${first.name} 외` : first.name,
-      title: many ? `${first.name} 외 ${items.length - 1}곳` : `${first.name}, ${pinLabel(first.value, metric)}`,
+      key, lat: first.lat, lon: first.lon, label, name,
+      title: `${name} ${label}`, // 펼쳤을 때 보이는 글자 그대로("○○ 등 6곳", WCAG 2.5.3)
       approx: items.every((i) => i.accuracy !== "building"),
       muted: !many && first.members < 10,
       selected: key === point || items.some((i) => i.company_id === selected?.id),
