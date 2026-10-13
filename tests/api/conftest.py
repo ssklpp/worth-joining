@@ -4,6 +4,7 @@ from sqlalchemy import text
 
 from app.core.db import get_conn
 from app.main import app
+from app.repositories import map_pins
 
 
 @pytest.fixture
@@ -13,6 +14,7 @@ async def client(db):
         yield db
 
     app.dependency_overrides[get_conn] = override
+    map_pins.clear_cache()  # 테스트마다 데이터가 달라 지도 캐시를 비운다
     await db.execute(text("INSERT INTO industry VALUES ('620100', '컴퓨터 프로그래밍 서비스업')"))
     await db.execute(text("INSERT INTO region VALUES ('11680', '서울특별시', '강남구')"))
     transport = httpx.ASGITransport(app=app)

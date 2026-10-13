@@ -1,4 +1,4 @@
-"""API 부하 측정 (SPEC Phase 4 완료 조건, NFR-PERF-01 · 02). 결과는 docs/explain.md 2장.
+"""API 부하 측정 (SPEC Phase 4 · 11, NFR-PERF-01 · 02). 결과는 docs/performance.md.
 
     python -m uvicorn app.main:app --port 8000
     python -m locust -f tests/perf/locustfile.py --host http://127.0.0.1:8000 \
@@ -49,3 +49,25 @@ class ApiUser(HttpUser):
     @task(1)
     def search_growth(self):
         self.client.get("/companies", params={"sort": "growth"}, name="/companies?sort=growth")
+
+    @task(3)
+    def map_pins(self):
+        """지도를 옮길 때마다 부르는 요청. 서울 안 약 3km 범위(확대 15 정도)."""
+        lon, lat = random.uniform(126.85, 127.12), random.uniform(37.47, 37.62)
+        bbox = f"{lon:.5f},{lat:.5f},{lon + 0.035:.5f},{lat + 0.022:.5f}"
+        self.client.get("/map/companies", params={"metric": "growth", "bbox": bbox},
+                        name="/map/companies?bbox=")
+
+    @task(2)
+    def housing(self):
+        self.client.get(f"/companies/{random.choice(company_ids)}/housing",
+                        name="/companies/{id}/housing")
+
+    @task(1)
+    def compare(self):
+        ids = ",".join(str(i) for i in random.sample(company_ids, 3))
+        self.client.get("/compare", params={"ids": ids}, name="/compare?ids=")
+
+    @task(1)
+    def stations(self):
+        self.client.get("/stations", params={"sort": "monthly_median"}, name="/stations")

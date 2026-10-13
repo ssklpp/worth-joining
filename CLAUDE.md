@@ -15,6 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docs/05_api_spec.md`: API 구조 · 엔드포인트 · SPEC 밖 후보, 외부 API와 키(4장: 발급 · 보관 · `.env.example` · 한도 · 호출 원칙), API 문제점(A1~A7)
 - `docs/06_architecture.md`: 전체 구조, 데이터 흐름, 최종 기술 스택, 배포, 아키텍처 문제점(R1~R7)과 전체 우선순위표. 이 문서들의 "제안"은 SPEC에 반영되기 전까지 확정이 아니다
 - `docs/runbook.md`: 배포(Railway · Vercel) · DB 복원 · 월 갱신(수동) · 백업 절차
+- `docs/performance.md`: NFR-PERF 목표 대비 locust 결과, 개선 전후(쿼리별 실행 계획은 `docs/explain.md`)
 - `docs/validation.md`: 회사 지도 좌표 단계별 성공률 · 지도에 나오는 회사 비율(이후 회사 대조 검증도 여기에)
 - `docs/matching.md`: DART 매칭 규칙 · 매칭률 · 연결 안 된 원인
 - `docs/troubleshooting.md`: 겪은 에러 · 버그 · 환경 문제와 해결 방법(TS-NNN). 에러가 나면 먼저 여기서 찾는다
