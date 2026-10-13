@@ -386,10 +386,10 @@ Railway(api · mariadb)와 Vercel(web) 배포, DB 복원, 월 갱신 절차는 [
 
 | 트랙 | 담당 | 역할 |
 |---|---|---|
-| T1 데이터 파이프라인 | [이름](https://github.com/) | 수집 · 정제 · 매칭 · 지오코딩 |
-| T2 DB · SQL | [이름](https://github.com/) | 스키마 · mart SQL · 공간 SQL · 성능 |
-| T3 백엔드 · 운영 | [이름](https://github.com/) | FastAPI · CI · 배포 |
-| T4 프론트엔드 | [이름](https://github.com/) | 화면 · 차트 · 지도 |
+| T1 데이터 파이프라인 | [김태완](https://github.com/ssklpp) | 수집 · 정제 · 매칭 · 지오코딩 |
+| T2 DB · SQL | [양준석](https://github.com/azaz1238-tech) | 스키마 · mart SQL · 공간 SQL · 성능 |
+| T3 백엔드 · 운영 | [최진영](https://github.com/jin090201) | FastAPI · CI · 배포 |
+| T4 프론트엔드 | [서승범](https://github.com/clsrn7854-design) | 화면 · 차트 · 지도 |
 
 협업 규칙(브랜치, PR, 키 관리)은 [SPEC.md 12장](./SPEC.md#12-팀-운영-4인), 요구사항 · 우선순위 · Task는 [docs/02_requirements.md](./docs/02_requirements.md)를 따릅니다.
 
