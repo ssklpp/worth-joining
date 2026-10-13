@@ -77,6 +77,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/companies/{company_id}/housing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 회사 근처 역 주거비
+         * @description 회사에서 1km 안의 역(최대 3곳)마다 원룸 시세와 주거비 부담률(시세 ÷ 추정 월급).
+         *     회사 좌표가 대략 위치(도로 · 동 중심)면 approx_location: 거리와 역은 참고용이다.
+         */
+        get: operations["company_housing_companies__company_id__housing_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/compare": {
         parameters: {
             query?: never;
@@ -194,10 +215,68 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 서울 역과 원룸 시세
+         * @description 12개월 원룸 환산 월세 중앙값. 원룸 계약이 없는 역은 monthly_median null, n 0.
+         */
+        get: operations["list_stations_stations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stations/{station_id}/rent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 역 원룸 시세
+         * @description 월세 계약이 20건 미만이면 24개월로 넓히고 period_extended_to_24m을 단다.
+         */
+        get: operations["station_rent_stations__station_id__rent_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Burden */
+        Burden: {
+            /**
+             * Low
+             * @description 환산 월세 p25 ÷ 추정 월급
+             */
+            low: number | null;
+            /**
+             * Mid
+             * @description 중앙값 ÷ 추정 월급
+             */
+            mid: number | null;
+            /**
+             * High
+             * @description p75 ÷ 추정 월급
+             */
+            high: number | null;
+        };
         /** CompanyDetail */
         CompanyDetail: {
             /** Company Id */
@@ -263,6 +342,36 @@ export interface components {
              * @description 사업보고서 기준, 연결 우선 · 없으면 별도. 최근 연도부터
              */
             rows: components["schemas"]["FinancialRow"][];
+        };
+        /** CompanyHousing */
+        CompanyHousing: {
+            /** Company Id */
+            company_id: number;
+            /**
+             * As Of
+             * @description 데이터 기준월 YYYYMM. 데이터가 없으면 null
+             */
+            as_of: number | null;
+            /**
+             * Rent As Of
+             * @description 전월세 집계 기준월(신고가 끝난 달) YYYYMM
+             */
+            rent_as_of: number | null;
+            /**
+             * Flags
+             * @description approx_location, salary_is_lower_bound, stale
+             */
+            flags: ("salary_is_lower_bound" | "small_sample" | "short_history" | "stale" | "approx_location" | "name_matched" | "period_extended_to_24m")[];
+            /**
+             * Monthly Pay Est
+             * @description 추정 월급(원) = 추정 연봉 ÷ 12, 하한 추정
+             */
+            monthly_pay_est: number | null;
+            /**
+             * Stations
+             * @description 회사에서 1km 안의 역, 가까운 순 최대 3곳
+             */
+            stations: components["schemas"]["NearStation"][];
         };
         /** CompanyList */
         CompanyList: {
@@ -604,6 +713,35 @@ export interface components {
             /** Sources */
             sources: components["schemas"]["Source"][];
         };
+        /**
+         * MonthsParam
+         * @description 쿼리 파라미터 months. 문자열 "6"을 받으려고 Literal 대신 IntEnum을 쓴다.
+         * @enum {integer}
+         */
+        MonthsParam: 6 | 12 | 24;
+        /** NearStation */
+        NearStation: {
+            /** Station Id */
+            station_id: number;
+            /** Name */
+            name: string;
+            /** Lines */
+            lines: string[];
+            /**
+             * Distance M
+             * @description 회사 좌표에서 역까지(대략 위치면 참고용)
+             */
+            distance_m: number;
+            /** @description 역 500m 안 원룸 계약이 없으면 null */
+            rent: components["schemas"]["StationRent"] | null;
+            /** @description 추정 연봉이나 시세가 없으면 null */
+            burden: components["schemas"]["Burden"] | null;
+            /**
+             * Flags
+             * @description period_extended_to_24m, small_sample(24개월에도 20건 미만)
+             */
+            flags: ("salary_is_lower_bound" | "small_sample" | "short_history" | "stale" | "approx_location" | "name_matched" | "period_extended_to_24m")[];
+        };
         /** Percentiles */
         Percentiles: {
             /** Growth */
@@ -631,6 +769,98 @@ export interface components {
             provider: string;
             /** Url */
             url: string;
+        };
+        /** StationDetail */
+        StationDetail: {
+            /** Station Id */
+            station_id: number;
+            /** Name */
+            name: string;
+            /** Lines */
+            lines: string[];
+            /**
+             * As Of
+             * @description 전월세 집계 기준월 YYYYMM
+             */
+            as_of: number | null;
+            rent: components["schemas"]["StationRent"] | null;
+            /**
+             * Jeonse Share
+             * @description 원룸 계약 중 전세 비율
+             */
+            jeonse_share: number | null;
+            /** Flags */
+            flags: ("salary_is_lower_bound" | "small_sample" | "short_history" | "stale" | "approx_location" | "name_matched" | "period_extended_to_24m")[];
+        };
+        /** StationList */
+        StationList: {
+            /**
+             * As Of
+             * @description 전월세 집계 기준월 YYYYMM
+             */
+            as_of: number | null;
+            /** Items */
+            items: components["schemas"]["StationListItem"][];
+        };
+        /** StationListItem */
+        StationListItem: {
+            /** Station Id */
+            station_id: number;
+            /** Name */
+            name: string;
+            /** Lines */
+            lines: string[];
+            /**
+             * Monthly Median
+             * @description 12개월 원룸 환산 월세 중앙값(원)
+             */
+            monthly_median: number | null;
+            /**
+             * N
+             * @description 12개월 원룸 월세 계약 수
+             */
+            n: number;
+        };
+        /** StationRent */
+        StationRent: {
+            /**
+             * Months
+             * @description 실제로 쓴 기간. 계약이 20건 미만이면 24개월로 넓힌다
+             * @enum {integer}
+             */
+            months: 6 | 12 | 24;
+            /**
+             * N Monthly
+             * @description 원룸 월세 계약 수
+             */
+            n_monthly: number;
+            /** N Jeonse */
+            n_jeonse: number;
+            /**
+             * Monthly P25
+             * @description 환산 월세(원)
+             */
+            monthly_p25: number | null;
+            /** Monthly Median */
+            monthly_median: number | null;
+            /** Monthly P75 */
+            monthly_p75: number | null;
+            /**
+             * Deposit Median Man
+             * @description 월세 계약의 보증금 중앙값(만원)
+             */
+            deposit_median_man: number | null;
+            /**
+             * Rent Median Man
+             * @description 월세 계약의 월세 중앙값(만원)
+             */
+            rent_median_man: number | null;
+            /** Jeonse P25 Man */
+            jeonse_p25_man: number | null;
+            /** Jeonse Median Man */
+            jeonse_median_man: number | null;
+            /** Jeonse P75 Man */
+            jeonse_p75_man: number | null;
         };
         /** TrendPoint */
         TrendPoint: {
@@ -815,6 +1045,40 @@ export interface operations {
             };
         };
     };
+    company_housing_companies__company_id__housing_get: {
+        parameters: {
+            query?: {
+                /** @description 6 · 12 · 24개월(docs/04 D7) */
+                months?: components["schemas"]["MonthsParam"];
+            };
+            header?: never;
+            path: {
+                company_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyHousing"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     compare_compare_get: {
         parameters: {
             query: {
@@ -985,6 +1249,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    list_stations_stations_get: {
+        parameters: {
+            query?: {
+                /** @description 역 이름 앞부분 */
+                q?: string | null;
+                /** @description 노선 이름(예: 2호선) */
+                line?: string | null;
+                sort?: "name" | "monthly_median";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StationList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    station_rent_stations__station_id__rent_get: {
+        parameters: {
+            query?: {
+                /** @description 6 · 12 · 24개월(docs/04 D7) */
+                months?: components["schemas"]["MonthsParam"];
+            };
+            header?: never;
+            path: {
+                station_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StationDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

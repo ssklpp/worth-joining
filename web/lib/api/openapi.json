@@ -341,6 +341,61 @@
     }
    }
   },
+  "/companies/{company_id}/housing": {
+   "get": {
+    "tags": [
+     "companies"
+    ],
+    "summary": "회사 근처 역 주거비",
+    "description": "회사에서 1km 안의 역(최대 3곳)마다 원룸 시세와 주거비 부담률(시세 ÷ 추정 월급).\n회사 좌표가 대략 위치(도로 · 동 중심)면 approx_location: 거리와 역은 참고용이다.",
+    "operationId": "company_housing_companies__company_id__housing_get",
+    "parameters": [
+     {
+      "name": "company_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "title": "Company Id"
+      }
+     },
+     {
+      "name": "months",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "$ref": "#/components/schemas/MonthsParam",
+       "description": "6 · 12 · 24개월(docs/04 D7)",
+       "default": 12
+      },
+      "description": "6 · 12 · 24개월(docs/04 D7)"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CompanyHousing"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/compare": {
    "get": {
     "tags": [
@@ -646,10 +701,198 @@
      }
     }
    }
+  },
+  "/stations": {
+   "get": {
+    "tags": [
+     "stations"
+    ],
+    "summary": "서울 역과 원룸 시세",
+    "description": "12개월 원룸 환산 월세 중앙값. 원룸 계약이 없는 역은 monthly_median null, n 0.",
+    "operationId": "list_stations_stations_get",
+    "parameters": [
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 50
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "역 이름 앞부분",
+       "title": "Q"
+      },
+      "description": "역 이름 앞부분"
+     },
+     {
+      "name": "line",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 30
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "노선 이름(예: 2호선)",
+       "title": "Line"
+      },
+      "description": "노선 이름(예: 2호선)"
+     },
+     {
+      "name": "sort",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "enum": [
+        "name",
+        "monthly_median"
+       ],
+       "type": "string",
+       "default": "name",
+       "title": "Sort"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StationList"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/stations/{station_id}/rent": {
+   "get": {
+    "tags": [
+     "stations"
+    ],
+    "summary": "역 원룸 시세",
+    "description": "월세 계약이 20건 미만이면 24개월로 넓히고 period_extended_to_24m을 단다.",
+    "operationId": "station_rent_stations__station_id__rent_get",
+    "parameters": [
+     {
+      "name": "station_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "title": "Station Id"
+      }
+     },
+     {
+      "name": "months",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "$ref": "#/components/schemas/MonthsParam",
+       "description": "6 · 12 · 24개월(docs/04 D7)",
+       "default": 12
+      },
+      "description": "6 · 12 · 24개월(docs/04 D7)"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StationDetail"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
   }
  },
  "components": {
   "schemas": {
+   "Burden": {
+    "properties": {
+     "low": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Low",
+      "description": "환산 월세 p25 ÷ 추정 월급"
+     },
+     "mid": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Mid",
+      "description": "중앙값 ÷ 추정 월급"
+     },
+     "high": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "High",
+      "description": "p75 ÷ 추정 월급"
+     }
+    },
+    "type": "object",
+    "required": [
+     "low",
+     "mid",
+     "high"
+    ],
+    "title": "Burden"
+   },
    "CompanyDetail": {
     "properties": {
      "company_id": {
@@ -905,6 +1148,85 @@
      "rows"
     ],
     "title": "CompanyFinancials"
+   },
+   "CompanyHousing": {
+    "properties": {
+     "company_id": {
+      "type": "integer",
+      "title": "Company Id"
+     },
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of",
+      "description": "데이터 기준월 YYYYMM. 데이터가 없으면 null"
+     },
+     "rent_as_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Rent As Of",
+      "description": "전월세 집계 기준월(신고가 끝난 달) YYYYMM"
+     },
+     "flags": {
+      "items": {
+       "type": "string",
+       "enum": [
+        "salary_is_lower_bound",
+        "small_sample",
+        "short_history",
+        "stale",
+        "approx_location",
+        "name_matched",
+        "period_extended_to_24m"
+       ]
+      },
+      "type": "array",
+      "title": "Flags",
+      "description": "approx_location, salary_is_lower_bound, stale"
+     },
+     "monthly_pay_est": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Monthly Pay Est",
+      "description": "추정 월급(원) = 추정 연봉 ÷ 12, 하한 추정"
+     },
+     "stations": {
+      "items": {
+       "$ref": "#/components/schemas/NearStation"
+      },
+      "type": "array",
+      "title": "Stations",
+      "description": "회사에서 1km 안의 역, 가까운 순 최대 3곳"
+     }
+    },
+    "type": "object",
+    "required": [
+     "company_id",
+     "as_of",
+     "rent_as_of",
+     "flags",
+     "monthly_pay_est",
+     "stations"
+    ],
+    "title": "CompanyHousing"
    },
    "CompanyList": {
     "properties": {
@@ -1843,6 +2165,90 @@
     ],
     "title": "Methodology"
    },
+   "MonthsParam": {
+    "type": "integer",
+    "enum": [
+     6,
+     12,
+     24
+    ],
+    "title": "MonthsParam",
+    "description": "쿼리 파라미터 months. 문자열 \"6\"을 받으려고 Literal 대신 IntEnum을 쓴다."
+   },
+   "NearStation": {
+    "properties": {
+     "station_id": {
+      "type": "integer",
+      "title": "Station Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "lines": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Lines"
+     },
+     "distance_m": {
+      "type": "integer",
+      "title": "Distance M",
+      "description": "회사 좌표에서 역까지(대략 위치면 참고용)"
+     },
+     "rent": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/StationRent"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "역 500m 안 원룸 계약이 없으면 null"
+     },
+     "burden": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Burden"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "추정 연봉이나 시세가 없으면 null"
+     },
+     "flags": {
+      "items": {
+       "type": "string",
+       "enum": [
+        "salary_is_lower_bound",
+        "small_sample",
+        "short_history",
+        "stale",
+        "approx_location",
+        "name_matched",
+        "period_extended_to_24m"
+       ]
+      },
+      "type": "array",
+      "title": "Flags",
+      "description": "period_extended_to_24m, small_sample(24개월에도 20건 미만)"
+     }
+    },
+    "type": "object",
+    "required": [
+     "station_id",
+     "name",
+     "lines",
+     "distance_m",
+     "rent",
+     "burden",
+     "flags"
+    ],
+    "title": "NearStation"
+   },
    "Percentiles": {
     "properties": {
      "growth": {
@@ -1942,6 +2348,289 @@
      "url"
     ],
     "title": "Source"
+   },
+   "StationDetail": {
+    "properties": {
+     "station_id": {
+      "type": "integer",
+      "title": "Station Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "lines": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Lines"
+     },
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of",
+      "description": "전월세 집계 기준월 YYYYMM"
+     },
+     "rent": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/StationRent"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "jeonse_share": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Jeonse Share",
+      "description": "원룸 계약 중 전세 비율"
+     },
+     "flags": {
+      "items": {
+       "type": "string",
+       "enum": [
+        "salary_is_lower_bound",
+        "small_sample",
+        "short_history",
+        "stale",
+        "approx_location",
+        "name_matched",
+        "period_extended_to_24m"
+       ]
+      },
+      "type": "array",
+      "title": "Flags"
+     }
+    },
+    "type": "object",
+    "required": [
+     "station_id",
+     "name",
+     "lines",
+     "as_of",
+     "rent",
+     "jeonse_share",
+     "flags"
+    ],
+    "title": "StationDetail"
+   },
+   "StationList": {
+    "properties": {
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of",
+      "description": "전월세 집계 기준월 YYYYMM"
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/StationListItem"
+      },
+      "type": "array",
+      "title": "Items"
+     }
+    },
+    "type": "object",
+    "required": [
+     "as_of",
+     "items"
+    ],
+    "title": "StationList"
+   },
+   "StationListItem": {
+    "properties": {
+     "station_id": {
+      "type": "integer",
+      "title": "Station Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "lines": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Lines"
+     },
+     "monthly_median": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Monthly Median",
+      "description": "12개월 원룸 환산 월세 중앙값(원)"
+     },
+     "n": {
+      "type": "integer",
+      "title": "N",
+      "description": "12개월 원룸 월세 계약 수"
+     }
+    },
+    "type": "object",
+    "required": [
+     "station_id",
+     "name",
+     "lines",
+     "monthly_median",
+     "n"
+    ],
+    "title": "StationListItem"
+   },
+   "StationRent": {
+    "properties": {
+     "months": {
+      "type": "integer",
+      "enum": [
+       6,
+       12,
+       24
+      ],
+      "title": "Months",
+      "description": "실제로 쓴 기간. 계약이 20건 미만이면 24개월로 넓힌다"
+     },
+     "n_monthly": {
+      "type": "integer",
+      "title": "N Monthly",
+      "description": "원룸 월세 계약 수"
+     },
+     "n_jeonse": {
+      "type": "integer",
+      "title": "N Jeonse"
+     },
+     "monthly_p25": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Monthly P25",
+      "description": "환산 월세(원)"
+     },
+     "monthly_median": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Monthly Median"
+     },
+     "monthly_p75": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Monthly P75"
+     },
+     "deposit_median_man": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Deposit Median Man",
+      "description": "월세 계약의 보증금 중앙값(만원)"
+     },
+     "rent_median_man": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Rent Median Man",
+      "description": "월세 계약의 월세 중앙값(만원)"
+     },
+     "jeonse_p25_man": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Jeonse P25 Man"
+     },
+     "jeonse_median_man": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Jeonse Median Man"
+     },
+     "jeonse_p75_man": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Jeonse P75 Man"
+     }
+    },
+    "type": "object",
+    "required": [
+     "months",
+     "n_monthly",
+     "n_jeonse",
+     "monthly_p25",
+     "monthly_median",
+     "monthly_p75",
+     "deposit_median_man",
+     "rent_median_man",
+     "jeonse_p25_man",
+     "jeonse_median_man",
+     "jeonse_p75_man"
+    ],
+    "title": "StationRent"
    },
    "TrendPoint": {
     "properties": {

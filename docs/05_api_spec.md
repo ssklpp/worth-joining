@@ -52,9 +52,9 @@
 | `GET /companies/{id}/financials` | 5 | `years`(≤5) | `rows[]{year, revenue, operating_income, net_income, debt_ratio}` |
 | `GET /map/companies` | 8 | `industry`, `region`, `metric`, `bbox` | `items[]{company_id, name, lon, lat, accuracy, basis, value, members, growth_12m, quit_rate_12m, avg_salary_est}`(최대 200), `truncated`, `ungeocoded_count`. `basis`는 decisions/004 |
 | `GET /compare` | 8 | `ids`(쉼표로 1 ~ 3개) | `items[]`: 요약 지표, `status`(ok · stale), `flags[]`, `index_series[]{ym, members, idx}`(12개월 전 = 100) |
-| `GET /stations` | 9 | `q`, `line`, `sort` | `items[]{station_id, name, lines[], monthly_median, n}` |
-| `GET /stations/{id}/rent` | 9 | `months`, `contract` | 분포, 전세 비중, `trend[]{ym, median}` |
-| `GET /companies/{id}/housing` | 9 | `months`(6\|12\|24) | `monthly_pay_est`, `stations[]{name, lines[], distance_m, monthly_median, jeonse_median_man, n, burden{low,mid,high}, flags[]}` |
+| `GET /stations` | 9 | `q`, `line`, `sort`(name\|monthly_median) | `as_of`, `items[]{station_id, name, lines[], monthly_median, n}` (SPEC 8장) |
+| `GET /stations/{id}/rent` | 9 | `months`(6\|12\|24) | `rent{…}`, `jeonse_share`, `flags[]`. 추이는 여유 있으면 (SPEC 8장) |
+| `GET /companies/{id}/housing` | 9 | `months`(6\|12\|24) | `rent_as_of`, `flags[]`, `monthly_pay_est`, `stations[]{station_id, name, lines[], distance_m, rent{…}, burden{low,mid,high}, flags[]}` (SPEC 8장) |
 | `GET /companies/{id}/jobs` | 10 | — | `jobs[]{title, expires_at, salary_range, url}`, `signal`, `salary_compare`, `source:"사람인"` |
 
 ### 응답 예시: `GET /companies/1`

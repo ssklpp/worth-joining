@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routers import companies, compare, industries, map_pins, meta
+from app.routers import companies, compare, industries, map_pins, meta, stations
 
 app = FastAPI(
     title="다닐만한가 API",
@@ -16,3 +16,4 @@ app.include_router(compare.router)
 app.include_router(industries.router)
 app.include_router(map_pins.router)
 app.include_router(meta.router)
+app.include_router(stations.router)
