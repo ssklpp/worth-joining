@@ -67,7 +67,7 @@ python -m locust -f tests/perf/locustfile.py --host http://127.0.0.1:8000 --head
 ## 아키텍처
 
 ```
-데이터 출처 → pipeline/ (Python 배치, APScheduler) → MariaDB raw_* → core → mart_* → app/ (FastAPI, 읽기 전용) → web/ (Next.js)
+데이터 출처 → pipeline/ (Python 배치) → MariaDB raw_* → core → mart_* → app/ (FastAPI, 읽기 전용) → web/ (Next.js)
 ```
 
 - **3계층 DB.** `raw_*`는 원본을 받은 그대로 보존한다. core 테이블(`company`, `workplace`, `workplace_monthly`, `dart_*`, `geocode_cache`, `station`, `building`, `rent_contract` 등)은 정규화된 데이터, `mart_*`는 미리 집계한 데이터다. **API는 `mart_*`만 읽고**, `company` · `region` · `industry` · `geocode_cache` 같은 작은 조회용 조인만 허용한다. 요청 시점에 집계하지 않는다. 정제 규칙이 바뀌면 raw에서 다시 만든다.
