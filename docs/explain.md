@@ -104,3 +104,24 @@ uvicorn 1 프로세스, 20명, 60초, 대상 `127.0.0.1:8000`. 상세 ID는 `sor
 |---|---|
 | `sort=growth` 전체 조회가 느려짐(현재 45ms) | summary에 `KEY ix_growth (growth_12m, company_id)`. NULL을 맨 뒤로 보내는 `COALESCE` 식 대신 생성 컬럼으로 정렬 |
 | `/meta/methodology`가 자주 호출됨 | 시작월을 `mart_company_summary`에 함께 두거나 응답 캐시 |
+
+---
+
+## 3. 역세권 공간 조인 (q5 · q6, Phase 9, 2026-10-13)
+
+환경: 역 309곳, 전월세 건물 72,715곳, `rent_contract` 443,227건, `company_location` 126,407곳.
+
+| 단계 | 처음 SQL | 시간 | 바꾼 SQL | 시간 |
+|---|---|---|---|---|
+| q5 역세권 시세(기간 하나) | 역 JOIN 건물(`MBRContains(ST_Buffer)`) JOIN 계약을 윈도 함수 파생 테이블 안에서 한 번에 | 150 ~ 320초 | q5a: 역-건물 쌍(500m)만 임시 테이블에 넣고, q5: 쌍 JOIN 계약으로 백분위 | 0.7초 + 0.2초 |
+| q6 회사 근처 역 | 회사마다 `MBRContains(ST_Buffer(POINT(lon, lat), 0.012), 역)` | 284초(쌍 만들기만) | 역을 바깥에 두고 회사 위도 · 경도 숫자 상자(± 0.0091 · ± 0.0114도)로 거른 뒤 거리 | 5.6초 |
+| refresh_mart 전체 | | 5분 이상 | | 35초 |
+
+**q5.** 단순 조인(`station STRAIGHT_JOIN building ON MBRContains(...)`)은 건물 공간 인덱스를 역마다 다시 고르는 계획(`Range checked for each record (index map: 0x5)`)이 나와 1초 안에 끝난다. 같은 조인을 윈도 함수가 있는 파생 테이블(CTE) 안에 넣으면 11.4 옵티마이저가 `Using join buffer (flat, BNL join)`을 골라 역 × 건물 2,200만 쌍을 모두 비교한다. `STRAIGHT_JOIN`, `FORCE INDEX (sx_building)`, `SET STATEMENT join_cache_level = 0`으로도 바뀌지 않아 두 단계로 나눴다. `tests/sql/test_station_rent.py`가 q5a의 EXPLAIN에 `Range checked for each record`가 있는지 확인한다.
+
+```
+q5a  st  ALL    rows 309
+     b   ALL    rows 72604  Range checked for each record (index map: 0x5)
+```
+
+**q6.** 회사 좌표는 `DECIMAL` 열이라 공간 인덱스가 없다. 회사마다 `POINT`와 버퍼를 만들면 역 인덱스를 써도 회사 12.6만 번 × 버퍼 계산이라 느리다. 역(309곳)을 바깥에 두고 회사의 위도 · 경도 범위로 거르면 인덱스 없이도 숫자 비교라 빠르다. 결과는 같다(쌍 352,038개, 3위까지 294,594행).

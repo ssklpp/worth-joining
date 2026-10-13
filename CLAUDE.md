@@ -43,7 +43,7 @@ alembic upgrade head                         # 스키마 적용 (DB: worth_joini
 python -m pipeline.region.load               # 시군구 이름 (data/raw/region/legal_dong_codes_seoul.txt)
 python -m pipeline.nps.extract_seoul data/raw/nps/all/*.csv   # 전국 원본 → 서울 추출
 python -m pipeline.nps.load --all            # 국민연금 전체 월 오름차순 적재 (--ym 202608은 한 달, 멱등)
-python -m pipeline.refresh_mart              # mart를 비우고 sql/q1 → q2를 한 트랜잭션으로 (약 23초)
+python -m pipeline.refresh_mart              # mart를 비우고 sql/q1 → q2 → q6(회사-역) → q5(역세권 시세 6 · 12 · 24개월)를 한 트랜잭션으로 (약 35초)
 python -m pipeline.dart.corp_code            # DART 고유번호 → dart_corp (OPENDART_API_KEY, 또는 --file ZIP)
 python -m pipeline.dart.company_info         # company.json → 사업자번호 · 본사 주소 (하루 2만 건, 다음 실행에서 이어 받음)
 python -m pipeline.dart.match                # company ↔ dart_corp → company_dart_link (docs/matching.md)
@@ -92,7 +92,7 @@ python -m locust -f tests/perf/locustfile.py --host http://127.0.0.1:8000 --head
 - 컬럼 정의에 `SRID 4326`을 쓰지 않는다. 좌표는 항상 `POINT(경도, 위도)` 순서다. 공간 인덱스 컬럼은 `NOT NULL`이어야 한다.
 - 파티션 키는 모든 PK · UNIQUE 키에 포함되어야 한다.
 - `PERCENTILE_CONT`는 윈도 함수로만 동작하므로 `DISTINCT`와 함께 쓴다.
-- `ST_Distance_Sphere`만 단독으로 쓰면 전체 스캔이 된다. 반드시 앞에 `MBRContains(ST_Buffer(pt, deg), other)`를 붙인다(0.006° ≈ 500m, 0.012° ≈ 1km).
+- `ST_Distance_Sphere`만 단독으로 쓰면 전체 스캔이 된다. 반드시 앞에 `MBRContains(ST_Buffer(pt, deg), other)`를 붙인다(0.006° ≈ 500m, 0.012° ≈ 1km). 공간 조인은 윈도 함수 · 파생 테이블과 한 쿼리에 넣지 말고 쌍을 먼저 만든다(그 안에서는 공간 인덱스를 안 쓴다). 숫자 좌표 열(`company_location`)은 위도 · 경도 범위로 먼저 거른다(docs/explain.md 3장, TS-025).
 - 11.4는 비용 기반 옵티마이저라 10.11과 실행 계획이 다를 수 있다. `EXPLAIN`은 11.4 결과를 기준으로 삼는다.
 
 ## 데이터 이용 조건 (반드시 지킬 것)
