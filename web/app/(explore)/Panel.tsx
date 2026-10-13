@@ -32,7 +32,7 @@ export function Panel({ children }: { children: React.ReactNode }) {
 
   return (
     <aside ref={ref} className={`${styles.panel} ${isList ? "" : styles.wide}`}
-      aria-label={isList ? "회사 목록" : "회사 정보"}>
+      aria-label={isList ? "회사 목록" : pathname.startsWith("/stations") ? "역 정보" : "회사 정보"}>
       <div className={styles.pane}>{children}</div>
     </aside>
   );
