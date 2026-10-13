@@ -4,6 +4,7 @@
 // /compare 화면과 나중의 지도 비교 패널이 같이 쓴다.
 import Link from "next/link";
 import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { man } from "@/components/company/HousingSection";
 import { Estimate } from "@/components/Estimate";
 import { ErrorBox, Loading } from "@/components/Status";
 import { useApi, type Schemas } from "@/lib/api";
@@ -115,6 +116,7 @@ function CompareTable({ items, onRemove }: { items: Item[]; onRemove: (id: numbe
     ["12개월 증감", (i) => (i.growth_12m == null ? "계산 안 함" : formatPct(i.growth_12m, true))],
     ["연간 퇴사율", (i) => formatPct(i.quit_rate_12m)],
     ["연봉", (i) => (i.avg_salary_est == null ? "–" : `≥ ${formatWon(i.avg_salary_est)}`)],
+    ["근처 역 월세", (i) => <NearRent id={i.company_id} />],
   ];
 
   return (
@@ -152,5 +154,22 @@ function CompareTable({ items, onRemove }: { items: Item[]; onRemove: (id: numbe
         </tbody>
       </table>
     </div>
+  );
+}
+
+/** 회사 근처 역(1km 안) 중 시세가 있는 가장 가까운 역의 원룸 환산 월세와 부담률(FR-CMP-02, 12개월) */
+function NearRent({ id }: { id: number }) {
+  const state = useApi<Schemas["CompanyHousing"]>(`/companies/${id}/housing?months=12`);
+  if (state.status === "loading") return <span className="muted">…</span>;
+  if (state.status === "error") return <span className="muted">–</span>;
+  const s = state.data.stations.find((x) => x.rent?.monthly_median != null);
+  if (!s) return <span className="muted">근처 역 시세 없음</span>;
+  const mid = s.burden?.mid;
+  return (
+    <span className={styles.rent}>
+      <Link href={`/stations/${s.station_id}`}>{s.name}</Link> {s.distance_m.toLocaleString("ko-KR")}m
+      <span>월 {man(s.rent!.monthly_median)} 원{mid != null && `, 월급의 ${Math.round(mid * 100)}%`}</span>
+      {state.data.flags.includes("approx_location") && <span className="muted">대략 위치 기준</span>}
+    </span>
   );
 }

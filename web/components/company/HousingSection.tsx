@@ -2,6 +2,7 @@
 
 // 회사 근처 주거비(docs/03 6장 확장 구획, SPEC 9장, decisions/007): 기간 버튼 → 역 행(최대 3) → 부담률 막대.
 // 부담률 = 역 원룸 환산 월세 ÷ 추정 월급. 추정 월급이 하한이라 부담률은 실제보다 높게 나올 수 있다
+import Link from "next/link";
 import { useState } from "react";
 import { ErrorBox, Loading } from "@/components/Status";
 import { useApi, type Schemas } from "@/lib/api";
@@ -13,11 +14,11 @@ type Station = Schemas["NearStation"];
 
 const AXIS_MAX = 0.5; // 부담률 막대 축: 0% ~ 월급의 50%
 
-const man = (won: number | null | undefined) =>
+export const man = (won: number | null | undefined) =>
   won === null || won === undefined ? "–" : `${Math.round(won / 10_000).toLocaleString("ko-KR")}만`;
 
 /** 만원 단위 → "1억 8,000만" */
-function eok(manwon: number | null | undefined) {
+export function eok(manwon: number | null | undefined) {
   if (manwon === null || manwon === undefined) return "–";
   const e = Math.floor(manwon / 10_000), r = manwon % 10_000;
   return [e ? `${e}억` : "", r ? `${r.toLocaleString("ko-KR")}만` : ""].filter(Boolean).join(" ") || "0";
@@ -93,7 +94,7 @@ function StationRow({ s, months }: { s: Station; months: Months }) {
   return (
     <li className={styles.st}>
       <div className={styles.stName}>
-        <b>{s.name}</b>
+        <b><Link href={`/stations/${s.station_id}`}>{s.name}</Link></b>
         <span>{s.lines.join(", ")}, 회사에서 {s.distance_m.toLocaleString("ko-KR")}m</span>
       </div>
       {r && r.monthly_median !== null ? (
