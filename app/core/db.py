@@ -4,7 +4,6 @@ from collections.abc import AsyncIterator
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     AsyncEngine,
-    async_sessionmaker,
     create_async_engine,
 )
 
@@ -27,7 +26,6 @@ def make_engine(url: str) -> AsyncEngine:
 
 
 engine = make_engine(settings.database_url)
-SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
 async def get_conn() -> AsyncIterator[AsyncConnection]:

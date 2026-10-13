@@ -39,7 +39,6 @@ log = logging.getLogger(__name__)
 SOURCE = "rent_seoul"
 DEFAULT_GLOB = "data/raw/rent/seoul_rent_*.csv"
 COLUMNS = 23
-HOUSE_TYPES = ("연립다세대", "오피스텔")
 RETENTION = 24
 BATCH = 5000
 
