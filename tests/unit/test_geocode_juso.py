@@ -21,7 +21,8 @@ def juso(engine, search_body, coord_body=None, calls=None):
             calls.append(req.url.path)
         body = search_body if req.url.path.endswith("addrLinkApi.do") else coord_body
         return httpx.Response(200, json=body)
-    return Juso(engine, "SKEY", "CKEY", transport=httpx.MockTransport(handler), backoff=0)
+    return Juso(engine, "SKEY", "CKEY", transport=httpx.MockTransport(handler), backoff=0,
+                interval=0)
 
 
 def error(code, message):
@@ -81,3 +82,20 @@ def test_keyword_error_is_cached_but_key_error_stops(clean_tables):
 
 def test_clean_keyword_removes_unsafe_characters():
     assert clean_keyword("가상로 12 [본관] % 3층") == "가상로 12 본관 3층"
+
+
+def test_throttled_response_is_retried_and_not_cached(clean_tables):
+    bodies = iter([error("E0007", "짧은 시간동안 다량의 주소검색 요청이 있습니다."),
+                   load("search_one.json")])
+
+    def handler(req):
+        if req.url.path.endswith("addrLinkApi.do"):
+            return httpx.Response(200, json=next(bodies))
+        return httpx.Response(200, json=load("coord.json"))
+
+    g = Juso(clean_tables, "S", "C", transport=httpx.MockTransport(handler), backoff=0, interval=0)
+    assert g.geocode("addr:t", "가상로 12").status == "ok"
+
+    with pytest.raises(ApiError, match="E0007"):
+        juso(clean_tables, error("E0007", "다량 요청")).geocode("addr:u", "가상로 13")
+    assert [r.addr_key for r in cache_rows(clean_tables)] == ["addr:t"]

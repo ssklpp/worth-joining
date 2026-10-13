@@ -142,7 +142,7 @@ export function MapExplorer() {
               </span>
             )}
           </>
-        ) : <span className="muted">지도를 불러오는 중</span>}
+        ) : path ? <span className="muted">지도에 표시할 회사를 불러오는 중</span> : null}
       </div>
       {state.status === "error" && <ErrorBox error={state.error} retry={state.retry} />}
 
