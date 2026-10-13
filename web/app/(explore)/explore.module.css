@@ -39,6 +39,10 @@
 .lgTag { width: 22px; height: 12px; border: 1.5px solid var(--pen); border-radius: 6px; }
 .lgDash { border-style: dashed; }
 .lgDim { border-color: var(--muted); }
+.lgStation { width: 8px; height: 8px; margin-inline: 7px; border-radius: 50%; background: var(--ink); }
+.stationSearch { position: absolute; top: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 6px; max-width: 280px; padding: 6px; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; }
+.stationSearch input { flex: 1; min-width: 0; width: 160px; font-size: var(--fs-s); padding: 5px 8px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); }
+.stationSearch p { flex-basis: 100%; margin: 0; color: var(--caution); }
 .tray { position: absolute; left: 12px; bottom: 12px; max-width: calc(100% - 200px); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; font-size: var(--fs-s); }
 .chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 10px; border: 1px solid var(--rule); border-radius: 12px; }
 .chip button { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 4px; min-width: 24px; min-height: 24px; }
