@@ -195,7 +195,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 |---|---|---|---|
 | A1 | 반영 | **커서가 정렬과 맞지 않는다.** SPEC은 `cursor`를 `company_id > :cursor`로 정의하지만, `sort=growth`나 `sort=deadline`이면 `company_id` 순서가 아니라 다음 페이지에서 항목이 빠지거나 겹친다 | 커서를 `(정렬값, company_id)` 쌍으로 인코딩(base64)하고 `WHERE (sort_col, company_id) > (:v, :id)` 키셋 페이지네이션 |
 | A2 | 일부 반영 | **이름 검색이 앞부분 일치뿐이다.** `name_norm LIKE 'q%'`라 "소프트"로 "예시소프트"를 못 찾는다. 사용자 입력에 `normalize_name`을 적용하지 않으면 "(주)예시"도 못 찾는다 | 입력도 `normalize_name`으로 정규화. 앞부분 일치를 우선 정렬하되, MVP 이후 n-gram 전문 검색(`FULLTEXT … WITH PARSER ngram`) 검토. 정규화는 Phase 4에서 반영, 부분 일치는 미정 |
-| A3 | 중간 | **`/stations/{id}/rent`의 `months` 1~24 자유 입력**은 미리 집계가 불가능해 요청 시점 공간 조인이 필요하다 | `months`를 6 · 12 · 24로 제한([04 문서](./04_database_design.md) D7) |
+| A3 | 반영(decisions/007) | **`/stations/{id}/rent`의 `months` 1~24 자유 입력**은 미리 집계가 불가능해 요청 시점 공간 조인이 필요하다 | `months`를 6 · 12 · 24로 제한([04 문서](./04_database_design.md) D7) |
 | A4 | 반영 | **지도 메인 화면에 필요한 필드가 계약에 없다**(위 3장 bbox, 목록 지표, 좌표 없는 회사 수) | 3장 후보를 Phase 8 전에 계약에 반영. T4는 그 전까지 목 응답으로 개발 |
 | A5 | 반영 | **최근 자료 없는 회사는 검색에 안 나온다.** 검색은 `mart_company_summary`를 읽는데 그 회사들은 행이 없다. 상세는 `stale`을 지원하지만 들어갈 경로가 없다 | 검색 결과에 `company`는 있고 summary가 없는 회사를 "최근 자료 없음"으로 뒤에 붙이거나(`include_stale=true`), 의도적으로 제외하고 문서에 명시. **Phase 4: 제외로 결정**(SPEC 8장). 상세 URL로 들어오면 stale로 보여 준다 |
 | A6 | 낮음 | 응답 단위가 섞여 있다. 연봉은 원, 전월세는 만 원, `monthly_pay_est`는 정의 없음 | 필드명 접미사로 단위를 고정(`_won`, `_man`)하거나 이 문서 1장 단위 규칙을 OpenAPI 설명에 넣는다 |

@@ -581,8 +581,9 @@ ORDER BY m.company_id, m.snapshot_ym;
 ### q5_station_rent.sql (월세 부분, 전세는 같은 구조로 `monthly_man = 0` 조건)
 
 ```sql
-SET @end_ym = (SELECT MAX(contract_ym) FROM rent_contract);
-SET @n = 12;
+-- @end_ym: 신고가 끝난 달(자료 받은 날 - 30일이 속한 달의 전월). MAX(contract_ym)이 아니다(decisions/007)
+SET @end_ym = 202608;
+SET @n = 12;  -- 6 · 12 · 24만 미리 집계한다(docs/04 D7)
 
 SELECT DISTINCT s.station_id,
        COUNT(*) OVER (PARTITION BY s.station_id) AS n_monthly,
@@ -611,25 +612,16 @@ DELETE FROM company_station;
 INSERT INTO company_station (company_id, station_id, distance_m, rnk)
 SELECT company_id, station_id, distance_m, rnk
 FROM (
-  WITH latest AS (SELECT MAX(snapshot_ym) AS ym FROM workplace_monthly),
-  rep AS (
-    SELECT company_id, addr_key FROM (
-      SELECT w.company_id, w.addr_key,
-             ROW_NUMBER() OVER (PARTITION BY w.company_id ORDER BY m.members DESC) AS rn
-      FROM workplace w
-      JOIN workplace_monthly m ON m.workplace_id = w.workplace_id
-      JOIN latest l ON m.snapshot_ym = l.ym
-    ) t WHERE rn = 1
-  )
-  SELECT r.company_id, s.station_id,
-         ROUND(ST_Distance_Sphere(s.pt, POINT(g.lon, g.lat))) AS distance_m,
-         ROW_NUMBER() OVER (PARTITION BY r.company_id
-                            ORDER BY ST_Distance_Sphere(s.pt, POINT(g.lon, g.lat))) AS rnk
-  FROM rep r
-  JOIN geocode_cache g ON g.addr_key = r.addr_key AND g.status = 'ok'
+  -- company_location은 회사마다 대표 사업장 기준 좌표 하나다(decisions/004 · 007)
+  SELECT l.company_id, s.station_id,
+         ROUND(ST_Distance_Sphere(s.pt, POINT(l.lon, l.lat))) AS distance_m,
+         ROW_NUMBER() OVER (PARTITION BY l.company_id
+                            ORDER BY ST_Distance_Sphere(s.pt, POINT(l.lon, l.lat))) AS rnk
+  FROM company_location l
+  JOIN mart_company_summary m ON m.company_id = l.company_id
   JOIN station s
-    ON MBRContains(ST_Buffer(POINT(g.lon, g.lat), 0.012), s.pt)
-   AND ST_Distance_Sphere(s.pt, POINT(g.lon, g.lat)) <= 1000
+    ON MBRContains(ST_Buffer(POINT(l.lon, l.lat), 0.012), s.pt)
+   AND ST_Distance_Sphere(s.pt, POINT(l.lon, l.lat)) <= 1000
 ) t
 WHERE rnk <= 3;
 ```
@@ -661,7 +653,7 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 | `GET /companies/{id}/jobs` | — | `jobs[]{title, expires_at, salary_range, url}, signal(growth\|backfill\|none), salary_compare{posted, company_est, industry_median}, source:"사람인"` |
 | `GET /companies/{id}/housing` | `months`(6\|12\|24) | `monthly_pay_est, stations[]{name, lines[], distance_m, monthly_median, jeonse_median_man, n, burden{low,mid,high}, flags[]}` |
 | `GET /stations` | `q`, `line`, `sort=monthly_median` | `items[]{station_id, name, lines[], monthly_median, n}` |
-| `GET /stations/{id}/rent` | `months`(1~24, 기본 12), `contract`(all\|monthly\|jeonse) | 분포, 전세 비중, `trend[]{ym, median}` |
+| `GET /stations/{id}/rent` | `months`(6\|12\|24, 기본 12. decisions/007), `contract`(all\|monthly\|jeonse) | 분포, 전세 비중, `trend[]{ym, median}` |
 | `GET /industries` | `q`(이름 일부) | `items[]{code, name, n_companies}` |
 | `GET /industries/{code}/distribution` | `metric`(salary\|quit\|growth) | `p25, p50, p75, n` |
 | `GET /compare` | `ids`(쉼표로 1 ~ 3개, 중복 · 형식 오류 422, 없는 ID 404) | `items[]{company_id, name, status, flags[], industry, region, members, growth_12m, quit_rate_12m, avg_salary_est, index_series[]{ym, members, idx}}`(요청 순서, 12개월 전 = 100, 없으면 `idx` null) |
@@ -684,7 +676,7 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 | 회사 상세 (패널) | `/companies/[id]` | 지도를 그 회사로 옮기고 핀을 채움(`rep_location`, 없으면 "지도에 위치가 없는 회사"), 기본 정보(지역, 업종, 사업장 수, 법인/개인), 결과표 3행(성장 · 안정 · 연봉, 업종 기준 범위 막대와 판정. docs/decisions/005), 가입자 추이 그래프, 월별 입퇴사 표, 추정 연봉 카드(하한 경고), 재무 표, "사람인에서 채용공고 보기" 버튼, "비교에 담기". 짧은 이력 · 표본 부족 안내. 최근 자료 없음이면 마지막 등장 월과 안내만 표시. 확장: 채용 현황 카드(사람인 출처), 역세권 주거비 카드 |
 | 회사 없음 | `/companies/[id]` (404) | 안내 문구, 지도로 돌아가기 |
 | 지도 비교 | `/` (예전 `/map`은 `/`로 보냄) | 업종 · 지역 필터(최대 200개, 초과 시 범위 좁히기 안내), 지표 토글(증감/퇴사율/연봉), 회사 핀(값 표시, 대략 위치는 다른 모양), 핀 팝업(미니 그래프, 지표 4개, 비교 추가), 비교 패널(지수 그래프 최대 3개, 회사별 행) |
-| 역 시세 (확장) | `/stations/[id]` | 기간 버튼(6/12/24), 월세·전세 분포, 전세 비중, 24개월 추이 |
+| 역 시세 (확장, 여유 있으면. decisions/007) | `/stations/[id]` | 기간 버튼(6/12/24), 월세·전세 분포, 전세 비중, 24개월 추이 |
 | 비교 (패널) | `/compare` | 비교함(최대 3곳)의 12개월 전 = 100 가입자 지수 그래프와 회사별 표. `?ids=1,2,3`으로 열면 그 회사들을 담는다. 지도 화면의 비교 패널도 같은 컴포넌트(`CompareView`)를 쓴다 |
 | 계산 방법 | `/methodology` | 계산식, 한계, 출처 |
 
@@ -832,6 +824,8 @@ services:
 
 ### Phase 9. 역세권 전월세 (3주, 서울)
 
+> **범위 조정(decisions/007, 2026-10-13):** 데이터 범위와 완료 조건은 그대로 둔다. 집계 기준월은 신고가 끝난 달, 기간은 6 · 12 · 24개월, 건물 좌표는 도로명주소 파일 지번 → 좌표제공 API, 역은 물리적 역 하나로 묶고, q6는 `company_location`을 쓴다. 동 · 도로 중심 회사도 주거비를 안내와 함께 보여 준다. Open API 증분 수집 · 파티션 자동 순환 · `mart_meta`는 기간 이후, `/stations/[id]` 화면은 여유 있으면 한다.
+
 1주차:
 1. 역 표준데이터 적재(서울만), `station`.
 2. 전월세 적재기(`pipeline/rent/seoul.py`):
@@ -933,7 +927,7 @@ services:
 | 10/21 (수) | 최종 점검 | 최종 점검 | 최종 배포, `v1.0.0` 태그 | 발표 자료 화면 | **종료 (Phase 11)** |
 
 - **기간 안에 하는 것:** MVP(Phase 0~7), DART 연동, 회사 비교 · 지도(Phase 8), 검증 · 문서화(Phase 11).
-- **기간 이후 과제:** 역세권 전월세(Phase 9), 사람인 채용 연계(Phase 10). 전월세 24개월 수집과 수천 건의 주소 → 좌표 변환은 API 호출 한도 때문에 여러 날이 필요하고, 사람인 API는 승인 시점을 알 수 없어 10/21 안에 끝낼 수 없다.
+- **기간 이후 과제:** 사람인 채용 연계(Phase 10). 역세권 전월세(Phase 9)는 Phase 8이 일찍 끝나 2026-10-13에 기간 안으로 당겼다(decisions/007). Open API 증분 수집 · 파티션 자동 순환만 기간 이후로 둔다. 처음 계획은 역세권 전월세(Phase 9)도 기간 이후였다. 전월세 24개월 수집과 수천 건의 주소 → 좌표 변환은 API 호출 한도 때문에 여러 날이 필요하고, 사람인 API는 승인 시점을 알 수 없어 10/21 안에 끝낼 수 없다.
 - **여유가 생기면:** 10/16 MVP 배포가 일정대로 끝나면, T1 · T2가 10/19~10/20에 서울 일부 구(예: 강남 · 서초 · 마포) 12개월로 축소한 역세권 시세를 시연용으로 만든다.
 - **첫날 할 일:** 공공데이터포털 · OpenDART · 주소정보누리집 · 네이버 클라우드 플랫폼(Maps) 키를 10/08에 모두 신청한다. 사람인 API도 이날 신청하되 결과를 기다리지 않는다.
 - T4는 10/08~10/13에 API 계약(OpenAPI)과 목 데이터로 화면을 먼저 만들어 백엔드를 기다리지 않는다.
