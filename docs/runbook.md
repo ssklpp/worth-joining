@@ -119,13 +119,17 @@ API 키(DART · 공공데이터포털 등)는 배포 서비스에 넣지 않는�
    python -m pipeline.dart.company_info         # 새로 이름이 맞는 법인만 부른다(선택)
    python -m pipeline.dart.match
    python -m pipeline.geocode.company_location  # 새 회사 좌표. 본사 · 상호는 캐시, 도로 · 동은 파일로 계산
+   python -m pipeline.refresh_mart              # 좌표가 바뀌었으면 회사 근처 역(q6)을 다시 만든다
    ```
    분기마다(4월 이후 첫 갱신 등) `python -m pipeline.dart.financials`도 실행한다.
    - 회사 좌표의 도로 · 동 중심은 `data/raw/juso/`의 주소정보누리집 서울 파일 두 개로 계산한다: "도로명주소 한글"(`rnaddrkor_seoul.txt`)과 "도로명주소 출입구"(`RNENTDATA_YYMM_11000.txt`, 가장 최근 YYMM을 쓴다). 둘 다 `.gitignore` 대상이라 각자 받는다. 새 도로가 많이 생기면(분기에 한 번 정도) 같은 달 파일 두 개를 다시 받아 바꾼다.
+   - **전월세(분기 또는 필요할 때):** 서울 열린데이터광장 OA-21276에서 올해 CSV를 다시 받아 `data/raw/rent/seoul_rent_YYYY.csv`로 바꾸고, R-ONE 전월세전환율(서울 연립다세대, 월)을 `conversion_rate_seoul.csv`로 받는다. 그다음 `python -m pipeline.rent.seoul --as-of <받은 날>` → `python -m pipeline.rent.conversion` → `python -m pipeline.refresh_mart`. 보관 기간이 지난 달은 `python -m pipeline.rent.partitions --drop-before <기준월 - 23개월>`로 지운다. Open API 증분 수집과 자동 순환은 하지 않는다(decisions/007).
 3. 로컬 API와 웹으로 회사 몇 곳을 열어 본다(기준월이 바뀌었는지, 추이에 새 달이 붙었는지).
 4. 덤프를 만들어 공유 드라이브에 올린다(이름 `worth_joining_YYYYMMDD.zip`, zip 안에 행 수 · Alembic 버전을 적은 `README.txt`).
 5. 2.1의 TCP Proxy를 켜고 2.2처럼 복원한 뒤 끈다. 복원하는 몇 분 동안은 API가 오류를 낼 수 있다. 사용자가 적은 시간에 한다.
    - **스키마 버전을 맞춘다.** main에 새 마이그레이션이 병합됐는데 배포 DB에 없으면 그 테이블을 읽는 API가 500을 낸다(2026-10-13 `/map/companies`, 배포 DB 0005 · 코드 0006). 복원한 뒤 `SELECT version_num FROM alembic_version`이 `python -m alembic heads`와 같은지 본다. 로컬 DB에서 만든 덤프면 같다
+   - **일부 테이블만 반영할 때(2026-10-13 Phase 9):** 배포 API가 읽는 테이블만 데이터로 올려도 된다. `alembic upgrade <목표 버전>`을 Railway에 먼저 적용하고(TS-024: 목표 버전을 적는다), 로컬에서 `mariadb-dump --no-create-info --replace <테이블들>`로 받아 넣는다. 전월세는 `station` · `company_station` · `mart_station_rent` · `conversion_rate`만 올린다. raw · `rent_contract` · `building`은 집계용이라 배포 DB에는 비어 있다.
+   - TCP Proxy가 연결은 되는데 MariaDB 응답이 없으면(`ERROR 2013 … reading initial communication packet`) 프록시를 껐다가 다시 켜고 새 주소를 `.env`에 넣는다(2026-10-13).
 6. 2.5 확인 목록을 다시 본다. `/health`의 `latest_nps_ym`이 새 달이어야 한다.
 
 ### 다음 갱신 확인 계획
