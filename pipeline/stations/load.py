@@ -1,6 +1,6 @@
 """전국도시철도역사정보 표준데이터(XLSX) → station (SPEC Phase 9-1, decisions/007).
 
-python -m pipeline.stations.load [--file data/raw/station/전체_도시철도역사정보_20260630.xlsx]
+python -m pipeline.stations.load [--file data/raw/station/railway_stations_20260630.xlsx]
 
 - 역사 도로명주소가 서울인 행만 쓴다.
 - 환승역은 노선마다 행이 따로 있다. 이름이 같고(끝의 "역"과 괄호를 뺀 이름, 괄호 안 이름 포함)
@@ -29,7 +29,7 @@ from pipeline.common.ingestion import already_succeeded, file_checksum, finish_r
 log = logging.getLogger(__name__)
 
 SOURCE = "station"
-DEFAULT_FILE = Path("data/raw/station/전체_도시철도역사정보_20260630.xlsx")
+DEFAULT_FILE = Path("data/raw/station/railway_stations_20260630.xlsx")
 COLUMNS = {"역사명": "name", "노선명": "line", "역위도": "lat", "역경도": "lon",
            "역사도로명주소": "address"}
 SEOUL = {"lat": (37.41, 37.72), "lon": (126.73, 127.27)}
