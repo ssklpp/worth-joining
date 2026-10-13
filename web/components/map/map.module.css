@@ -3,7 +3,7 @@
 .map { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--surface); }
 .loading, .missing { display: grid; place-items: center; height: 100%; min-height: 240px; color: var(--muted); font-size: var(--fs-s); padding: 16px; text-align: center; }
 
-.pin { position: relative; transform: translate(-50%, calc(-100% - 6px)); display: inline-flex; align-items: baseline; gap: 4px; font: inherit; font-size: var(--fs-xs); font-weight: 600; font-variant-numeric: tabular-nums; padding: 2px 8px; border-radius: 12px; background: var(--surface); color: var(--pen); border: 1.5px solid var(--pen); white-space: nowrap; cursor: pointer; }
+.pin { position: relative; transform: translate(-50%, calc(-100% - 6px)); display: inline-flex; align-items: center; gap: 4px; min-height: 24px; min-width: 24px; box-sizing: border-box; font: inherit; font-size: var(--fs-xs); font-weight: 600; font-variant-numeric: tabular-nums; padding: 2px 8px; border-radius: 12px; background: var(--surface); color: var(--pen); border: 1.5px solid var(--pen); white-space: nowrap; cursor: pointer; }
 .pin::after { content: ""; position: absolute; left: 50%; bottom: -5px; width: 7px; height: 7px; background: inherit; border-right: inherit; border-bottom: inherit; transform: translateX(-50%) rotate(45deg); }
 .approx { border-style: dashed; }
 .muted { color: var(--muted); border-color: var(--muted); }
