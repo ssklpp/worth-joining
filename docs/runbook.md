@@ -128,7 +128,7 @@ API 키(DART · 공공데이터포털 등)는 배포 서비스에 넣지 않는�
 4. 덤프를 만들어 공유 드라이브에 올린다(이름 `worth_joining_YYYYMMDD.zip`, zip 안에 행 수 · Alembic 버전을 적은 `README.txt`).
 5. 2.1의 TCP Proxy를 켜고 2.2처럼 복원한 뒤 끈다. 복원하는 몇 분 동안은 API가 오류를 낼 수 있다. 사용자가 적은 시간에 한다.
    - **스키마 버전을 맞춘다.** main에 새 마이그레이션이 병합됐는데 배포 DB에 없으면 그 테이블을 읽는 API가 500을 낸다(2026-10-13 `/map/companies`, 배포 DB 0005 · 코드 0006). 복원한 뒤 `SELECT version_num FROM alembic_version`이 `python -m alembic heads`와 같은지 본다. 로컬 DB에서 만든 덤프면 같다
-   - **일부 테이블만 반영할 때(2026-10-13 Phase 9):** 배포 API가 읽는 테이블만 데이터로 올려도 된다. `alembic upgrade <목표 버전>`을 Railway에 먼저 적용하고(TS-024: 목표 버전을 적는다), 로컬에서 `mariadb-dump --no-create-info --replace <테이블들>`로 받아 넣는다. 전월세는 `station` · `company_station` · `mart_station_rent` · `conversion_rate`만 올린다. raw · `rent_contract` · `building`은 집계용이라 배포 DB에는 비어 있다.
+   - **일부 테이블만 반영할 때(2026-10-13 Phase 9):** 배포 API가 읽는 테이블만 데이터로 올려도 된다. `alembic upgrade <목표 버전>`을 Railway에 먼저 적용하고(TS-024: 목표 버전을 적는다), 로컬에서 `mariadb-dump --no-create-info --replace <테이블들>`로 받아 넣는다. 전월세는 `station` · `company_station` · `mart_station_rent` · `mart_station_rent_trend`(0008) · `conversion_rate`만 올린다. raw · `rent_contract` · `building`은 집계용이라 배포 DB에는 비어 있다.
    - TCP Proxy가 연결은 되는데 MariaDB 응답이 없으면(`ERROR 2013 … reading initial communication packet`) 프록시를 껐다가 다시 켜고 새 주소를 `.env`에 넣는다(2026-10-13).
 6. 2.5 확인 목록을 다시 본다. `/health`의 `latest_nps_ym`이 새 달이어야 한다.
 

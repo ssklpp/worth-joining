@@ -1,4 +1,5 @@
-"""mart 갱신 (SPEC Phase 3-3 · 9-9 · 11): sql/q1 → q2 → q6 → q5를 한 트랜잭션으로 실행한다.
+"""mart 갱신 (SPEC Phase 3-3 · 9-9 · 11): sql/q1 → q2 → q6 → q5 → q5t를 한 트랜잭션으로
+실행한다(q5t는 역세권 시세 24개월 추이).
 
 python -m pipeline.refresh_mart
 
@@ -30,6 +31,7 @@ STEPS = [
     ("company_station", "q6_company_station.sql"),
 ]
 WINDOWS = (6, 12, 24)  # docs/04 D7
+GRAINS = ("month", "quarter")  # 24개월 추이 단위(FR-HOUS-04)
 
 
 def refresh(conn: Connection) -> dict[str, int]:
@@ -40,6 +42,7 @@ def refresh(conn: Connection) -> dict[str, int]:
         sql = (SQL_DIR / sql_file).read_text(encoding="utf-8")
         counts[table] = conn.execute(text(sql)).rowcount
     conn.execute(text("DELETE FROM mart_station_rent"))
+    conn.execute(text("DELETE FROM mart_station_rent_trend"))
     end_ym = rent_end_ym(conn)
     if end_ym is not None:
         # 역-건물 쌍을 먼저 만든다(q5a 주석). 임시 테이블은 이 연결에서만 보이고
@@ -53,6 +56,10 @@ def refresh(conn: Connection) -> dict[str, int]:
         for n in WINDOWS:
             rows = conn.execute(sql, {"end_ym": end_ym, "n": n}).rowcount
             counts[f"mart_station_rent_{n}"] = rows
+        sql = text((SQL_DIR / "q5t_station_rent_trend.sql").read_text(encoding="utf-8"))
+        for grain in GRAINS:
+            rows = conn.execute(sql, {"end_ym": end_ym, "grain": grain}).rowcount
+            counts[f"mart_station_rent_trend_{grain}"] = rows
         conn.execute(text("DROP TEMPORARY TABLE station_building"))
     return counts
 

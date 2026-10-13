@@ -42,6 +42,7 @@ erDiagram
   company ||--o{ company_station : "근처 역 (최대 3)"
   station ||--o{ company_station : ""
   station ||--o{ mart_station_rent : "기간별 시세"
+  station ||--o{ mart_station_rent_trend : "24개월 추이"
   building ||--o{ rent_contract : "계약"
   geocode_cache ||--o{ building : "addr_key"
   conversion_rate ||--o{ rent_contract : "contract_ym"
@@ -149,6 +150,13 @@ erDiagram
     TINYINT window_months PK
     INT monthly_median
     INT jeonse_median_man
+  }
+  mart_station_rent_trend {
+    INT station_id PK
+    INT period_end_ym PK
+    VARCHAR grain PK
+    INT ym PK
+    INT monthly_median
   }
   job_posting {
     VARCHAR job_id PK
