@@ -655,7 +655,7 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 | 메서드·경로 | 파라미터 | 응답 핵심 필드 |
 |---|---|---|
 | `GET /companies` | `q`(접두어, `normalize_name` 적용), `biz_no6`, `industry`, `region`(시군구 5자리), `hiring`(bool, P2), `sort`(name\|growth, deadline은 Phase 10), `limit`(≤50), `cursor`(정렬값 + `company_id` 키셋, docs/05 A1) | `items[]{company_id, name, industry{code,name}, region{sido,sigungu}, members, growth_12m, quit_rate_12m, avg_salary_est, open_jobs}`, `next_cursor`. 결과 0건이면 `items: []`. 최근 자료 없는(stale) 회사는 검색 결과에서 뺀다(docs/05 A5) |
-| `GET /companies/{id}` | — | `name, industry{code,name}, region{sido,sigungu}, form_type, workplace_count, as_of, members, growth_12m, quit_rate_12m, avg_salary_est, percentiles{growth,stability,salary}, flags[], dart{corp_code,match_type}`. 최근 자료 없음이면 `status:"stale", last_seen_ym`만 내려준다. 없는 ID는 404 |
+| `GET /companies/{id}` | — | `name, industry{code,name}, region{sido,sigungu}, form_type, workplace_count, as_of, members, growth_12m, quit_rate_12m, avg_salary_est, percentiles{growth,stability,salary}, flags[], dart{corp_code,match_type}, rep_location{lon,lat,accuracy,basis}`(좌표 없으면 null, 대략 위치면 `approx_location`). 최근 자료 없음이면 `status:"stale", last_seen_ym`만 내려준다. 없는 ID는 404 |
 | `GET /companies/{id}/trend` | `from_ym`, `to_ym` | `points[]{ym, members, new, lost, hire_rate, quit_rate, avg_salary_est}` |
 | `GET /companies/{id}/financials` | `years`(≤5) | `rows[]{year, revenue, operating_income, net_income, debt_ratio}` |
 | `GET /companies/{id}/jobs` | — | `jobs[]{title, expires_at, salary_range, url}, signal(growth\|backfill\|none), salary_compare{posted, company_est, industry_median}, source:"사람인"` |

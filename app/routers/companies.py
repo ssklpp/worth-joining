@@ -15,6 +15,7 @@ from app.schemas.company import (
     CompanyTrend,
     DartLink,
     FinancialRow,
+    Location,
     Percentiles,
     TrendPoint,
 )
@@ -98,8 +99,12 @@ async def company_detail(company_id: CompanyId, conn: Conn):
                               status="stale", flags=company_flags(None),
                               last_seen_ym=await repo.last_seen_ym(conn, company_id))
         return JSONResponse(stale.model_dump(exclude_none=True))
+    loc = await repo.location(conn, company_id)
+    flags = company_flags(s)
+    if loc is not None and loc["accuracy"] != "building":
+        flags.append("approx_location")
     return CompanyDetail(
-        company_id=company_id, name=s["name"], as_of=as_of, flags=company_flags(s),
+        company_id=company_id, name=s["name"], as_of=as_of, flags=flags,
         industry=_industry(s), region=_region(s),
         form_type={1: "corporation", 2: "individual"}.get(s["form_type"]),
         workplace_count=s["workplace_count"], members=s["members"],
@@ -108,6 +113,7 @@ async def company_detail(company_id: CompanyId, conn: Conn):
         percentiles=Percentiles(growth=s["pct_growth"], stability=s["pct_stability"],
                                 salary=s["pct_salary"]),
         dart=_dart(link),
+        rep_location=Location(**loc) if loc else None,
     )
 
 

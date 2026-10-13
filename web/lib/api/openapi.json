@@ -820,6 +820,17 @@
        }
       ],
       "description": "DART 연결. 연결되지 않았으면 null"
+     },
+     "rep_location": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Location"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "지도 위치(company_location). 좌표가 없으면 null"
      }
     },
     "type": "object",
@@ -1574,6 +1585,47 @@
      "items"
     ],
     "title": "IndustryList"
+   },
+   "Location": {
+    "properties": {
+     "lon": {
+      "type": "number",
+      "title": "Lon"
+     },
+     "lat": {
+      "type": "number",
+      "title": "Lat"
+     },
+     "accuracy": {
+      "type": "string",
+      "enum": [
+       "building",
+       "road",
+       "dong"
+      ],
+      "title": "Accuracy",
+      "description": "building이 아니면 대략 위치"
+     },
+     "basis": {
+      "type": "string",
+      "enum": [
+       "dart_hq",
+       "name_search",
+       "road",
+       "dong"
+      ],
+      "title": "Basis",
+      "description": "dart_hq: DART 본사 주소 기준(decisions/004)"
+     }
+    },
+    "type": "object",
+    "required": [
+     "lon",
+     "lat",
+     "accuracy",
+     "basis"
+    ],
+    "title": "Location"
    },
    "MapCompanies": {
     "properties": {

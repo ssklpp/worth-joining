@@ -240,6 +240,8 @@ export interface components {
             percentiles?: components["schemas"]["Percentiles"] | null;
             /** @description DART 연결. 연결되지 않았으면 null */
             dart?: components["schemas"]["DartLink"] | null;
+            /** @description 지도 위치(company_location). 좌표가 없으면 null */
+            rep_location?: components["schemas"]["Location"] | null;
         };
         /** CompanyFinancials */
         CompanyFinancials: {
@@ -496,6 +498,25 @@ export interface components {
             as_of: number | null;
             /** Items */
             items: components["schemas"]["IndustryItem"][];
+        };
+        /** Location */
+        Location: {
+            /** Lon */
+            lon: number;
+            /** Lat */
+            lat: number;
+            /**
+             * Accuracy
+             * @description building이 아니면 대략 위치
+             * @enum {string}
+             */
+            accuracy: "building" | "road" | "dong";
+            /**
+             * Basis
+             * @description dart_hq: DART 본사 주소 기준(decisions/004)
+             * @enum {string}
+             */
+            basis: "dart_hq" | "name_search" | "road" | "dong";
         };
         /** MapCompanies */
         MapCompanies: {

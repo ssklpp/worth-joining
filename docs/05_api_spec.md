@@ -44,7 +44,7 @@
 |---|---|---|---|
 | `GET /health` | 4 | — | `status`, `db`, `latest_nps_ym` |
 | `GET /companies` | 4 | `q`, `biz_no6`, `industry`, `region`, `sort`(name\|growth, deadline은 10단계), `limit`, `cursor`, (P2) `hiring` | `items[]{company_id, name, industry, region, members, growth_12m, quit_rate_12m, avg_salary_est, open_jobs}`, `next_cursor` |
-| `GET /companies/{id}` | 4 | — | 기본 정보, 지표, `percentiles{growth,stability,salary}`, `flags[]`, `dart{corp_code,match_type}`. 최근 자료 없음이면 `status:"stale"`, `last_seen_ym` |
+| `GET /companies/{id}` | 4 | — | 기본 정보, 지표, `percentiles{growth,stability,salary}`, `flags[]`, `dart{corp_code,match_type}`, `rep_location{lon,lat,accuracy,basis}`(좌표 없으면 null). 최근 자료 없음이면 `status:"stale"`, `last_seen_ym` |
 | `GET /companies/{id}/trend` | 4 | `from_ym`, `to_ym` | `points[]{ym, members, new, lost, hire_rate, quit_rate, avg_salary_est}` |
 | `GET /industries` | 4 | `q` | `items[]{code, name, n_companies}` |
 | `GET /industries/{code}/distribution` | 4 | `metric`(salary\|quit\|growth) | `p25, p50, p75, n` |
@@ -94,7 +94,7 @@
 | `/map/companies` 응답에 `members`, `growth_12m`, `quit_rate_12m`, `avg_salary_est`, `open_jobs` | 왼쪽 목록이 핀마다 지표 3개와 공고 수를 보여준다. 없으면 회사마다 상세를 따로 불러야 한다 | **채택**(#34). `open_jobs`는 Phase 10 |
 | `/map/companies` 응답에 `ungeocoded_count` | 좌표가 없는 회사는 지도에 안 나온다. "지도 안의 회사 N곳"이 전체처럼 보이지 않게 알려야 한다 | **채택**(#34) |
 | `/compare` 응답에 `open_jobs`, `nearest_station_rent`, `burden_mid` | 비교 표에 채용 · 주거비 행이 있다 | 채택(확장 단계에서 필드 추가) |
-| `/companies/{id}` 응답에 `rep_location{lon,lat,accuracy,basis}` (`company_location`에서) | 상세를 열 때 지도를 그 회사로 이동해야 한다 | 채택 |
+| `/companies/{id}` 응답에 `rep_location{lon,lat,accuracy,basis}` (`company_location`에서) | 상세를 열 때 지도를 그 회사로 이동해야 한다 | 채택, 반영(2026-10-13) |
 | `GET /search/suggest?q=` (자동완성) | 검색창 편의 | 보류(P3). `/companies?q=&limit=5`로 대체 |
 | `GET /regions` | 지역 필터 목록 | 보류. 시안 범위가 서울이라 프론트 상수로 충분 |
 
