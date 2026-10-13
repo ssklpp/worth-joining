@@ -51,6 +51,7 @@ python -m pipeline.dart.financials           # 연결된 법인의 사업보고�
 python -m pipeline.geocode.company_location  # 회사 지도 좌표: DART 본사 → 상위 300곳 상호 검색(juso API, 캐시) → 도로 · 동 중심(data/raw/juso 파일 두 개, API 없음). docs/validation.md
 python -m pipeline.stations.load              # 역(서울, data/raw/station/railway_stations_YYYYMMDD.xlsx) → station. 환승역은 물리적 역 하나로 묶음(decisions/007)
 python -m pipeline.rent.partitions --upto 202612   # rent_contract 월 파티션 (--drop-before YYYYMM로 오래된 달 삭제)
+python -m pipeline.rent.seoul --as-of YYYY-MM-DD   # 전월세 CSV(data/raw/rent/seoul_rent_*.csv) → raw · rent_contract · building(좌표는 주소 파일). as-of = 자료 받은 날
 uvicorn app.main:app --reload                # API, :8000/docs
 cd web && npm install && npm run dev         # 프론트엔드, :3000 (lint · typecheck · build, API 계약이 바뀌면 npm run gen:api. web/README.md)
 ruff check .
