@@ -2,7 +2,7 @@
 .block { display: flex; flex-direction: column; gap: 12px; }
 .head { display: flex; flex-direction: column; gap: 4px; }
 .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 16px; margin: 0; }
-@media (max-width: 640px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (max-width: 640px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .facts dt { font-size: var(--fs-xs); color: var(--muted); }
 .facts dd { margin: 0; font-weight: 500; font-size: var(--fs-s); }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -17,7 +17,7 @@
 .swTail { width: 16px; border-top: 2px dashed var(--pen); }
 
 .row { display: grid; grid-template-columns: 4.5rem 9.5rem minmax(0, 1fr) 9rem; grid-template-areas: "name value pos verdict"; align-items: start; gap: 4px 16px; padding-block: 14px; border-top: 1px solid var(--rule); }
-@media (max-width: 640px) {
+@container (max-width: 640px) {
   .row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name verdict" "value value" "pos pos"; }
 }
 .name { grid-area: name; font-weight: 600; }

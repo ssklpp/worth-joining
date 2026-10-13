@@ -1,4 +1,5 @@
-.header { max-width: 880px; margin: 0 auto; padding: 16px 20px; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; }
+/* 지도 메인 화면이 화면 높이를 채우도록 머리글 높이를 --header-h로 고정한다 */
+.header { height: var(--header-h); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 @media (max-width: 640px) { .header { padding-inline: 16px; } }
 .brand { font-size: var(--fs-l); font-weight: 700; color: var(--ink); text-decoration: none; }
 .nav { display: flex; gap: 16px; font-size: var(--fs-s); }

@@ -11,6 +11,15 @@ import { CompareButton } from "@/components/CompareButton";
 import { ErrorBox, Loading } from "@/components/Status";
 import { ApiError, useApi, type Schemas } from "@/lib/api";
 import { formatCount, formatYm, industryLabel } from "@/lib/format";
+import { useExplore } from "../../ExploreContext";
+
+// docs/03 7장 approx_location · basis 문구
+const BASIS: Record<Schemas["Location"]["basis"], string> = {
+  dart_hq: "본사 주소 기준 위치입니다.",
+  name_search: "회사 이름과 도로명으로 찾은 건물 위치입니다.",
+  road: "도로 중심으로 표시한 대략적인 위치입니다.",
+  dong: "동 중심으로 표시한 대략적인 위치입니다.",
+};
 
 const saraminUrl = (name: string) =>
   `https://www.saramin.co.kr/zf_user/search?searchword=${encodeURIComponent(name)}`;
@@ -21,6 +30,15 @@ export function CompanyPage({ id }: { id: number | null }) {
   useEffect(() => {
     if (name) document.title = `${name} | 다닐만한가`;
   }, [name]);
+
+  // 위치가 있으면 지도를 그 회사로 옮기고 핀을 채운다(docs/03 5장)
+  const { select } = useExplore();
+  const loc = state.status === "ok" ? state.data.rep_location : null;
+  useEffect(() => {
+    if (!id || !name || !loc) return;
+    select({ id, name, lat: loc.lat, lon: loc.lon, approx: loc.accuracy !== "building" });
+    return () => select(null);
+  }, [id, name, loc, select]);
 
   if (id === null) return <NotFound />;
   if (state.status === "loading") return <Loading height={480} />;
@@ -40,7 +58,7 @@ export function CompanyPage({ id }: { id: number | null }) {
           {formatYm(c.last_seen_ym)} 이후 국민연금 자료에 없는 회사입니다. 폐업했거나 국민연금 사업장에서 탈퇴했을 수
           있습니다.
         </p>
-        <p><Link href="/">다른 회사 검색하기</Link></p>
+        <p><Link href="/">지도로 돌아가기</Link></p>
       </section>
     );
   }
@@ -58,6 +76,9 @@ export function CompanyPage({ id }: { id: number | null }) {
           </div>
           <div><dt>국민연금 가입자</dt><dd className="num">{formatCount(c.members)}</dd></div>
         </dl>
+        <p className={c.rep_location && c.rep_location.accuracy !== "building" ? "note" : "small muted"}>
+          {c.rep_location ? BASIS[c.rep_location.basis] : "지도에 위치가 없는 회사입니다."}
+        </p>
         <div className={styles.actions}>
           <a className="button" href={saraminUrl(c.name)} target="_blank" rel="noopener noreferrer">
             사람인에서 채용공고 보기
@@ -86,7 +107,7 @@ function NotFound() {
     <section className={styles.block}>
       <h1>회사를 찾을 수 없습니다</h1>
       <p>주소가 잘못되었거나 더 이상 제공하지 않는 회사입니다.</p>
-      <p><Link href="/">회사 검색으로 돌아가기</Link></p>
+      <p><Link href="/">지도로 돌아가기</Link></p>
     </section>
   );
 }
