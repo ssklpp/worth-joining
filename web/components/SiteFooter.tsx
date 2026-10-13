@@ -16,7 +16,8 @@ export function SiteFooter() {
         데이터 기준월 <span className="num">{health.status === "error" ? "확인하지 못함" : asOf}</span>
       </p>
       <p>
-        출처: 국민연금공단 국민연금 가입 사업장 내역(공공데이터포털), 금융감독원 OpenDART.{" "}
+        출처: 국민연금공단 국민연금 가입 사업장 내역(공공데이터포털), 금융감독원 OpenDART, 서울특별시 부동산 전월세가
+        정보, 한국부동산원 전월세전환율, 주소정보누리집.{" "}
         <Link href="/methodology">계산 방법과 한계</Link>
       </p>
       <p>

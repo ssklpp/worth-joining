@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { FinancialSection } from "@/components/company/FinancialSection";
 import { HealthSheet } from "@/components/company/HealthSheet";
+import { HousingSection } from "@/components/company/HousingSection";
 import { TrendSection } from "@/components/company/TrendSection";
 import styles from "@/components/company/company.module.css";
 import { CompareButton } from "@/components/CompareButton";
@@ -88,6 +89,7 @@ export function CompanyPage({ id }: { id: number | null }) {
       </section>
 
       <HealthSheet c={c} />
+      <HousingSection id={c.company_id} />
       <TrendSection id={c.company_id} name={c.name} asOf={c.as_of ?? null} />
       <FinancialSection id={c.company_id} />
 
