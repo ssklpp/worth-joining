@@ -49,6 +49,8 @@ python -m pipeline.dart.company_info         # company.json → 사업자번호 
 python -m pipeline.dart.match                # company ↔ dart_corp → company_dart_link (docs/matching.md)
 python -m pipeline.dart.financials           # 연결된 법인의 사업보고서 주요계정 → dart_financial (약 270건)
 python -m pipeline.geocode.company_location  # 회사 지도 좌표: DART 본사 → 상위 300곳 상호 검색 (juso, 캐시로 이어 받음. docs/validation.md)
+python -m pipeline.stations.load              # 역(서울, data/raw/station/*.xlsx) → station. 환승역은 물리적 역 하나로 묶음(decisions/007)
+python -m pipeline.rent.partitions --upto 202612   # rent_contract 월 파티션 (--drop-before YYYYMM로 오래된 달 삭제)
 uvicorn app.main:app --reload                # API, :8000/docs
 cd web && npm install && npm run dev         # 프론트엔드, :3000 (lint · typecheck · build, API 계약이 바뀌면 npm run gen:api. web/README.md)
 ruff check .
