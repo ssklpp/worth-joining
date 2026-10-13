@@ -34,6 +34,7 @@
 | [TS-020](#ts-020-sql-파일-주석의-콜론이-바인드-파라미터로-읽힘) | 2026-10-12 | API · SQL | SQL 파일 주석의 콜론이 바인드 파라미터로 읽힘 | 해결 | #32 |
 | [TS-021](#ts-021-pyproj-dll-로드-실패) | 2026-10-12 | 환경 · Windows | pyproj DLL 로드 실패 | 우회 | #33 |
 | [TS-022](#ts-022-juso-좌표가-대량으로-좌표-없음으로-캐시됨) | 2026-10-12 | 데이터 · juso | juso 좌표가 대량으로 "좌표 없음"으로 캐시됨 | 해결 | #37 |
+| [TS-023](#ts-023-마이그레이션이-중간에-실패해-테이블-하나만-남음lines-예약어) | 2026-10-13 | DB · MariaDB | 마이그레이션이 중간에 실패해 테이블 하나만 남음(`lines` 예약어) | 해결 | Phase 9 스키마 PR |
 
 ---
 
@@ -269,6 +270,20 @@
   2. `same_building(자치구, 도로명 또는 동, 본번-부번)`: 도로명과 번호가 정확히 같은 결과만 남기고, 남은 결과가 모두 같은 주소면 하나로 본다.
   3. 잘못 캐시된 실패 행을 지우고 다시 실행했다. 상위 200곳 성공 27 → 183곳(91.5%).
 - **재발 방지:** 외부 API의 "본문 안 오류 코드"는 주소별 실패와 일시 오류를 나눠 다룬다. 실패를 캐시하는 코드는 대량 실행 전에 수십 건으로 성공률을 먼저 본다. `tests/unit/test_geocode_juso.py`에 E0007 재시도 · 비캐시 테스트가 있다.
+
+---
+
+## TS-023. 마이그레이션이 중간에 실패해 테이블 하나만 남음(`lines` 예약어)
+
+- **증상:** `alembic upgrade head`(0007)가 `station`을 만들다 실패했다. 다시 실행하자 앞에서 만든 테이블 때문에 다른 오류가 났다.
+
+  ```
+  (1064, "You have an error in your SQL syntax; ... near 'lines        VARCHAR(300) NOT NULL, ..."
+  (1050, "Table 'raw_rent_contract' already exists")
+  ```
+- **원인:** `LINES`는 MariaDB 예약어다(`LOAD DATA ... LINES TERMINATED BY`). 역의 노선 목록 컬럼을 `lines`로 지었다. 또 MariaDB의 DDL은 트랜잭션으로 되돌릴 수 없어서, 실패 전에 만든 `raw_rent_contract`가 남았고 `alembic_version`은 0006 그대로였다.
+- **해결:** 컬럼을 `line_names`로 바꾸고, 남은 테이블을 손으로 지운 뒤 다시 적용했다. `upgrade` → `downgrade -1` → `upgrade`로 왕복도 확인했다.
+- **재발 방지:** 컬럼 이름은 예약어 목록(`LINES`, `KEY`, `RANGE`, `RANK`, `ROWS` 등)을 피한다. 새 마이그레이션은 로컬에서 up · down · up을 한 번 돌려 본다. 중간에 실패하면 `alembic current`와 `SHOW TABLES`로 남은 테이블을 먼저 확인한다.
 
 ---
 

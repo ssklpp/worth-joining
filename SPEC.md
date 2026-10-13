@@ -306,19 +306,20 @@ CREATE TABLE company_location (     -- 회사별 지도 좌표 (decisions/004)
   refreshed_at DATETIME NOT NULL
 );
 
+-- 물리적 역 하나가 한 행(환승역의 노선별 행을 묶는다, decisions/007). LINES는 예약어(TS-023)
 CREATE TABLE station (
   station_id   INT AUTO_INCREMENT PRIMARY KEY,
-  station_code VARCHAR(10) NOT NULL,
+  station_key  VARCHAR(50) NOT NULL,          -- 정규화한 역 이름
   station_name VARCHAR(50) NOT NULL,
-  line_name    VARCHAR(50) NOT NULL,
+  line_names   VARCHAR(300) NOT NULL,         -- 쉼표로 이은 노선
   pt           POINT NOT NULL,
-  UNIQUE KEY uk_station (station_code, line_name),
+  UNIQUE KEY uk_station (station_key),
   SPATIAL INDEX sx_station (pt)
 );
 
 CREATE TABLE building (
   building_id INT AUTO_INCREMENT PRIMARY KEY,
-  addr_key    VARCHAR(200) NOT NULL,
+  addr_key    VARCHAR(200) NOT NULL,          -- 자치구코드-법정동코드-지번구분-본번-부번
   house_type  ENUM('연립다세대','오피스텔') NOT NULL,
   build_year  SMALLINT,
   pt          POINT NOT NULL,
