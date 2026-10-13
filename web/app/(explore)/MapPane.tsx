@@ -3,14 +3,16 @@
 // 지도 칸(docs/03 5장): 핀 · 범례 · 비교함 막대. 핀을 누르면 회사 상세 패널을 연다
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo } from "react";
-import { NaverMap, type MapFocus, type MapMarker } from "@/components/map/NaverMap";
+import { useMemo, useState } from "react";
+import { NaverMap, type Bbox, type MapFocus, type MapMarker, type StationMarker } from "@/components/map/NaverMap";
+import { useApi, type Schemas } from "@/lib/api";
 import { MAX_COMPARE, useCompare } from "@/lib/compare";
 import { formatPct } from "@/lib/format";
 import { pointKey, useExplore, type Metric, type Pin } from "./ExploreContext";
 import styles from "./explore.module.css";
 
 const CITY_HALL = { lat: 37.5665, lon: 126.978 };
+const STATION_ZOOM = 14; // 이보다 멀리 보면 역 이름이 회사 핀을 가려 숨긴다
 
 export function pinLabel(value: number | null, metric: Metric) {
   if (value === null) return "–";
@@ -21,6 +23,15 @@ export function pinLabel(value: number | null, metric: Metric) {
 export function MapPane() {
   const router = useRouter();
   const { pins, metric, selected, hover, point, setHover, setPoint, setBbox } = useExplore();
+  const stationState = useApi<Schemas["StationList"]>("/stations");
+  const allStations = useMemo(() => (stationState.status === "ok" ? stationState.data.items : []), [stationState]);
+  const [view, setView] = useState<{ bbox: Bbox; zoom: number } | null>(null);
+  const stations: StationMarker[] = view && view.zoom >= STATION_ZOOM
+    ? allStations
+      .filter((s) => s.lon >= view.bbox.minLon && s.lon <= view.bbox.maxLon
+        && s.lat >= view.bbox.minLat && s.lat <= view.bbox.maxLat)
+      .map((s) => ({ key: String(s.station_id), name: `${s.name}역`, lat: s.lat, lon: s.lon }))
+    : [];
 
   // 같은 좌표(같은 건물, 동 · 도로 중심)의 회사는 핀 하나로 묶는다
   const groups = useMemo(() => {
@@ -75,11 +86,17 @@ export function MapPane() {
           const items = key ? groups.get(key) : undefined;
           setHover(items?.length === 1 ? items[0].company_id : null);
         }}
-        onBoundsChange={(b) => setBbox(b)} />
+        stations={stations} onStationSelect={(key) => router.push(`/stations/${key}`)}
+        onBoundsChange={(b, zoom) => {
+          setBbox(b);
+          setView({ bbox: b, zoom });
+        }} />
+      <StationSearch stations={allStations} />
       <div className={styles.legend} aria-hidden="true">
         <span><i className={styles.lgTag} />회사 (건물 위치)</span>
         <span><i className={`${styles.lgTag} ${styles.lgDash}`} />대략 위치</span>
         <span><i className={`${styles.lgTag} ${styles.lgDim}`} />가입자 10명 미만</span>
+        <span><i className={styles.lgStation} />지하철역 (확대하면 표시)</span>
       </div>
       <CompareTray />
     </div>
@@ -102,5 +119,37 @@ function CompareTray() {
       ))}
       {items.length >= 2 && !onCompare && <Link className="button" href="/compare">비교하기</Link>}
     </div>
+  );
+}
+
+/** 지도 검색창(FR-MAP-05): 역 이름으로 그 역 시세를 열고 지도를 옮긴다. 주소 검색(지오코딩)은 하지 않는다 */
+function StationSearch({ stations }: { stations: Schemas["StationListItem"][] }) {
+  const router = useRouter();
+  const [text, setText] = useState("");
+  const [missing, setMissing] = useState(false);
+
+  function go(event: React.FormEvent) {
+    event.preventDefault();
+    const name = text.trim().replace(/역$/, "");
+    const found = stations.find((s) => s.name === name) ?? stations.find((s) => s.name.startsWith(name));
+    setMissing(!found);
+    if (found && name) {
+      setText("");
+      router.push(`/stations/${found.station_id}`);
+    }
+  }
+
+  return (
+    <form className={styles.stationSearch} role="search" aria-label="역 찾기" onSubmit={go}>
+      <label className="sr-only" htmlFor="station-q">역 이름으로 지도 이동</label>
+      <input id="station-q" list="station-list" value={text} placeholder="역 이름으로 이동" autoComplete="off"
+        maxLength={30} onChange={(e) => { setText(e.target.value); setMissing(false); }}
+        aria-describedby={missing ? "station-missing" : undefined} />
+      <datalist id="station-list">
+        {stations.map((s) => <option key={s.station_id} value={`${s.name}역`} />)}
+      </datalist>
+      <button type="submit" className="button quiet">이동</button>
+      {missing && <p id="station-missing" className="small" role="status">서울 역 목록에 없는 이름입니다.</p>}
+    </form>
   );
 }

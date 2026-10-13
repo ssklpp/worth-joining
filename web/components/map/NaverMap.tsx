@@ -22,11 +22,16 @@ export type MapMarker = LatLon & {
   highlighted?: boolean; // 목록 항목에 마우스를 올렸을 때
 };
 
+/** 지하철역 표시(decisions/007 9번). 회사 핀보다 아래에 깔고, 누르면 역 시세를 연다 */
+export type StationMarker = LatLon & { key: string; name: string };
+
 /** 지도를 옮길 곳. 객체가 바뀔 때마다 이동한다(같은 회사를 다시 열어도) */
 export type MapFocus = LatLon & { zoom: number };
 
 type Props = {
   markers: MapMarker[];
+  stations?: StationMarker[];
+  onStationSelect?: (key: string) => void;
   center: LatLon;
   zoom: number;
   focus?: MapFocus | null;
@@ -45,7 +50,7 @@ export function NaverMap(props: Props) {
       </div>
     );
   }
-  const { markers, center, zoom, focus, onSelect, onHover, onBoundsChange } = props;
+  const { markers, stations = [], onStationSelect, center, zoom, focus, onSelect, onHover, onBoundsChange } = props;
   return (
     <NavermapsProvider ncpKeyId={KEY_ID}>
       <Container className={styles.map}
@@ -54,6 +59,14 @@ export function NaverMap(props: Props) {
           zoomControl>
           <BoundsReporter onChange={onBoundsChange} />
           <FocusMover focus={focus ?? null} />
+          {stations.map((s) => (
+            <CustomOverlay key={s.key} position={{ lat: s.lat, lng: s.lon }} zIndex={0}>
+              <button type="button" className={styles.station} title={`${s.name} 시세 보기`}
+                aria-label={`${s.name} 시세 보기`} onClick={() => onStationSelect?.(s.key)}>
+                {s.name}
+              </button>
+            </CustomOverlay>
+          ))}
           {markers.map((m) => (
             <CustomOverlay key={m.key} position={{ lat: m.lat, lng: m.lon }}
               zIndex={m.selected ? 10 : m.highlighted ? 9 : 1}>
