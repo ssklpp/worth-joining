@@ -62,5 +62,17 @@ async def stations(conn: AsyncConnection, q: str | None, line: str | None,
 
 async def station(conn: AsyncConnection, station_id: int) -> RowMapping | None:
     return (await conn.execute(text(
-        "SELECT station_id, station_name, line_names FROM station WHERE station_id = :id"
+        "SELECT station_id, station_name, line_names, ST_Y(pt) AS lat, ST_X(pt) AS lon"
+        " FROM station WHERE station_id = :id"
     ), {"id": station_id})).mappings().first()
+
+
+async def trend(conn: AsyncConnection, station_id: int, end_ym: int) -> list[RowMapping]:
+    """기준월의 월 · 분기 추이 행(grain, ym 순)."""
+    return list((await conn.execute(text("""
+        SELECT grain, ym, n_monthly, monthly_p25, monthly_median, monthly_p75, n_jeonse,
+               jeonse_median_man
+          FROM mart_station_rent_trend
+         WHERE station_id = :id AND period_end_ym = :end
+         ORDER BY grain, ym
+    """), {"id": station_id, "end": end_ym})).mappings())
