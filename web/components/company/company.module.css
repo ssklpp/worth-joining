@@ -46,3 +46,19 @@
 .table th:first-child, .table td:first-child { text-align: left; }
 .table thead th { font-weight: 500; color: var(--muted); }
 .missing { text-align: left !important; color: var(--caution); }
+
+/* 회사 근처 주거비(docs/03 6장, 시안 map-home.html의 .st): 역 행 = 이름 | 시세, 아래에 부담률 막대 */
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.seg button { font-size: var(--fs-s); padding: 4px 10px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); color: var(--muted); cursor: pointer; }
+.seg button[aria-checked="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.swSoft { width: 18px; height: 7px; background: var(--pen-soft); border-radius: 4px; }
+.soft { position: absolute; top: 9px; height: 8px; background: var(--pen-soft); border-radius: 4px; }
+.stations { list-style: none; margin: 0; padding: 0; }
+.st { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name rent" "burden burden"; gap: 4px 12px; padding-block: 12px; border-top: 1px solid var(--rule); }
+.st:last-child { border-bottom: 1px solid var(--rule); }
+.st :global(.note) { grid-column: 1 / -1; }
+.stName { grid-area: name; display: flex; flex-direction: column; }
+.stName span, .stRent span { font-size: var(--fs-xs); color: var(--muted); }
+.stRent { grid-area: rent; text-align: right; display: flex; flex-direction: column; font-variant-numeric: tabular-nums; }
+.stRent strong { font-weight: 600; }
+.stBurden { grid-area: burden; min-width: 0; font-size: var(--fs-s); font-variant-numeric: tabular-nums; }
