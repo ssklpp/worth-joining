@@ -232,7 +232,7 @@ CREATE TABLE mart_company_jobs (
 
 위 제안 중 `industry`, `ingestion_log`, `api_call_log`는 마이그레이션 `0001`로, `dart_financial`은 `0004`로 만들었다(2026-10-12, SPEC 5.2에 반영). `mart_company_jobs`는 Phase 10에서 만든다.
 
-`raw_nps_workplace`는 프로파일링 결과대로 확정해 `0001`로 만들었다. 컬럼은 `pipeline/nps/columns.py`의 22개 필드 + `snapshot_ym`, `run_id`, `name_norm`이고, 인덱스는 `0002`의 `(snapshot_ym, biz_no6, name_norm)`이다(troubleshooting TS-012). `raw_rent_contract`, `raw_saramin_job`은 각 Phase의 프로파일링 뒤에 확정한다. 공통으로 `snapshot_ym`(또는 수집일)과 적재 `run_id`를 둔다.
+`raw_nps_workplace`는 프로파일링 결과대로 확정해 `0001`로 만들었다. 컬럼은 `pipeline/nps/columns.py`의 22개 필드 + `snapshot_ym`, `run_id`, `name_norm`이고, 인덱스는 `0002`의 `(snapshot_ym, biz_no6, name_norm)`이다(troubleshooting TS-012). `raw_rent_contract`는 `0007`에서 CSV 23열을 글자 그대로 두고, 접수연도를 뺀 원본 필드의 `row_hash`로 연도 파일끼리 겹친 계약을 한 번만 넣는다(decisions/007). `raw_saramin_job`은 Phase 10 프로파일링 뒤에 확정한다. 공통으로 `snapshot_ym`(또는 수집일)과 적재 `run_id`를 둔다.
 
 ## 4. 설계 검토: 발견한 문제점
 
