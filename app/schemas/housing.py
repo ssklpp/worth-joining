@@ -72,11 +72,27 @@ class StationList(BaseModel):
     items: list[StationListItem]
 
 
+class StationTrendPoint(BaseModel):
+    ym: int = Field(description="구간의 마지막 달 YYYYMM(분기면 3개월 구간의 끝 달)")
+    n_monthly: int
+    monthly_p25: int | None = Field(description="환산 월세(원)")
+    monthly_median: int | None
+    monthly_p75: int | None
+    n_jeonse: int
+    jeonse_median_man: int | None
+
+
 class StationDetail(BaseModel):
     station_id: int
     name: str
     lines: list[str]
+    lat: float
+    lon: float
     as_of: int | None = Field(description="전월세 집계 기준월 YYYYMM")
     rent: StationRent | None
     jeonse_share: float | None = Field(description="원룸 계약 중 전세 비율")
     flags: list[Flag]
+    trend_grain: Literal["month", "quarter"] | None = Field(
+        description="24개월 모두 월세 5건 이상이면 month, 아니면 quarter. 계약이 없으면 null")
+    trend: list[StationTrendPoint] = Field(
+        description="기준월까지 최근 24개월(months와 무관), 오래된 순")

@@ -2,9 +2,11 @@
 
 from collections.abc import Mapping
 
-from app.schemas.housing import Burden, StationRent
+from app.schemas.housing import Burden, StationRent, StationTrendPoint
 
 SMALL_SAMPLE = 20  # 역 계약 20건 미만이면 표본 부족(SPEC 6장)
+TREND_MONTHS = 24
+MONTHLY_MIN = 5  # 24개월 모두 월세 계약이 이만큼 있어야 월 단위로 보여 준다(FR-HOUS-04)
 
 
 def pick_rent(rents: Mapping[tuple[int, int], Mapping], station_id: int,
@@ -40,3 +42,14 @@ def burden(rent: StationRent | None, monthly_pay: int | None) -> Burden | None:
         return None if v is None else round(v / monthly_pay, 4)
     return Burden(low=ratio(rent.monthly_p25), mid=ratio(rent.monthly_median),
                   high=ratio(rent.monthly_p75))
+
+
+def pick_trend(rows: list[Mapping]) -> tuple[str | None, list[StationTrendPoint]]:
+    """월 단위 추이는 24개월 모두 월세 계약이 5건 이상일 때만 쓴다. 아니면 분기 단위.
+    건수가 적은 달의 중앙값은 계약 몇 건에 크게 흔들리기 때문이다."""
+    months = [r for r in rows if r["grain"] == "month"]
+    full = len(months) == TREND_MONTHS and all(r["n_monthly"] >= MONTHLY_MIN for r in months)
+    grain = "month" if full else "quarter"
+    points = [StationTrendPoint(**{k: r[k] for k in StationTrendPoint.model_fields})
+              for r in rows if r["grain"] == grain]
+    return (grain if points else None), points

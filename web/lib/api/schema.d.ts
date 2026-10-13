@@ -245,6 +245,7 @@ export interface paths {
         /**
          * 역 원룸 시세
          * @description 월세 계약이 20건 미만이면 24개월로 넓히고 period_extended_to_24m을 단다.
+         *     trend는 기간과 관계없이 최근 24개월이고, 계약이 적은 역은 분기로 묶는다.
          */
         get: operations["station_rent_stations__station_id__rent_get"];
         put?: never;
@@ -778,6 +779,10 @@ export interface components {
             name: string;
             /** Lines */
             lines: string[];
+            /** Lat */
+            lat: number;
+            /** Lon */
+            lon: number;
             /**
              * As Of
              * @description 전월세 집계 기준월 YYYYMM
@@ -791,6 +796,16 @@ export interface components {
             jeonse_share: number | null;
             /** Flags */
             flags: ("salary_is_lower_bound" | "small_sample" | "short_history" | "stale" | "approx_location" | "name_matched" | "period_extended_to_24m")[];
+            /**
+             * Trend Grain
+             * @description 24개월 모두 월세 5건 이상이면 month, 아니면 quarter. 계약이 없으면 null
+             */
+            trend_grain: ("month" | "quarter") | null;
+            /**
+             * Trend
+             * @description 기준월까지 최근 24개월(months와 무관), 오래된 순
+             */
+            trend: components["schemas"]["StationTrendPoint"][];
         };
         /** StationList */
         StationList: {
@@ -861,6 +876,29 @@ export interface components {
             jeonse_median_man: number | null;
             /** Jeonse P75 Man */
             jeonse_p75_man: number | null;
+        };
+        /** StationTrendPoint */
+        StationTrendPoint: {
+            /**
+             * Ym
+             * @description 구간의 마지막 달 YYYYMM(분기면 3개월 구간의 끝 달)
+             */
+            ym: number;
+            /** N Monthly */
+            n_monthly: number;
+            /**
+             * Monthly P25
+             * @description 환산 월세(원)
+             */
+            monthly_p25: number | null;
+            /** Monthly Median */
+            monthly_median: number | null;
+            /** Monthly P75 */
+            monthly_p75: number | null;
+            /** N Jeonse */
+            n_jeonse: number;
+            /** Jeonse Median Man */
+            jeonse_median_man: number | null;
         };
         /** TrendPoint */
         TrendPoint: {

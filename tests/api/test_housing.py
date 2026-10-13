@@ -113,3 +113,54 @@ async def test_station_rent_detail(client, db):
     assert six["rent"]["months"] == 6 and six["flags"] == []
     assert default["rent"]["n_monthly"] == 100
     assert default["jeonse_share"] == pytest.approx(5 / 105, abs=1e-4)
+
+
+async def add_trend(db, station_id, grain, yms, n):
+    for ym in yms:
+        await db.execute(text("""
+            INSERT INTO mart_station_rent_trend
+              (station_id, period_end_ym, grain, ym, n_monthly, monthly_p25, monthly_median,
+               monthly_p75, n_jeonse, jeonse_median_man)
+            VALUES (:s, :end, :g, :ym, :n, 600000, 700000, 800000, 1, 20000)
+        """), {"s": station_id, "end": END, "g": grain, "ym": ym, "n": n})
+
+
+def months_back(count):
+    """기준월까지 count개월(오래된 순)."""
+    out, ym = [], END
+    for _ in range(count):
+        out.append(ym)
+        ym = ym - 1 if ym % 100 > 1 else ym - 89
+    return out[::-1]
+
+
+QUARTERS = [202411, 202502, 202505, 202508, 202511, 202602, 202605, 202608]
+
+
+async def test_station_trend_is_monthly_only_when_every_month_has_five(client, db):
+    await add_station(db, 10, "신림")
+    await add_station(db, 11, "강남")
+    await add_rent(db, 10, 12, n=100)
+    await add_rent(db, 11, 12, n=100)
+    await add_trend(db, 10, "month", months_back(24), n=5)
+    await add_trend(db, 10, "quarter", QUARTERS, n=15)
+    await add_trend(db, 11, "month", months_back(23), n=9)  # 한 달 빠짐
+    await add_trend(db, 11, "quarter", QUARTERS, n=27)
+
+    full = (await client.get("/stations/10/rent")).json()
+    sparse = (await client.get("/stations/11/rent", params={"months": 6})).json()
+
+    assert full["trend_grain"] == "month" and len(full["trend"]) == 24
+    assert full["trend"][0]["ym"] == 202409 and full["trend"][-1]["ym"] == END
+    assert sparse["trend_grain"] == "quarter"
+    assert [p["ym"] for p in sparse["trend"]] == QUARTERS
+    assert (full["lat"], full["lon"]) == (37.5, 127.0)
+
+
+async def test_station_without_trend_rows(client, db):
+    await add_station(db, 10, "신림")
+    await add_rent(db, 10, 12, n=100)
+
+    body = (await client.get("/stations/10/rent")).json()
+
+    assert body["trend_grain"] is None and body["trend"] == []
