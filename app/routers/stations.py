@@ -27,7 +27,8 @@ async def list_stations(
     rows = await repo.stations(conn, q or None, line or None, sort)
     return StationList(as_of=await repo.rent_as_of(conn), items=[
         StationListItem(station_id=r["station_id"], name=r["station_name"],
-                        lines=_lines(r["line_names"]), monthly_median=r["monthly_median"],
+                        lines=_lines(r["line_names"]), lat=float(r["lat"]), lon=float(r["lon"]),
+                        monthly_median=r["monthly_median"],
                         n=r["n_monthly"]) for r in rows])
 
 

@@ -205,6 +205,7 @@ export interface paths {
         /**
          * 상태 확인
          * @description DB에 접속하지 못하면 500이다. latest_nps_ym이 null이면 mart가 비어 있다.
+         *     품질 지표(FR-OPS-05)는 10분 동안 기억한다.
          */
         get: operations["health_health_get"];
         put?: never;
@@ -567,6 +568,21 @@ export interface components {
              * @description mart에 반영된 국민연금 최신 월
              */
             latest_nps_ym: number | null;
+            /**
+             * Latest Rent Ym
+             * @description 역세권 시세 기준월(신고가 끝난 달)
+             */
+            latest_rent_ym?: number | null;
+            /**
+             * Match Rate
+             * @description 가입자 1,000명 이상 회사 중 DART 법인과 연결된 비율(docs/matching.md)
+             */
+            match_rate?: number | null;
+            /**
+             * Geocode Success Rate
+             * @description 회사 중 지도 좌표(건물 · 도로 · 동 중심)가 있는 비율(decisions/004)
+             */
+            geocode_success_rate?: number | null;
         };
         /** IndexPoint */
         IndexPoint: {
@@ -825,6 +841,10 @@ export interface components {
             name: string;
             /** Lines */
             lines: string[];
+            /** Lat */
+            lat: number;
+            /** Lon */
+            lon: number;
             /**
              * Monthly Median
              * @description 12개월 원룸 환산 월세 중앙값(원)

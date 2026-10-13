@@ -661,7 +661,7 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 
 ## 8. API 계약
 
-공통: JSON, 오류는 `{"detail": "..."}`. 없는 리소스 404, 파라미터 오류 422. 모든 응답에 `as_of`(데이터 기준월)를 둔다. 응답 헤더 `ETag`(마지막 적재 월), `Cache-Control: public, max-age=3600`은 P2(선택)로, 기간 내에는 넣지 않아도 된다.
+공통: JSON, 오류는 `{"detail": "..."}`. 없는 리소스 404, 파라미터 오류 422. 모든 응답에 `as_of`(데이터 기준월)를 둔다. 성공한 GET 응답에는 `Cache-Control: public, max-age=3600`과 본문 해시 `ETag`(약한 ETag)를 붙이고, `If-None-Match`가 같으면 304를 준다(`app/core/cache.py`, NFR-OPS-02). `/health`와 문서 화면은 제외한다.
 
 | 메서드·경로 | 파라미터 | 응답 핵심 필드 |
 |---|---|---|
@@ -671,14 +671,14 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 | `GET /companies/{id}/financials` | `years`(≤5) | `rows[]{year, revenue, operating_income, net_income, debt_ratio}` |
 | `GET /companies/{id}/jobs` | — | `jobs[]{title, expires_at, salary_range, url}, signal(growth\|backfill\|none), salary_compare{posted, company_est, industry_median}, source:"사람인"` |
 | `GET /companies/{id}/housing` | `months`(6\|12\|24, 기본 12) | `as_of, rent_as_of`(전월세 기준월), `flags[]`(approx_location · salary_is_lower_bound · stale), `monthly_pay_est`(원), `stations[]{station_id, name, lines[], distance_m, rent{months, n_monthly, n_jeonse, monthly_p25 · median · p75(원), deposit_median_man, rent_median_man, jeonse_p25 · median · p75_man}, burden{low,mid,high}, flags[]}`(1km 안 가까운 순 최대 3). 월세 계약 20건 미만이면 24개월로 넓히고 `period_extended_to_24m`, 그래도 20건 미만이면 `small_sample` |
-| `GET /stations` | `q`(이름 앞부분), `line`, `sort`(name\|monthly_median) | `as_of`, `items[]{station_id, name, lines[], monthly_median, n}`(12개월) |
+| `GET /stations` | `q`(이름 앞부분), `line`, `sort`(name\|monthly_median) | `as_of`, `items[]{station_id, name, lines[], lat, lon, monthly_median, n}`(12개월). 지도 역 표시 · 역 검색에 쓴다 |
 | `GET /stations/{id}/rent` | `months`(6\|12\|24, 기본 12. decisions/007) | `station_id, name, lines[], lat, lon, as_of, rent{…}`(위와 같음), `jeonse_share`, `flags[]`, `trend_grain`(month\|quarter\|null), `trend[]{ym, n_monthly, monthly_p25 · median · p75, n_jeonse, jeonse_median_man}`(기준월까지 24개월, `months`와 무관. 24개월 모두 월세 5건 이상이면 월, 아니면 분기). `contract` 필터는 하지 않음 |
 | `GET /industries` | `q`(이름 일부) | `items[]{code, name, n_companies}` |
 | `GET /industries/{code}/distribution` | `metric`(salary\|quit\|growth) | `p25, p50, p75, n` |
 | `GET /compare` | `ids`(쉼표로 1 ~ 3개, 중복 · 형식 오류 422, 없는 ID 404) | `items[]{company_id, name, status, flags[], industry, region, members, growth_12m, quit_rate_12m, avg_salary_est, index_series[]{ym, members, idx}}`(요청 순서, 12개월 전 = 100, 없으면 `idx` null) |
 | `GET /map/companies` | `industry`, `region`(시도 2자리 또는 시군구 5자리), `metric`(growth\|quit\|salary), `bbox`(min_lon,min_lat,max_lon,max_lat, 선택) | `items[]{company_id, name, lon, lat, accuracy, basis, value, members, growth_12m, quit_rate_12m, avg_salary_est}`(가입자 많은 순 최대 200), `truncated`, `ungeocoded_count`(조건에 맞지만 좌표가 없는 회사 수) |
 | `GET /meta/methodology` | — | 계산식, 한계, 데이터 기준월, 출처 목록 |
-| `GET /health` | — | `status`, `db:"ok"`, `latest_nps_ym`(mart 기준 최신 월). 확장 시 `latest_rent_ym`, (P2) `match_rate`, `geocode_success_rate` |
+| `GET /health` | — | `status`, `db:"ok"`, `latest_nps_ym`(mart 기준 최신 월), `latest_rent_ym`(역세권 시세 기준월), `match_rate`(가입자 1,000명 이상 회사의 DART 연결 비율), `geocode_success_rate`(지도 좌표가 있는 회사 비율). 품질 지표는 10분 동안 기억한다(FR-OPS-05) |
 
 `flags` 값: `salary_is_lower_bound`, `small_sample`, `short_history`(12개월 미만 이력), `stale`(최신 월에 없음), `approx_location`(좌표 정확도가 building이 아님), `name_matched`(이름 유사도 1.0 미만으로 연결), `period_extended_to_24m`.
 

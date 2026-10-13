@@ -63,6 +63,8 @@ class StationListItem(BaseModel):
     station_id: int
     name: str
     lines: list[str]
+    lat: float
+    lon: float
     monthly_median: int | None = Field(description="12개월 원룸 환산 월세 중앙값(원)")
     n: int = Field(description="12개월 원룸 월세 계약 수")
 

@@ -100,6 +100,7 @@ async def test_station_list_filters_and_sorts(client, db):
         ("신림", 750_000, 100), ("강남", 1_060_000, 400), ("신촌", None, 0)]
     assert [i["name"] for i in q["items"]] == ["신림", "신촌"]
     assert [i["name"] for i in line["items"]] == ["신림"]
+    assert (by_rent["items"][0]["lat"], by_rent["items"][0]["lon"]) == (37.5, 127.0)
 
 
 async def test_station_rent_detail(client, db):
