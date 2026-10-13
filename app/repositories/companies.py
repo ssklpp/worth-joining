@@ -111,6 +111,12 @@ async def dart_link(conn: AsyncConnection, company_id: int) -> RowMapping | None
     """), {"id": company_id})).mappings().first()
 
 
+async def location(conn: AsyncConnection, company_id: int) -> RowMapping | None:
+    return (await conn.execute(text(
+        "SELECT lon, lat, accuracy, basis FROM company_location WHERE company_id = :id"
+    ), {"id": company_id})).mappings().first()
+
+
 async def financials(conn: AsyncConnection, corp_code: str, years: int) -> list[RowMapping]:
     return list((await conn.execute(text("""
         SELECT bsns_year AS year, revenue, operating_income, net_income,

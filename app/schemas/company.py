@@ -46,6 +46,15 @@ class DartLink(BaseModel):
     )
 
 
+class Location(BaseModel):
+    lon: float
+    lat: float
+    accuracy: Literal["building", "road", "dong"] = Field(description="building이 아니면 대략 위치")
+    basis: Literal["dart_hq", "name_search", "road", "dong"] = Field(
+        description="dart_hq: DART 본사 주소 기준(decisions/004)"
+    )
+
+
 class CompanyDetail(BaseModel):
     company_id: int
     name: str
@@ -66,6 +75,9 @@ class CompanyDetail(BaseModel):
         None, description="서울 사업장 중 대표 업종 안 백분위. 표본 부족이면 모두 null"
     )
     dart: DartLink | None = Field(None, description="DART 연결. 연결되지 않았으면 null")
+    rep_location: Location | None = Field(
+        None, description="지도 위치(company_location). 좌표가 없으면 null"
+    )
 
 
 class TrendPoint(BaseModel):

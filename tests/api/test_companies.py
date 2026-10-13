@@ -2,7 +2,7 @@
 
 import pytest
 
-from tests.api.seed import LATEST, add_company, add_monthly, add_summary
+from tests.api.seed import LATEST, add_company, add_location, add_monthly, add_summary
 
 
 async def test_search_normalizes_query_prefix(client, db):
@@ -99,6 +99,25 @@ async def test_detail_ok(client, db):
     assert body["form_type"] == "corporation"
     assert body["percentiles"] == {"growth": 50, "stability": 60, "salary": 70}
     assert body["flags"] == ["salary_is_lower_bound"]
+    assert body["rep_location"] is None
+
+
+async def test_detail_location(client, db):
+    await add_company(db, 1, "가나")
+    await add_summary(db, 1)
+    await add_location(db, 1, lon=126.9, lat=37.5)
+    await add_company(db, 2, "다라")
+    await add_summary(db, 2)
+    await add_location(db, 2, accuracy="dong", basis="dong")
+
+    exact = (await client.get("/companies/1")).json()
+    approx = (await client.get("/companies/2")).json()
+
+    assert exact["rep_location"] == {"lon": 126.9, "lat": 37.5,
+                                 "accuracy": "building", "basis": "dart_hq"}
+    assert "approx_location" not in exact["flags"]
+    assert approx["rep_location"]["accuracy"] == "dong"
+    assert approx["flags"][-1] == "approx_location"
 
 
 async def test_detail_small_sample_and_short_history(client, db):
