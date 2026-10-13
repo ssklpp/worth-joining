@@ -655,9 +655,9 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 | `GET /companies/{id}/trend` | `from_ym`, `to_ym` | `points[]{ym, members, new, lost, hire_rate, quit_rate, avg_salary_est}` |
 | `GET /companies/{id}/financials` | `years`(≤5) | `rows[]{year, revenue, operating_income, net_income, debt_ratio}` |
 | `GET /companies/{id}/jobs` | — | `jobs[]{title, expires_at, salary_range, url}, signal(growth\|backfill\|none), salary_compare{posted, company_est, industry_median}, source:"사람인"` |
-| `GET /companies/{id}/housing` | `months`(6\|12\|24) | `monthly_pay_est, stations[]{name, lines[], distance_m, monthly_median, jeonse_median_man, n, burden{low,mid,high}, flags[]}` |
-| `GET /stations` | `q`, `line`, `sort=monthly_median` | `items[]{station_id, name, lines[], monthly_median, n}` |
-| `GET /stations/{id}/rent` | `months`(6\|12\|24, 기본 12. decisions/007), `contract`(all\|monthly\|jeonse) | 분포, 전세 비중, `trend[]{ym, median}` |
+| `GET /companies/{id}/housing` | `months`(6\|12\|24, 기본 12) | `as_of, rent_as_of`(전월세 기준월), `flags[]`(approx_location · salary_is_lower_bound · stale), `monthly_pay_est`(원), `stations[]{station_id, name, lines[], distance_m, rent{months, n_monthly, n_jeonse, monthly_p25 · median · p75(원), deposit_median_man, rent_median_man, jeonse_p25 · median · p75_man}, burden{low,mid,high}, flags[]}`(1km 안 가까운 순 최대 3). 월세 계약 20건 미만이면 24개월로 넓히고 `period_extended_to_24m`, 그래도 20건 미만이면 `small_sample` |
+| `GET /stations` | `q`(이름 앞부분), `line`, `sort`(name\|monthly_median) | `as_of`, `items[]{station_id, name, lines[], monthly_median, n}`(12개월) |
+| `GET /stations/{id}/rent` | `months`(6\|12\|24, 기본 12. decisions/007) | `station_id, name, lines[], as_of, rent{…}`(위와 같음), `jeonse_share`, `flags[]`. 월별 추이 `trend[]`와 `contract` 필터는 여유 있으면(decisions/007) |
 | `GET /industries` | `q`(이름 일부) | `items[]{code, name, n_companies}` |
 | `GET /industries/{code}/distribution` | `metric`(salary\|quit\|growth) | `p25, p50, p75, n` |
 | `GET /compare` | `ids`(쉼표로 1 ~ 3개, 중복 · 형식 오류 422, 없는 ID 404) | `items[]{company_id, name, status, flags[], industry, region, members, growth_12m, quit_rate_12m, avg_salary_est, index_series[]{ym, members, idx}}`(요청 순서, 12개월 전 = 100, 없으면 `idx` null) |
@@ -667,7 +667,7 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 
 `flags` 값: `salary_is_lower_bound`, `small_sample`, `short_history`(12개월 미만 이력), `stale`(최신 월에 없음), `approx_location`(좌표 정확도가 building이 아님), `name_matched`(이름 유사도 1.0 미만으로 연결), `period_extended_to_24m`.
 
-`months`는 Pydantic `Query(12, ge=1, le=24)`로 검증한다.
+`months`는 6 · 12 · 24만 받는다(`app/schemas/housing.py`의 `MonthsParam`, 그 밖의 값은 422. docs/04 D7).
 
 ---
 

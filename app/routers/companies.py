@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from app.core.db import get_conn
 from app.repositories import companies as repo
+from app.repositories import housing as housing_repo
 from app.schemas.common import Industry, Region
 from app.schemas.company import (
     CompanyDetail,
@@ -19,8 +20,10 @@ from app.schemas.company import (
     Percentiles,
     TrendPoint,
 )
+from app.schemas.housing import CompanyHousing, MonthsParam, NearStation
 from app.services import cursor as cursors
 from app.services.flags import company_flags, trend_flags
+from app.services.housing import burden, pick_rent
 from pipeline.common.normalize import normalize_name
 
 router = APIRouter(prefix="/companies", tags=["companies"])
@@ -156,3 +159,38 @@ async def company_financials(
                            debt_ratio=None if r["debt_ratio"] is None
                            else round(float(r["debt_ratio"]), 4)) for r in rows],
     )
+
+
+@router.get("/{company_id}/housing", response_model=CompanyHousing, summary="회사 근처 역 주거비")
+async def company_housing(
+    company_id: CompanyId, conn: Conn,
+    months: Annotated[MonthsParam, Query(description="6 · 12 · 24개월(docs/04 D7)")] = (
+        MonthsParam.m12),
+) -> CompanyHousing:
+    """회사에서 1km 안의 역(최대 3곳)마다 원룸 시세와 주거비 부담률(시세 ÷ 추정 월급).
+    회사 좌표가 대략 위치(도로 · 동 중심)면 approx_location: 거리와 역은 참고용이다."""
+    base = await housing_repo.company_base(conn, company_id)
+    if base is None:
+        raise HTTPException(404, "회사를 찾을 수 없다")
+    flags = []
+    if not base["has_summary"]:
+        flags.append("stale")
+    if base["accuracy"] and base["accuracy"] != "building":
+        flags.append("approx_location")
+    salary = base["avg_salary_est"]
+    if salary is not None:
+        flags.append("salary_is_lower_bound")
+    pay = round(salary / 12) if salary else None
+    near = await housing_repo.near_stations(conn, company_id)
+    rents = await housing_repo.rents(conn, [s["station_id"] for s in near])
+    stations = []
+    for s in near:
+        rent, station_flags = pick_rent(rents, s["station_id"], int(months))
+        stations.append(NearStation(
+            station_id=s["station_id"], name=s["station_name"],
+            lines=s["line_names"].split(",") if s["line_names"] else [],
+            distance_m=s["distance_m"], rent=rent, burden=burden(rent, pay), flags=station_flags))
+    return CompanyHousing(
+        company_id=company_id, as_of=await repo.latest_ym(conn),
+        rent_as_of=await housing_repo.rent_as_of(conn), flags=flags, monthly_pay_est=pay,
+        stations=stations)
