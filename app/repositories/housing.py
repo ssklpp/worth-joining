@@ -51,6 +51,7 @@ async def stations(conn: AsyncConnection, q: str | None, line: str | None,
         if sort == "monthly_median" else "st.station_name"
     return list((await conn.execute(text(f"""
         SELECT st.station_id, st.station_name, st.line_names,
+               ST_Y(st.pt) AS lat, ST_X(st.pt) AS lon,
                r.monthly_median, COALESCE(r.n_monthly, 0) AS n_monthly
           FROM station st
           LEFT JOIN mart_station_rent r ON r.station_id = st.station_id AND r.window_months = 12

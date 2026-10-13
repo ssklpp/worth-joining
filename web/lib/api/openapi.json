@@ -686,7 +686,7 @@
      "meta"
     ],
     "summary": "상태 확인",
-    "description": "DB에 접속하지 못하면 500이다. latest_nps_ym이 null이면 mart가 비어 있다.",
+    "description": "DB에 접속하지 못하면 500이다. latest_nps_ym이 null이면 mart가 비어 있다.\n품질 지표(FR-OPS-05)는 10분 동안 기억한다.",
     "operationId": "health_health_get",
     "responses": {
      "200": {
@@ -1784,6 +1784,42 @@
       ],
       "title": "Latest Nps Ym",
       "description": "mart에 반영된 국민연금 최신 월"
+     },
+     "latest_rent_ym": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latest Rent Ym",
+      "description": "역세권 시세 기준월(신고가 끝난 달)"
+     },
+     "match_rate": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Match Rate",
+      "description": "가입자 1,000명 이상 회사 중 DART 법인과 연결된 비율(docs/matching.md)"
+     },
+     "geocode_success_rate": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Geocode Success Rate",
+      "description": "회사 중 지도 좌표(건물 · 도로 · 동 중심)가 있는 비율(decisions/004)"
      }
     },
     "type": "object",
@@ -2511,6 +2547,14 @@
       "type": "array",
       "title": "Lines"
      },
+     "lat": {
+      "type": "number",
+      "title": "Lat"
+     },
+     "lon": {
+      "type": "number",
+      "title": "Lon"
+     },
      "monthly_median": {
       "anyOf": [
        {
@@ -2534,6 +2578,8 @@
      "station_id",
      "name",
      "lines",
+     "lat",
+     "lon",
      "monthly_median",
      "n"
     ],

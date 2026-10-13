@@ -661,7 +661,7 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 
 ## 8. API 계약
 
-공통: JSON, 오류는 `{"detail": "..."}`. 없는 리소스 404, 파라미터 오류 422. 모든 응답에 `as_of`(데이터 기준월)를 둔다. 응답 헤더 `ETag`(마지막 적재 월), `Cache-Control: public, max-age=3600`은 P2(선택)로, 기간 내에는 넣지 않아도 된다.
+공통: JSON, 오류는 `{"detail": "..."}`. 없는 리소스 404, 파라미터 오류 422. 모든 응답에 `as_of`(데이터 기준월)를 둔다. 성공한 GET 응답에는 `Cache-Control: public, max-age=3600`과 본문 해시 `ETag`(약한 ETag)를 붙이고, `If-None-Match`가 같으면 304를 준다(`app/core/cache.py`, NFR-OPS-02). `/health`와 문서 화면은 제외한다.
 
 | 메서드·경로 | 파라미터 | 응답 핵심 필드 |
 |---|---|---|
@@ -678,7 +678,7 @@ ALTER TABLE rent_contract DROP PARTITION p{24개월 전 YYYYMM};
 | `GET /compare` | `ids`(쉼표로 1 ~ 3개, 중복 · 형식 오류 422, 없는 ID 404) | `items[]{company_id, name, status, flags[], industry, region, members, growth_12m, quit_rate_12m, avg_salary_est, index_series[]{ym, members, idx}}`(요청 순서, 12개월 전 = 100, 없으면 `idx` null) |
 | `GET /map/companies` | `industry`, `region`(시도 2자리 또는 시군구 5자리), `metric`(growth\|quit\|salary), `bbox`(min_lon,min_lat,max_lon,max_lat, 선택) | `items[]{company_id, name, lon, lat, accuracy, basis, value, members, growth_12m, quit_rate_12m, avg_salary_est}`(가입자 많은 순 최대 200), `truncated`, `ungeocoded_count`(조건에 맞지만 좌표가 없는 회사 수) |
 | `GET /meta/methodology` | — | 계산식, 한계, 데이터 기준월, 출처 목록 |
-| `GET /health` | — | `status`, `db:"ok"`, `latest_nps_ym`(mart 기준 최신 월). 확장 시 `latest_rent_ym`, (P2) `match_rate`, `geocode_success_rate` |
+| `GET /health` | — | `status`, `db:"ok"`, `latest_nps_ym`(mart 기준 최신 월), `latest_rent_ym`(역세권 시세 기준월), `match_rate`(가입자 1,000명 이상 회사의 DART 연결 비율), `geocode_success_rate`(지도 좌표가 있는 회사 비율). 품질 지표는 10분 동안 기억한다(FR-OPS-05) |
 
 `flags` 값: `salary_is_lower_bound`, `small_sample`, `short_history`(12개월 미만 이력), `stale`(최신 월에 없음), `approx_location`(좌표 정확도가 building이 아님), `name_matched`(이름 유사도 1.0 미만으로 연결), `period_extended_to_24m`.
 
