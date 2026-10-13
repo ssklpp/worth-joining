@@ -1,6 +1,19 @@
+import statistics
+from pathlib import Path
+
 import pytest
 
-from pipeline.geocode.company_location import hq_query, on_road, same_building, workplace_query
+from pipeline.geocode import rnaddr
+from pipeline.geocode.company_location import (
+    hq_query,
+    medians,
+    on_road,
+    road_of,
+    same_building,
+    workplace_query,
+)
+
+FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "juso"
 
 GN, SP = "서울특별시 강남구", "서울특별시 송파구"
 
@@ -58,3 +71,32 @@ def test_same_building_skips_annex_with_sub_number():
     assert same_building("서초구", "강남대로", "382-0")([main]) is None
     assert same_building("영등포구", "여의도동", "34-11")([jibun]) == jibun
     assert same_building("영등포구", "여의도동", "34-0")([jibun]) is None
+
+
+def test_road_of_takes_road_name_only():
+    assert road_of("서울특별시 성동구 독서당로14길") == "독서당로14길"
+    assert road_of("서울특별시 종로구 종로1가") is None  # 동 이름
+    assert road_of(None) is None and road_of("") is None
+
+
+def test_rnaddr_joins_address_and_entrance_by_building_id():
+    buildings = list(rnaddr.read_files(FIXTURES / "rnaddrkor_sample.txt"))
+
+    # 깨진 행과 출입구 좌표가 없는 다른구 건물은 빠진다
+    assert [b.lot_main for b in buildings] == [1, 2, 3, 4]
+    assert buildings[0].sgg == "11990" and buildings[0].road == "가상로"
+    assert 126.9 < buildings[0].lon < 127.0 and 37.5 < buildings[0].lat < 37.6
+
+
+def test_medians_use_every_building_on_the_road_or_in_the_dong():
+    buildings = list(rnaddr.read_files(FIXTURES / "rnaddrkor_sample.txt"))
+
+    road_pt, dong_pt = medians(buildings, {("11990", "가상로"), ("11880", "가상로")},
+                               {"1199010100", "1199010200"})
+
+    first_three = buildings[:3]  # 11990 가상로의 건물
+    assert road_pt[("11990", "가상로")] == (statistics.median(b.lon for b in first_three),
+                                          statistics.median(b.lat for b in first_three))
+    assert road_pt[("11990", "가상로")][0] == buildings[1].lon  # 경도 가운데 건물
+    assert ("11880", "가상로") not in road_pt  # 좌표 없는 건물뿐
+    assert dong_pt["1199010200"] == (buildings[3].lon, buildings[3].lat)

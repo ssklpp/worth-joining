@@ -118,8 +118,10 @@ API 키(DART · 공공데이터포털 등)는 배포 서비스에 넣지 않는�
    python -m pipeline.refresh_mart
    python -m pipeline.dart.company_info         # 새로 이름이 맞는 법인만 부른다(선택)
    python -m pipeline.dart.match
+   python -m pipeline.geocode.company_location  # 새 회사 좌표. 본사 · 상호는 캐시, 도로 · 동은 파일로 계산
    ```
    분기마다(4월 이후 첫 갱신 등) `python -m pipeline.dart.financials`도 실행한다.
+   - 회사 좌표의 도로 · 동 중심은 `data/raw/juso/`의 주소정보누리집 서울 파일 두 개로 계산한다: "도로명주소 한글"(`rnaddrkor_seoul.txt`)과 "도로명주소 출입구"(`RNENTDATA_YYMM_11000.txt`, 가장 최근 YYMM을 쓴다). 둘 다 `.gitignore` 대상이라 각자 받는다. 새 도로가 많이 생기면(분기에 한 번 정도) 같은 달 파일 두 개를 다시 받아 바꾼다.
 3. 로컬 API와 웹으로 회사 몇 곳을 열어 본다(기준월이 바뀌었는지, 추이에 새 달이 붙었는지).
 4. 덤프를 만들어 공유 드라이브에 올린다(이름 `worth_joining_YYYYMMDD.zip`, zip 안에 행 수 · Alembic 버전을 적은 `README.txt`).
 5. 2.1의 TCP Proxy를 켜고 2.2처럼 복원한 뒤 끈다. 복원하는 몇 분 동안은 API가 오류를 낼 수 있다. 사용자가 적은 시간에 한다.
