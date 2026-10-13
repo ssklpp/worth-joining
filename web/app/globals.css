@@ -12,6 +12,7 @@
   --caution-bg: #FBF3E2;
   --font: var(--font-plex), "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
   --fs-xs: 12px; --fs-s: 13px; --fs-m: 15px; --fs-l: 17px; --fs-xl: 21px; --fs-xxl: 28px;
+  --header-h: 56px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {

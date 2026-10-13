@@ -14,17 +14,24 @@ export type Bbox = { minLon: number; minLat: number; maxLon: number; maxLat: num
 export type MapMarker = LatLon & {
   key: string;
   label: string; // 핀 안의 글자(지표 값, 묶음이면 "N곳")
+  name: string; // 강조 · 선택일 때 값 앞에 펼치는 회사 이름
   title: string; // 접근성 이름
   approx?: boolean; // 대략 위치: 점선 테두리
   muted?: boolean; // 가입자 10명 미만: 흐린 색
   selected?: boolean;
+  highlighted?: boolean; // 목록 항목에 마우스를 올렸을 때
 };
+
+/** 지도를 옮길 곳. 객체가 바뀔 때마다 이동한다(같은 회사를 다시 열어도) */
+export type MapFocus = LatLon & { zoom: number };
 
 type Props = {
   markers: MapMarker[];
   center: LatLon;
   zoom: number;
+  focus?: MapFocus | null;
   onSelect: (key: string) => void;
+  onHover?: (key: string | null) => void;
   onBoundsChange: (bbox: Bbox, zoom: number) => void;
 };
 
@@ -38,7 +45,7 @@ export function NaverMap(props: Props) {
       </div>
     );
   }
-  const { markers, center, zoom, onSelect, onBoundsChange } = props;
+  const { markers, center, zoom, focus, onSelect, onHover, onBoundsChange } = props;
   return (
     <NavermapsProvider ncpKeyId={KEY_ID}>
       <Container className={styles.map}
@@ -46,13 +53,16 @@ export function NaverMap(props: Props) {
         <Map defaultCenter={{ lat: center.lat, lng: center.lon }} defaultZoom={zoom} minZoom={10}
           zoomControl>
           <BoundsReporter onChange={onBoundsChange} />
+          <FocusMover focus={focus ?? null} />
           {markers.map((m) => (
             <CustomOverlay key={m.key} position={{ lat: m.lat, lng: m.lon }}
-              zIndex={m.selected ? 10 : 1}>
+              zIndex={m.selected ? 10 : m.highlighted ? 9 : 1}>
               <button type="button" title={m.title} aria-label={m.title} aria-pressed={m.selected}
                 className={[styles.pin, m.approx && styles.approx, m.muted && styles.muted,
-                  m.selected && styles.selected].filter(Boolean).join(" ")}
-                onClick={() => onSelect(m.key)}>
+                  m.highlighted && styles.highlighted, m.selected && styles.selected].filter(Boolean).join(" ")}
+                onClick={() => onSelect(m.key)}
+                onMouseEnter={() => onHover?.(m.key)} onMouseLeave={() => onHover?.(null)}>
+                <span className={styles.name}>{m.name}</span>
                 {m.label}
               </button>
             </CustomOverlay>
@@ -61,6 +71,23 @@ export function NaverMap(props: Props) {
       </Container>
     </NavermapsProvider>
   );
+}
+
+/** focus가 바뀌면 그 위치로 옮기고, 지금보다 멀리 있으면 확대한다. 움직임을 줄이는 설정이면 바로 옮긴다 */
+function FocusMover({ focus }: { focus: MapFocus | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!focus) return;
+    const center = { lat: focus.lat, lng: focus.lon };
+    const zoom = Math.max(map.getZoom(), focus.zoom);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      map.setCenter(center);
+      map.setZoom(zoom);
+    } else {
+      map.morph(center, zoom);
+    }
+  }, [map, focus]);
+  return null;
 }
 
 /** 처음 그려졌을 때와 지도를 옮기거나 확대한 뒤 멈출 때(idle) 보이는 범위를 알린다 */
