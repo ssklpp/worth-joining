@@ -22,8 +22,14 @@ const BASIS: Record<Schemas["Location"]["basis"], string> = {
   dong: "동 중심으로 표시한 대략적인 위치입니다.",
 };
 
-const saraminUrl = (name: string) =>
-  `https://www.saramin.co.kr/zf_user/search?searchword=${encodeURIComponent(name)}`;
+// 채용공고는 회사명 검색 결과로 보낸다(decisions/008: 개인은 채용 API를 받을 수 없고 수집하지 않는다).
+// 법인 표기는 검색어에서 뺀다("(주)이마트" → "이마트")
+const jobQuery = (name: string) =>
+  encodeURIComponent(name.replace(/\(주\)|㈜|주식회사|\(유\)|유한회사/g, " ").replace(/\s+/g, " ").trim() || name);
+const JOB_SITES = [
+  { name: "사람인", url: (n: string) => `https://www.saramin.co.kr/zf_user/search?searchword=${jobQuery(n)}` },
+  { name: "잡코리아", url: (n: string) => `https://www.jobkorea.co.kr/Search/?stext=${jobQuery(n)}` },
+];
 
 export function CompanyPage({ id }: { id: number | null }) {
   const state = useApi<Schemas["CompanyDetail"]>(id ? `/companies/${id}` : null);
@@ -81,9 +87,11 @@ export function CompanyPage({ id }: { id: number | null }) {
           {c.rep_location ? BASIS[c.rep_location.basis] : "지도에 위치가 없는 회사입니다."}
         </p>
         <div className={styles.actions}>
-          <a className="button" href={saraminUrl(c.name)} target="_blank" rel="noopener noreferrer">
-            사람인에서 채용공고 보기
-          </a>
+          {JOB_SITES.map((site) => (
+            <a key={site.name} className="button" href={site.url(c.name)} target="_blank" rel="noopener noreferrer">
+              {site.name}에서 채용공고 보기
+            </a>
+          ))}
           <CompareButton id={c.company_id} name={c.name} />
         </div>
       </section>
