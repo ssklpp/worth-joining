@@ -9,7 +9,7 @@ import { eok, man } from "@/components/company/HousingSection";
 import styles from "@/components/company/company.module.css";
 import { ErrorBox, Loading } from "@/components/Status";
 import { ApiError, useApi, type Schemas } from "@/lib/api";
-import { formatPct, formatYm } from "@/lib/format";
+import { formatPct, formatYm, stationLabel } from "@/lib/format";
 import { useExplore } from "../../ExploreContext";
 
 type Months = 6 | 12 | 24;
@@ -35,8 +35,8 @@ export function StationPage({ id }: { id: number | null }) {
   const name = d?.name, lat = d?.lat, lon = d?.lon;
   useEffect(() => {
     if (!id || !name || lat === undefined || lon === undefined) return;
-    document.title = `${name}역 시세 | 다닐만한가`;
-    select({ id: -id, name: `${name}역`, lat, lon, approx: false });
+    document.title = `${stationLabel(name)} 시세 | 다닐만한가`;
+    select({ id: -id, name: stationLabel(name), lat, lon, approx: false });
     return () => select(null);
   }, [id, name, lat, lon, select]);
 
@@ -51,7 +51,7 @@ export function StationPage({ id }: { id: number | null }) {
   return (
     <>
       <section className={styles.block}>
-        <h1>{d ? `${d.name}역` : "역 시세"}</h1>
+        <h1>{d ? stationLabel(d.name) : "역 시세"}</h1>
         {d && <p className="small muted">{d.lines.join(", ")}</p>}
         <p className="small muted">
           역에서 500m 안, 전용 33㎡ 이하 연립다세대와 오피스텔의 신고된 계약입니다
@@ -147,8 +147,8 @@ function TrendChart({ d }: { d: Detail }) {
       <div className={styles.chart}>
         <div className={styles.chartInner} role="img"
           aria-label={first && last
-            ? `${d.name}역 환산 월세 중간값 추이: ${first.ym} ${Math.round(first.median!)}만 원에서 ${last.ym} ${Math.round(last.median!)}만 원`
-            : `${d.name}역 환산 월세 추이`}>
+            ? `${stationLabel(d.name)} 환산 월세 중간값 추이: ${first.ym} ${Math.round(first.median!)}만 원에서 ${last.ym} ${Math.round(last.median!)}만 원`
+            : `${stationLabel(d.name)} 환산 월세 추이`}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={data} margin={{ top: 12, right: 24, bottom: 4, left: 4 }}>
               <CartesianGrid vertical={false} stroke="var(--rule)" />

@@ -40,3 +40,8 @@ export function industryLabel(industry: { code: string | null; name: string | nu
   if (!industry.code || industry.code === "999999") return "업종 분류 없음";
   return industry.name ?? "업종 분류 없음";
 }
+
+/** 역 이름 표시: "신림" → "신림역". 이름이 이미 역으로 끝나면("서울역") 그대로 둔다 */
+export function stationLabel(name: string): string {
+  return name.endsWith("역") ? name : `${name}역`;
+}
