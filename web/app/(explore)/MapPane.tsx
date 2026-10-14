@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { NaverMap, type Bbox, type MapFocus, type MapMarker, type StationMarker } from "@/components/map/NaverMap";
 import { useApi, type Schemas } from "@/lib/api";
 import { MAX_COMPARE, useCompare } from "@/lib/compare";
-import { formatPct } from "@/lib/format";
+import { formatPct, stationLabel } from "@/lib/format";
 import { pointKey, useExplore, type Metric, type Pin } from "./ExploreContext";
 import styles from "./explore.module.css";
 
@@ -30,7 +30,7 @@ export function MapPane() {
     ? allStations
       .filter((s) => s.lon >= view.bbox.minLon && s.lon <= view.bbox.maxLon
         && s.lat >= view.bbox.minLat && s.lat <= view.bbox.maxLat)
-      .map((s) => ({ key: String(s.station_id), name: `${s.name}역`, lat: s.lat, lon: s.lon }))
+      .map((s) => ({ key: String(s.station_id), name: stationLabel(s.name), lat: s.lat, lon: s.lon }))
     : [];
 
   // 같은 좌표(같은 건물, 동 · 도로 중심)의 회사는 핀 하나로 묶는다
@@ -130,8 +130,11 @@ function StationSearch({ stations }: { stations: Schemas["StationListItem"][] })
 
   function go(event: React.FormEvent) {
     event.preventDefault();
-    const name = text.trim().replace(/역$/, "");
-    const found = stations.find((s) => s.name === name) ?? stations.find((s) => s.name.startsWith(name));
+    const typed = text.trim();
+    const name = typed.replace(/역$/, "");
+    // "서울역"처럼 이름 자체가 역으로 끝나는 역이 있어 붙인 이름 · 뗀 이름을 모두 맞춰 본다
+    const found = stations.find((s) => s.name === typed || s.name === name)
+      ?? stations.find((s) => s.name.startsWith(name));
     setMissing(!found);
     if (found && name) {
       setText("");
@@ -146,7 +149,7 @@ function StationSearch({ stations }: { stations: Schemas["StationListItem"][] })
         maxLength={30} onChange={(e) => { setText(e.target.value); setMissing(false); }}
         aria-describedby={missing ? "station-missing" : undefined} />
       <datalist id="station-list">
-        {stations.map((s) => <option key={s.station_id} value={`${s.name}역`} />)}
+        {stations.map((s) => <option key={s.station_id} value={stationLabel(s.name)} />)}
       </datalist>
       <button type="submit" className="button quiet">이동</button>
       {missing && <p id="station-missing" className="small" role="status">서울 역 목록에 없는 이름입니다.</p>}
