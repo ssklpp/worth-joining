@@ -43,15 +43,15 @@ Vercel   web   (Next.js, 저장소의 web/)  ──HTTPS──▶  Railway api (
 
 ### 2.2 DB 복원
 
-팀 공유 드라이브의 최신 덤프(예: `worth_joining_20261012_phase5.zip`)를 풀고, 로컬 MariaDB 클라이언트로 TCP Proxy에 붙어 복원한다. PowerShell:
+팀 공유 드라이브의 최신 덤프(예: `worth_joining_20261014_v1.zip`, Alembic 0008)를 풀고, 로컬 MariaDB 클라이언트로 TCP Proxy에 붙어 복원한다. PowerShell:
 
 ```powershell
 & "C:\Program Files\MariaDB 11.4\bin\mariadb.exe" -h <프록시 호스트> -P <프록시 포트> -u wj -p `
   --skip-ssl-verify-server-cert --default-character-set=utf8mb4 worth_joining `
-  -e "source worth_joining_20261012_phase5.sql"
+  -e "source worth_joining_20261014_v1.sql"
 ```
 
-- 비밀번호는 물어볼 때 `MARIADB_PASSWORD`를 넣는다. 740MB라 회선에 따라 수십 분 걸린다.
+- 비밀번호는 물어볼 때 `MARIADB_PASSWORD`를 넣는다. SQL이 약 1.2GB(zip 253MB, v1 기준)라 회선에 따라 수십 분 걸린다.
 - 확인: 같은 접속으로 `SELECT version_num FROM alembic_version;` → 덤프의 `README.txt`에 적힌 버전, `SELECT COUNT(*) FROM mart_company_summary;` → README의 행 수.
 - 끝나면 **TCP Proxy를 끈다.** API는 사설망으로 붙으므로 공개 포트가 필요 없다.
 
