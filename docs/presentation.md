@@ -98,10 +98,10 @@ CASE WHEN LAG(snapshot_ym) OVER w = PERIOD_ADD(snapshot_ym, -1)
 - 서울 사업장만, 공개 기준 미만(법인 3인 · 개인 10인) 회사는 없다.
 - 회사 위치는 약 1.2만 곳만 건물 단위, 나머지는 도로 · 동 중심(본사 대비 중앙값 305 · 567m).
 - 전월세는 신고된 계약 기준, 아파트 · 단독다가구 제외, 전환율은 연립다세대 값 하나.
-- 사람인 채용 연계는 API 승인을 기다리는 중이다.
+- 채용공고는 API를 개인에게 주지 않아(사람인, 고용24) 모으지 않고 사람인 · 잡코리아 검색으로 연결한다. 크롤링은 하지 않았다(decisions/008).
 
 ## 12. 마무리
 
 - 배운 것: 공공데이터는 "있다"와 "쓸 수 있다" 사이가 멀다. 그 사이를 SQL과 검증 숫자로 메웠다.
-- 다음: 사람인 연계(채용 신호), 전월세 증분 수집, 역 단독 화면.
-- 문서: SPEC, decisions 001 ~ 007, profiling · matching · validation · explain · performance · runbook · troubleshooting(TS-001 ~ 025)
+- 다음: 전월세 증분 수집 · 파티션 자동 순환, 월 배치 진입점.
+- 문서: SPEC, decisions 001 ~ 008, profiling · matching · validation · explain · performance · runbook · troubleshooting(TS-001 ~ 025)
