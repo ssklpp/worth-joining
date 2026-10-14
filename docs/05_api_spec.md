@@ -112,7 +112,7 @@
 | OpenDART | `OPENDART_API_KEY` | opendart.fss.or.kr (이메일 인증 후 즉시) | 팀원 각자 · `.env` | Phase 5 | 1일 20,000건 |
 | 서울시 부동산 전월세가 정보 | `SEOUL_OPENDATA_KEY` | data.seoul.go.kr (즉시) | 팀원 각자 · `.env` | Phase 9 | 요청당 행 수 제한 |
 | 주소정보누리집 검색 · 좌표제공 | `JUSO_SEARCH_KEY`, `JUSO_COORD_KEY` | business.juso.go.kr | 개발용: 팀원 각자 · `.env` / 운영용: 대표 1인 · Railway | Phase 8 (10/19), 9 | 승인키 종류별 |
-| 사람인 채용공고 검색 | `SARAMIN_ACCESS_KEY` | oapi.saramin.co.kr (심사, 기간 불명) | **대표 1인만** · Railway | Phase 10 | 1일 500회 |
+| ~~사람인 채용공고 검색~~ | 쓰지 않음(decisions/008) | 개인 발급 불가 | — | — | — |
 | 네이버 지도 Dynamic Map | `NEXT_PUBLIC_NAVER_MAP_CLIENT_ID` | ncloud.com (결제수단 등록 필요) | 대표 1인 계정 · Vercel, 각자 `.env.local` | Phase 8 (10/19) | NCP 무료 이용량 |
 
 ### 4.2 키 관리 규칙
@@ -129,7 +129,6 @@ OPENDART_API_KEY=
 SEOUL_OPENDATA_KEY=
 JUSO_SEARCH_KEY=
 JUSO_COORD_KEY=
-SARAMIN_ACCESS_KEY=
 
 # frontend (.env.local)
 NEXT_PUBLIC_NAVER_MAP_CLIENT_ID=

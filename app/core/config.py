@@ -19,7 +19,6 @@ class Settings(BaseSettings):
     opendart_api_key: str = ""
     juso_search_key: str = ""
     juso_coord_key: str = ""
-    saramin_access_key: str = ""
 
 
 settings = Settings()
