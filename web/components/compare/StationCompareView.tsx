@@ -138,8 +138,10 @@ function RentTable({ data, months, onRemove }: { data: Detail[]; months: Months;
             <th scope="row"><span className="sr-only">빼기</span></th>
             {data.map((d) => (
               <td key={d.station_id}>
-                <button type="button" className="button quiet" onClick={() => onRemove(d.station_id)}>
-                  비교에서 빼기
+                {/* 역 이름 열이 좁아 "비교에서 빼기"는 여러 줄로 깨진다. 보이는 글은 짧게, 이름은 접근성 라벨에 */}
+                <button type="button" className="button quiet" onClick={() => onRemove(d.station_id)}
+                  aria-label={`${stationLabel(d.name)} 비교에서 빼기`}>
+                  빼기
                 </button>
               </td>
             ))}
