@@ -32,5 +32,5 @@ export const GU: Gu[] = [
 ];
 
 export const CITY_HALL = { lat: 37.5665, lon: 126.978 };
-export const GU_ZOOM = 13; // 구 하나가 지도 칸에 대략 들어오는 확대
+export const GU_ZOOM = 14; // 13은 도심 구에서 화면 안 역(자동완성)이 너무 많아 한 단계 더 확대한다
 export const CITY_ZOOM = 11; // "서울 전체"를 고르면 서울이 한눈에 들어오게
