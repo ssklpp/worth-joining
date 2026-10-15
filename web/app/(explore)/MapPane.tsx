@@ -31,10 +31,20 @@ export function MapPane() {
   const inView = useMemo(() => (view ? allStations.filter((s) =>
     s.lon >= view.bbox.minLon && s.lon <= view.bbox.maxLon
     && s.lat >= view.bbox.minLat && s.lat <= view.bbox.maxLat) : allStations), [allStations, view]);
-  const stations: StationMarker[] = view && view.zoom >= STATION_ZOOM
-    ? inView.map((s) => ({ key: String(s.station_id), name: stationLabel(s.name), lat: s.lat, lon: s.lon,
-      selected: stationBox.has(s.station_id) }))
-    : [];
+  // 역 비교함에 담은 역은 확대와 관계없이 늘 보인다(멀리서도 어디 있는지 알 수 있게)
+  const boxedIds = stationBox.items.map((i) => i.id).join(",");
+  const boxed = useMemo(() => allStations.filter((s) => boxedIds.split(",").includes(String(s.station_id))),
+    [allStations, boxedIds]);
+  const shown = view && view.zoom >= STATION_ZOOM
+    ? [...inView, ...boxed.filter((b) => !inView.includes(b))] : boxed;
+  const stations: StationMarker[] = shown.map((s) => ({
+    key: String(s.station_id), name: stationLabel(s.name), lat: s.lat, lon: s.lon,
+    selected: boxedIds.split(",").includes(String(s.station_id)),
+  }));
+  // 역 비교 화면에서는 담은 역이 모두 보이게 지도를 맞춘다(담거나 뺄 때마다)
+  const path = usePathname();
+  const fit = useMemo(() => (path === "/stations/compare" && boxed.length ? boxed.map((s) => ({ lat: s.lat, lon: s.lon })) : null),
+    [path, boxed]);
 
   // 같은 좌표(같은 건물, 동 · 도로 중심)의 회사는 핀 하나로 묶는다
   const groups = useMemo(() => {
@@ -90,7 +100,7 @@ export function MapPane() {
 
   return (
     <div className={styles.mapPane}>
-      <NaverMap markers={markers} center={CITY_HALL} zoom={15} focus={focus} onSelect={open}
+      <NaverMap markers={markers} center={CITY_HALL} zoom={15} focus={focus} fit={fit} onSelect={open}
         onHover={(key) => {
           const items = key ? groups.get(key) : undefined;
           setHover(items?.length === 1 ? items[0].company_id : null);
