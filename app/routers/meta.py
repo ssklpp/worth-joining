@@ -21,7 +21,7 @@ Conn = Annotated[AsyncConnection, Depends(get_conn)]
 
 @router.get("/meta/methodology", response_model=Methodology, summary="계산 방법 · 한계 · 출처")
 async def get_methodology(conn: Conn) -> Methodology:
-    """계산식 · 한계 · 출처는 app/services/methodology.py의 상수이고, 기간만 mart에서 읽는다."""
+    """계산식 · 한계 · 출처와 데이터 기간. 화면 /methodology가 그대로 보여 준다."""
     period_from = (await conn.execute(
         text("SELECT MIN(snapshot_ym) FROM mart_company_monthly")
     )).scalar()
