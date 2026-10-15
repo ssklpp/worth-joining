@@ -13,34 +13,34 @@
 
 ```mermaid
 flowchart LR
-  subgraph SRC[데이터 출처]
-    NPS[국민연금 사업장 CSV<br/>월]
-    DART[OpenDART<br/>수시 · 분기]
-    RENT[서울시 전월세<br/>연도별 CSV, 갱신 때]
-    STN[도시철도 역 XLSX<br/>연]
-    JUSO[주소정보누리집<br/>검색 API 일부 + 서울 주소 파일]
+  subgraph SRC["데이터 출처"]
+    NPS["국민연금 사업장 CSV<br/>월"]
+    DART["OpenDART<br/>수시 · 분기"]
+    RENT["서울시 전월세<br/>연도별 CSV, 갱신 때"]
+    STN["도시철도 역 XLSX<br/>연"]
+    JUSO["주소정보누리집<br/>검색 API 일부 + 서울 주소 파일"]
   end
 
-  subgraph PIPE[pipeline/ · Python 3.12]
-    COMMON[common/<br/>http 재시도 · 호출 수 기록<br/>normalize · ingestion_log]
-    LOADERS[nps · dart · rent · stations<br/>geocode · region]
-    MART[refresh_mart<br/>q1 → q2 → q6 → q5 → q5t]
+  subgraph PIPE["pipeline/ · Python 3.12"]
+    COMMON["common/<br/>http 재시도 · 호출 수 기록<br/>normalize · ingestion_log"]
+    LOADERS["nps · dart · rent · stations<br/>geocode · region"]
+    MART["refresh_mart<br/>q1 → q2 → q6 → q5 → q5t"]
   end
 
-  subgraph DB[MariaDB 11.4]
-    RAW[(raw_*)]
-    CORE[(core)]
-    MARTDB[(mart_*)]
-    OPS[(ingestion_log<br/>api_call_log)]
+  subgraph DB["MariaDB 11.4"]
+    RAW[("raw_*")]
+    CORE[("core")]
+    MARTDB[("mart_*")]
+    OPS[("ingestion_log<br/>api_call_log")]
   end
 
-  subgraph API[app/ · FastAPI]
-    R[routers] --> REPO[repositories<br/>SQL text()] --> SVC[services<br/>flags]
+  subgraph API["app/ · FastAPI"]
+    R["routers"] --> REPO["repositories<br/>SQL text()"] --> SVC["services<br/>flags"]
   end
 
-  subgraph WEB[web/ · Next.js]
-    MAP[지도 메인 + 패널]
-    NMAP[NaverMap.tsx]
+  subgraph WEB["web/ · Next.js"]
+    MAP["지도 메인 + 패널"]
+    NMAP["NaverMap.tsx"]
   end
 
   SRC --> LOADERS
