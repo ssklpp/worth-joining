@@ -32,6 +32,7 @@ STEPS = [
 ]
 WINDOWS = (6, 12, 24)  # docs/04 D7
 GRAINS = ("month", "quarter")  # 24개월 추이 단위(FR-HOUS-04)
+RADII = (500, 750)  # 역세권 반경(m, decisions/009). 가장 큰 값은 q5a의 거리 조건과 같아야 한다
 
 
 def refresh(conn: Connection) -> dict[str, int]:
@@ -45,21 +46,28 @@ def refresh(conn: Connection) -> dict[str, int]:
     conn.execute(text("DELETE FROM mart_station_rent_trend"))
     end_ym = rent_end_ym(conn)
     if end_ym is not None:
+        # q5 · q5t의 윈도 함수 + DISTINCT는 임시 테이블을 쓴다. 기본 한도(16MB)를 넘으면 디스크로
+        # 내려가 750m 한 번이 10분을 넘긴다(TS-028). 이 연결에서만 256MB로 올린다
+        conn.execute(text("SET SESSION tmp_table_size = 268435456,"
+                          " max_heap_table_size = 268435456"))
         # 역-건물 쌍을 먼저 만든다(q5a 주석). 임시 테이블은 이 연결에서만 보이고
         # 암묵적 커밋을 일으키지 않는다
         conn.execute(text("CREATE TEMPORARY TABLE IF NOT EXISTS station_building"
                           " (station_id INT NOT NULL, building_id INT NOT NULL,"
+                          " dist_m FLOAT NOT NULL,"
                           " PRIMARY KEY (building_id, station_id))"))
         conn.execute(text("DELETE FROM station_building"))
         conn.execute(text((SQL_DIR / "q5a_station_building.sql").read_text(encoding="utf-8")))
         sql = text((SQL_DIR / "q5_station_rent.sql").read_text(encoding="utf-8"))
-        for n in WINDOWS:
-            rows = conn.execute(sql, {"end_ym": end_ym, "n": n}).rowcount
-            counts[f"mart_station_rent_{n}"] = rows
-        sql = text((SQL_DIR / "q5t_station_rent_trend.sql").read_text(encoding="utf-8"))
-        for grain in GRAINS:
-            rows = conn.execute(sql, {"end_ym": end_ym, "grain": grain}).rowcount
-            counts[f"mart_station_rent_trend_{grain}"] = rows
+        trend_sql = text((SQL_DIR / "q5t_station_rent_trend.sql").read_text(encoding="utf-8"))
+        for radius in RADII:
+            for n in WINDOWS:
+                rows = conn.execute(sql, {"end_ym": end_ym, "radius": radius, "n": n}).rowcount
+                counts[f"mart_station_rent_{radius}m_{n}"] = rows
+            for grain in GRAINS:
+                rows = conn.execute(trend_sql, {"end_ym": end_ym, "radius": radius,
+                                                "grain": grain}).rowcount
+                counts[f"mart_station_rent_trend_{radius}m_{grain}"] = rows
         conn.execute(text("DROP TEMPORARY TABLE station_building"))
     return counts
 

@@ -365,6 +365,7 @@ CREATE TABLE company_station (
 CREATE TABLE mart_station_rent (
   station_id           INT NOT NULL,
   period_end_ym        INT NOT NULL,
+  radius_m             SMALLINT NOT NULL DEFAULT 500,               -- 역세권 반경 500 · 750(decisions/009)
   window_months        TINYINT NOT NULL,
   n_monthly            INT NOT NULL,
   n_jeonse             INT NOT NULL,
@@ -372,20 +373,21 @@ CREATE TABLE mart_station_rent (
   deposit_median_man   INT,                                         -- 월세 계약 보증금 중위
   rent_median_man      INT,                                         -- 월세 계약 월세 중위
   jeonse_p25_man       INT, jeonse_median_man INT, jeonse_p75_man INT,
-  PRIMARY KEY (station_id, period_end_ym, window_months)
+  PRIMARY KEY (station_id, period_end_ym, radius_m, window_months)
 );
 
 -- 역세권 시세 최근 24개월 추이(FR-HOUS-04). grain = month(계약 달) | quarter(기준월부터 3개월씩), ym = 구간 마지막 달
 CREATE TABLE mart_station_rent_trend (
   station_id        INT NOT NULL,
   period_end_ym     INT NOT NULL,
+  radius_m          SMALLINT NOT NULL DEFAULT 500,
   grain             VARCHAR(7) NOT NULL,
   ym                INT NOT NULL,
   n_monthly         INT NOT NULL,
   monthly_p25       INT, monthly_median INT, monthly_p75 INT,   -- 환산 월세(원)
   n_jeonse          INT NOT NULL,
   jeonse_median_man INT,
-  PRIMARY KEY (station_id, period_end_ym, grain, ym)
+  PRIMARY KEY (station_id, period_end_ym, radius_m, grain, ym)
 );
 
 CREATE TABLE saramin_company_link (
@@ -419,7 +421,7 @@ CREATE TABLE job_posting (
 - 공간 인덱스 컬럼은 `NOT NULL`이어야 한다. 좌표가 없는 행은 `building`에 넣지 않는다.
 - 파티션 키는 모든 PK·UNIQUE 키에 포함되어야 한다.
 - `PERCENTILE_CONT`는 윈도 함수로만 동작한다. `OVER (PARTITION BY ...)` + `DISTINCT`로 쓴다.
-- `ST_Distance_Sphere` 단독 조건은 전체 스캔이다. 반드시 `MBRContains(ST_Buffer(pt, deg), other)`를 앞에 붙인다. 500m는 0.006°, 1km는 0.012°. 11.4는 윈도 함수가 있는 파생 테이블 안의 공간 조인에 공간 인덱스를 쓰지 않으므로 쌍을 먼저 만든다(q5a). 공간 인덱스가 없는 숫자 좌표는 위도 · 경도 범위로 거른다(q6, docs/explain.md 3장).
+- `ST_Distance_Sphere` 단독 조건은 전체 스캔이다. 반드시 `MBRContains(ST_Buffer(pt, deg), other)`를 앞에 붙인다. 500m는 0.006°, 750m는 0.009°, 1km는 0.012°. 11.4는 윈도 함수가 있는 파생 테이블 안의 공간 조인에 공간 인덱스를 쓰지 않으므로 쌍을 먼저 만든다(q5a). 공간 인덱스가 없는 숫자 좌표는 위도 · 경도 범위로 거른다(q6, docs/explain.md 3장).
 
 ---
 
@@ -439,7 +441,7 @@ CREATE TABLE job_posting (
 | 원룸 | 전용 33㎡ 이하 연립다세대·오피스텔 |
 | 월세/전세 | `monthly_man > 0`이면 월세, 0이면 전세 |
 | 환산 월세(원) | `(monthly_man + deposit_man × rate_year ÷ 12) × 10000` |
-| 역세권 | 역 좌표에서 500m 이내 |
+| 역세권 | 역 좌표에서 500m 이내(기본) 또는 750m 이내(decisions/009) |
 | 회사 근처 역 | 대표 사업장 좌표에서 1km 이내, 가까운 순 최대 3곳 |
 | 주거비 부담률 | 역 환산 월세(p25/중위/p75) ÷ (추정 연봉 ÷ 12) |
 | 기간 N개월 | `contract_ym > PERIOD_ADD(최신월, -N)` (`>=` 아님) |
@@ -594,16 +596,16 @@ ORDER BY m.company_id, m.snapshot_ym;
 
 ### q5_station_rent.sql (역세권 시세, 기간마다 실행)
 
-`sql/q5a_station_building.sql`로 역에서 500m 안의 건물 쌍을 임시 테이블 `station_building`에 먼저 넣고, `sql/q5_station_rent.sql`이 6 · 12 · 24개월마다 그 쌍과 계약으로 백분위를 낸다(docs/explain.md 3장). 기준월 `:end_ym`은 신고가 끝난 달이다(decisions/007).
+`sql/q5a_station_building.sql`로 역에서 750m 안의 건물 쌍과 거리를 임시 테이블 `station_building`에 먼저 넣고, `sql/q5_station_rent.sql`이 반경(500 · 750m) × 6 · 12 · 24개월마다 `dist_m <= :radius`인 쌍과 계약으로 백분위를 낸다(docs/explain.md 3장, decisions/009). `refresh_mart`는 이 연결의 `tmp_table_size` · `max_heap_table_size`를 256MB로 올린다(TS-028). 기준월 `:end_ym`은 신고가 끝난 달이다(decisions/007).
 
 ```sql
 -- q5a
-INSERT INTO station_building (station_id, building_id)
-SELECT st.station_id, b.building_id
+INSERT INTO station_building (station_id, building_id, dist_m)
+SELECT st.station_id, b.building_id, ST_Distance_Sphere(st.pt, b.pt)
 FROM station st
 STRAIGHT_JOIN building b
-  ON MBRContains(ST_Buffer(st.pt, 0.006), b.pt)
- AND ST_Distance_Sphere(st.pt, b.pt) <= 500;
+  ON MBRContains(ST_Buffer(st.pt, 0.009), b.pt)
+ AND ST_Distance_Sphere(st.pt, b.pt) <= 750;
 
 -- q5 월세 부분(전세는 같은 구조로 monthly_man = 0, 보증금 백분위)
 SELECT DISTINCT station_id,
@@ -615,12 +617,13 @@ FROM (
             WHERE cr.ym <= r.contract_ym ORDER BY cr.ym DESC LIMIT 1) / 12) * 10000 AS conv_rent
   FROM station_building st
   JOIN rent_contract r ON r.building_id = st.building_id
-  WHERE r.contract_ym <= :end_ym AND r.contract_ym > PERIOD_ADD(:end_ym, 0 - :n)
+  WHERE st.dist_m <= :radius
+    AND r.contract_ym <= :end_ym AND r.contract_ym > PERIOD_ADD(:end_ym, 0 - :n)
     AND r.area_m2 <= 33 AND r.monthly_man > 0
 ) near;
 ```
 
-`sql/q5t_station_rent_trend.sql`은 같은 `station_building`과 조건으로 최근 24개월을 월(`month`) · 분기(`quarter`, 기준월부터 3개월씩 거꾸로)마다 묶어 `mart_station_rent_trend`에 넣는다. 파티션은 `(station_id, 구간, 월세 · 전세)`다. 배포 DB에는 `rent_contract`가 없어 추이도 미리 집계한다.
+`sql/q5t_station_rent_trend.sql`은 같은 `station_building`과 조건으로 반경마다 최근 24개월을 월(`month`) · 분기(`quarter`, 기준월부터 3개월씩 거꾸로)마다 묶어 `mart_station_rent_trend`에 넣는다. 파티션은 `(station_id, 구간, 월세 · 전세)`다. 배포 DB에는 `rent_contract`가 없어 추이도 미리 집계한다.
 
 ### q6_company_station.sql
 
