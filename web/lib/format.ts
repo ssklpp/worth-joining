@@ -45,3 +45,14 @@ export function industryLabel(industry: { code: string | null; name: string | nu
 export function stationLabel(name: string): string {
   return name.endsWith("역") ? name : `${name}역`;
 }
+
+/** 202608 → "26.08"(그래프 가로축) */
+export function ymShort(ym: number): string {
+  return `${String(Math.floor(ym / 100)).slice(2)}.${String(ym % 100).padStart(2, "0")}`;
+}
+
+/** ym에서 n개월 앞의 달(YYYYMM) */
+export function ymBack(ym: number, n: number): number {
+  const total = Math.floor(ym / 100) * 12 + (ym % 100) - 1 - n;
+  return Math.floor(total / 12) * 100 + (total % 12) + 1;
+}

@@ -11,17 +11,11 @@ import { CompareButton } from "@/components/CompareButton";
 import { ErrorBox, Loading } from "@/components/Status";
 import { ApiError, useApi, type Schemas } from "@/lib/api";
 import { useStationCompare } from "@/lib/compare";
-import { formatPct, formatYm, stationLabel } from "@/lib/format";
+import { formatPct, formatYm, stationLabel, ymBack, ymShort } from "@/lib/format";
 import { useExplore } from "../../ExploreContext";
 
 type Months = 6 | 12 | 24;
 type Detail = Schemas["StationDetail"];
-
-const label = (ym: number) => `${String(Math.floor(ym / 100)).slice(2)}.${String(ym % 100).padStart(2, "0")}`;
-const back = (ym: number, n: number) => {
-  const total = Math.floor(ym / 100) * 12 + (ym % 100) - 1 - n;
-  return Math.floor(total / 12) * 100 + (total % 12) + 1;
-};
 
 export function StationPage({ id }: { id: number | null }) {
   const [months, setMonths] = useState<Months>(12);
@@ -133,11 +127,11 @@ function TrendChart({ d }: { d: Detail }) {
   const quarter = d.trend_grain === "quarter";
   const step = quarter ? 3 : 1;
   const byYm = new Map(d.trend.map((p) => [p.ym, p]));
-  const data = Array.from({ length: 24 / step }, (_, i) => back(d.as_of!, (24 / step - 1 - i) * step)).map((ym) => {
+  const data = Array.from({ length: 24 / step }, (_, i) => ymBack(d.as_of!, (24 / step - 1 - i) * step)).map((ym) => {
     const p = byYm.get(ym);
     const ok = p && p.n_monthly > 0 && p.monthly_median !== null;
     return {
-      ym: label(ym),
+      ym: ymShort(ym),
       median: ok ? p.monthly_median! / 10_000 : null,
       band: ok && p.monthly_p25 !== null && p.monthly_p75 !== null
         ? [p.monthly_p25 / 10_000, p.monthly_p75 / 10_000] : null,

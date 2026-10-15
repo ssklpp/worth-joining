@@ -57,8 +57,19 @@ function makeCompareBox(key: string) {
     return items;
   }
 
+  // 바꾸는 함수는 렌더와 관계없이 같은 함수라 effect 의존성에 넣어도 된다
   function replace(next: CompareItem[]) {
     write(next.slice(0, MAX_COMPARE));
+  }
+  function add(item: CompareItem) {
+    const now = snapshot();
+    if (now.length < MAX_COMPARE && !now.some((i) => i.id === item.id)) write([...now, item]);
+  }
+  function remove(id: number) {
+    write(snapshot().filter((i) => i.id !== id));
+  }
+  function clear() {
+    write([]);
   }
 
   return function useBox() {
@@ -67,13 +78,7 @@ function makeCompareBox(key: string) {
       items: list,
       full: list.length >= MAX_COMPARE,
       has: (id: number) => list.some((i) => i.id === id),
-      add: (item: CompareItem) => {
-        const now = snapshot();
-        if (now.length < MAX_COMPARE && !now.some((i) => i.id === item.id)) write([...now, item]);
-      },
-      remove: (id: number) => write(snapshot().filter((i) => i.id !== id)),
-      clear: () => write([]),
-      replace,
+      add, remove, clear, replace,
     };
   };
 }
