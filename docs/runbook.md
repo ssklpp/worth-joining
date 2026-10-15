@@ -132,6 +132,7 @@ API 키(DART · 공공데이터포털 등)는 배포 서비스에 넣지 않는�
    - **일부 테이블만 반영할 때(2026-10-13 Phase 9):** 배포 API가 읽는 테이블만 데이터로 올려도 된다. `alembic upgrade <목표 버전>`을 Railway에 먼저 적용하고(TS-024: 목표 버전을 적는다), 로컬에서 `mariadb-dump --no-create-info --replace <테이블들>`로 받아 넣는다. 전월세는 `station` · `company_station` · `mart_station_rent` · `mart_station_rent_trend`(0008) · `conversion_rate`만 올린다. raw · `rent_contract` · `building`은 집계용이라 배포 DB에는 비어 있다.
    - TCP Proxy가 연결은 되는데 MariaDB 응답이 없으면(`ERROR 2013 … reading initial communication packet`) 프록시를 껐다가 다시 켜고 새 주소를 `.env`에 넣는다(2026-10-13).
 6. 2.5 확인 목록을 다시 본다. `/health`의 `latest_nps_ym`이 새 달이어야 한다.
+   - **화면은 최대 1시간 늦게 바뀔 수 있다.** API는 `/health`를 뺀 GET 응답에 `Cache-Control: public, max-age=3600`과 ETag를 붙인다(`app/core/cache.py`). 복원 직후 `/health`는 새 달인데, 브라우저가 이미 받아 둔 회사 · 지도 응답은 1시간이 지나야 다시 받는다. 바로 확인하려면 강력 새로고침(Ctrl+Shift+R)이나 시크릿 창을 쓴다. 사용자에게는 별도 조치가 필요 없다.
 
 ### 다음 갱신 확인 계획
 
@@ -160,4 +161,5 @@ API 키(DART · 공공데이터포털 등)는 배포 서비스에 넣지 않는�
 | api 배포가 헬스 체크에서 실패 | DB가 아직 복원되지 않았거나 mariadb가 꺼져 있다 |
 | 특정 API만 500, 웹에는 "Failed to fetch" | 배포 DB에 그 API가 읽는 테이블이 없다(스키마 버전이 코드보다 낮다). 4장 5단계로 맞춘다. 500 응답에는 CORS 헤더가 없어 브라우저는 요청 실패로만 보인다 |
 | api 로그에 `Can't connect` · `Connection refused` (사설 도메인) | 사설망 주소가 IPv6로 풀리는데 DB가 IPv4만 받는 경우다. mariadb 서비스의 시작 명령(Custom Start Command)에 `mariadbd --bind-address=::`를 넣고 다시 시작한다 |
+| 갱신 · 복원을 마쳤는데 화면에 예전 기준월 · 수치가 보인다 | 응답 캐시(1시간, 4장 6단계)다. `/health`가 새 달이면 정상이다. 강력 새로고침으로 확인한다 |
 | 그 밖의 에러 | [troubleshooting.md](./troubleshooting.md)에서 찾고, 해결하면 TS 항목을 추가한다 |
