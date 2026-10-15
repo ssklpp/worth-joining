@@ -43,12 +43,12 @@ Vercel   web   (Next.js, 저장소의 web/)  ──HTTPS──▶  Railway api (
 
 ### 2.2 DB 복원
 
-팀 공유 드라이브의 최신 덤프(예: `worth_joining_20261014_v1.zip`, Alembic 0008)를 풀고, 로컬 MariaDB 클라이언트로 TCP Proxy에 붙어 복원한다. PowerShell:
+팀 공유 드라이브의 최신 덤프(예: `worth_joining_20261015_v2.zip`, Alembic 0009)를 풀고, 로컬 MariaDB 클라이언트로 TCP Proxy에 붙어 복원한다. PowerShell:
 
 ```powershell
 & "C:\Program Files\MariaDB 11.4\bin\mariadb.exe" -h <프록시 호스트> -P <프록시 포트> -u wj -p `
   --skip-ssl-verify-server-cert --default-character-set=utf8mb4 worth_joining `
-  -e "source worth_joining_20261014_v1.sql"
+  -e "source worth_joining_20261015_v2.sql"
 ```
 
 - 비밀번호는 물어볼 때 `MARIADB_PASSWORD`를 넣는다. SQL이 약 1.2GB(zip 253MB, v1 기준)라 회선에 따라 수십 분 걸린다.
@@ -129,7 +129,7 @@ API 키(DART · 공공데이터포털 등)는 배포 서비스에 넣지 않는�
 4. 덤프를 만들어 공유 드라이브에 올린다(이름 `worth_joining_YYYYMMDD.zip`, zip 안에 행 수 · Alembic 버전을 적은 `README.txt`).
 5. 2.1의 TCP Proxy를 켜고 2.2처럼 복원한 뒤 끈다. 복원하는 몇 분 동안은 API가 오류를 낼 수 있다. 사용자가 적은 시간에 한다.
    - **스키마 버전을 맞춘다.** main에 새 마이그레이션이 병합됐는데 배포 DB에 없으면 그 테이블을 읽는 API가 500을 낸다(2026-10-13 `/map/companies`, 배포 DB 0005 · 코드 0006). 복원한 뒤 `SELECT version_num FROM alembic_version`이 `python -m alembic heads`와 같은지 본다. 로컬 DB에서 만든 덤프면 같다
-   - **일부 테이블만 반영할 때(2026-10-13 Phase 9):** 배포 API가 읽는 테이블만 데이터로 올려도 된다. `alembic upgrade <목표 버전>`을 Railway에 먼저 적용하고(TS-024: 목표 버전을 적는다), 로컬에서 `mariadb-dump --no-create-info --replace <테이블들>`로 받아 넣는다. 전월세는 `station` · `company_station` · `mart_station_rent` · `mart_station_rent_trend`(0008) · `conversion_rate`만 올린다. raw · `rent_contract` · `building`은 집계용이라 배포 DB에는 비어 있다.
+   - **일부 테이블만 반영할 때(2026-10-13 Phase 9):** 배포 API가 읽는 테이블만 데이터로 올려도 된다. `alembic upgrade <목표 버전>`을 Railway에 먼저 적용하고(TS-024: 목표 버전을 적는다), 로컬에서 `mariadb-dump --no-create-info --replace <테이블들>`로 받아 넣는다. 전월세는 `station` · `company_station` · `mart_station_rent` · `mart_station_rent_trend`(0008, 두 mart의 반경 `radius_m`은 0009) · `conversion_rate`만 올린다. 2026-10-15 0009는 Railway에 먼저 적용한 뒤(기본값 500이라 이전 코드와 호환) 코드를 병합하고, 750m 행은 반경을 구분하는 코드가 배포된 뒤 올렸다. 순서가 바뀌면 이전 코드가 500 · 750m 행을 함께 읽는다. raw · `rent_contract` · `building`은 집계용이라 배포 DB에는 비어 있다.
    - TCP Proxy가 연결은 되는데 MariaDB 응답이 없으면(`ERROR 2013 … reading initial communication packet`) 프록시를 껐다가 다시 켜고 새 주소를 `.env`에 넣는다(2026-10-13).
 6. 2.5 확인 목록을 다시 본다. `/health`의 `latest_nps_ym`이 새 달이어야 한다.
    - **화면은 최대 1시간 늦게 바뀔 수 있다.** API는 `/health`를 뺀 GET 응답에 `Cache-Control: public, max-age=3600`과 ETag를 붙인다(`app/core/cache.py`). 복원 직후 `/health`는 새 달인데, 브라우저가 이미 받아 둔 회사 · 지도 응답은 1시간이 지나야 다시 받는다. 바로 확인하려면 강력 새로고침(Ctrl+Shift+R)이나 시크릿 창을 쓴다. 사용자에게는 별도 조치가 필요 없다.
