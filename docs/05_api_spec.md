@@ -5,7 +5,7 @@
 | 대상 | T3(백엔드), T4(프론트엔드). 계약 변경은 별도 PR + T4 리뷰 |
 | 기준 | SPEC 8장(API 계약). 이 문서의 "추가 제안"은 SPEC에 반영되기 전까지 확정이 아니다 |
 | 화면 기준 | [03_ui_design.md](./03_ui_design.md) 5장(지도 메인 + 패널) |
-| 상태 | 초안 · 2026-10-08 |
+| 상태 | 최종 수정 2026-10-15 (실제 API 반영. 기준은 `/openapi.json`) |
 
 ---
 
@@ -21,7 +21,7 @@
 | 오류 | `{"detail": "..."}`. 없는 리소스 404, 파라미터 오류 422 |
 | 페이지네이션 | 키셋 커서(`cursor`, `next_cursor`), `limit` 최대 50. 커서는 `[sort, 정렬값, company_id]`의 base64url JSON이며, 다른 `sort`의 커서는 422 |
 | 단위 | 비율은 소수(0.183 = 18.3%), 연봉은 원, 전월세는 만 원(`_man` 접미사), 거리는 m |
-| 캐시 | (P2) `ETag` = 마지막 적재 월, `Cache-Control: public, max-age=3600` |
+| 캐시 | 성공한 `GET`에 `Cache-Control: public, max-age=3600`과 본문 해시 weak `ETag`, `If-None-Match`가 같으면 304(`app/core/cache.py`, 10/13). `/health` · 문서 화면은 제외. 월 갱신 뒤 화면은 최대 1시간 늦게 바뀐다(runbook 4장) |
 | CORS | 로컬 `localhost:3000`과 Vercel 배포 도메인만 허용 |
 
 ### flags 값
@@ -33,7 +33,7 @@
 | `short_history` | 12개월 전 자료 없음 | 회사, 비교 |
 | `stale` | 최신 월에 없음(폐업 · 탈퇴 가능) | 회사 상세 |
 | `approx_location` | 좌표 정확도가 건물 단위가 아님 | 지도, 회사 상세 |
-| `name_matched` | DART · 사람인을 이름 유사도로 연결(점수 1.0 미만) | 재무, 채용 |
+| `name_matched` | DART를 이름 유사도로 연결(점수 1.0 미만) | 재무 |
 | `period_extended_to_24m` | 계약이 적어 24개월로 넓힘 | 주거비 |
 
 ## 2. 엔드포인트
@@ -42,8 +42,8 @@
 
 | 메서드 · 경로 | 단계 | 파라미터 | 응답 핵심 |
 |---|---|---|---|
-| `GET /health` | 4 | — | `status`, `db`, `latest_nps_ym` |
-| `GET /companies` | 4 | `q`, `biz_no6`, `industry`, `region`, `sort`(name\|growth, deadline은 10단계), `limit`, `cursor`, (P2) `hiring` | `items[]{company_id, name, industry, region, members, growth_12m, quit_rate_12m, avg_salary_est, open_jobs}`, `next_cursor` |
+| `GET /health` | 4 | — | `status`, `db`, `latest_nps_ym`, `latest_rent_ym`, `match_rate`(가입자 1,000명 이상 회사의 DART 연결률), `geocode_success_rate`(10/13, FR-OPS-05. 품질 지표는 10분 기억) |
+| `GET /companies` | 4 | `q`, `biz_no6`, `industry`, `region`, `sort`(name\|growth), `limit`, `cursor` | `items[]{company_id, name, industry, region, members, growth_12m, quit_rate_12m, avg_salary_est, open_jobs}`, `next_cursor`. `open_jobs`는 항상 null(채용 연계를 하지 않아 남겨 둔 필드, decisions/008). `sort=deadline` · `hiring`은 만들지 않음 |
 | `GET /companies/{id}` | 4 | — | 기본 정보, 지표, `percentiles{growth,stability,salary}`, `flags[]`, `dart{corp_code,match_type}`, `rep_location{lon,lat,accuracy,basis}`(좌표 없으면 null). 최근 자료 없음이면 `status:"stale"`, `last_seen_ym` |
 | `GET /companies/{id}/trend` | 4 | `from_ym`, `to_ym` | `points[]{ym, members, new, lost, hire_rate, quit_rate, avg_salary_est}` |
 | `GET /industries` | 4 | `q` | `items[]{code, name, n_companies}` |
@@ -52,10 +52,10 @@
 | `GET /companies/{id}/financials` | 5 | `years`(≤5) | `rows[]{year, revenue, operating_income, net_income, debt_ratio}` |
 | `GET /map/companies` | 8 | `industry`, `region`, `metric`, `bbox` | `items[]{company_id, name, lon, lat, accuracy, basis, value, members, growth_12m, quit_rate_12m, avg_salary_est}`(최대 200), `truncated`, `ungeocoded_count`. `basis`는 decisions/004 |
 | `GET /compare` | 8 | `ids`(쉼표로 1 ~ 3개) | `items[]`: 요약 지표, `status`(ok · stale), `flags[]`, `index_series[]{ym, members, idx}`(12개월 전 = 100) |
-| `GET /stations` | 9 | `q`, `line`, `sort`(name\|monthly_median) | `as_of`, `items[]{station_id, name, lines[], monthly_median, n}` (SPEC 8장) |
+| `GET /stations` | 9 | `q`, `line`, `sort`(name\|monthly_median) | `as_of`, `items[]{station_id, name, lines[], lat, lon, monthly_median, n}`(12개월 · 500m) (SPEC 8장) |
 | `GET /stations/{id}/rent` | 9 | `months`(6\|12\|24), `radius`(500\|750, 기본 500) | `radius_m`, `rent{…}`, `jeonse_share`, `flags[]`, `trend_grain`, `trend[]` (SPEC 8장) |
 | `GET /companies/{id}/housing` | 9 | `months`(6\|12\|24) | `rent_as_of`, `flags[]`, `monthly_pay_est`, `stations[]{station_id, name, lines[], distance_m, rent{…}, burden{low,mid,high}, flags[]}` (SPEC 8장) |
-| `GET /companies/{id}/jobs` | 10 | — | `jobs[]{title, expires_at, salary_range, url}`, `signal`, `salary_compare`, `source:"사람인"` |
+| ~~`GET /companies/{id}/jobs`~~ | 10 | — | 만들지 않음([decisions/008](./decisions/008-채용-연계를-바로가기로-대체.md)). 화면은 사람인 · 잡코리아 검색 바로가기 |
 
 ### 응답 예시: `GET /companies/1`
 
@@ -91,9 +91,9 @@
 | 후보 | 이유 | 판단 |
 |---|---|---|
 | `/map/companies`에 `bbox=min_lon,min_lat,max_lon,max_lat` | 지도 메인 화면은 "지금 지도 범위 안의 회사"로 목록을 갱신한다. 업종 · 지역만으로는 지도를 움직일 때 목록을 만들 수 없다 | **채택**(Phase 8, #34) |
-| `/map/companies` 응답에 `members`, `growth_12m`, `quit_rate_12m`, `avg_salary_est`, `open_jobs` | 왼쪽 목록이 핀마다 지표 3개와 공고 수를 보여준다. 없으면 회사마다 상세를 따로 불러야 한다 | **채택**(#34). `open_jobs`는 Phase 10 |
+| `/map/companies` 응답에 `members`, `growth_12m`, `quit_rate_12m`, `avg_salary_est`, `open_jobs` | 왼쪽 목록이 핀마다 지표 3개와 공고 수를 보여준다. 없으면 회사마다 상세를 따로 불러야 한다 | **채택**(#34). `open_jobs`는 넣지 않음(decisions/008) |
 | `/map/companies` 응답에 `ungeocoded_count` | 좌표가 없는 회사는 지도에 안 나온다. "지도 안의 회사 N곳"이 전체처럼 보이지 않게 알려야 한다 | **채택**(#34) |
-| `/compare` 응답에 `open_jobs`, `nearest_station_rent`, `burden_mid` | 비교 표에 채용 · 주거비 행이 있다 | 채택(확장 단계에서 필드 추가) |
+| `/compare` 응답에 `open_jobs`, `nearest_station_rent`, `burden_mid` | 비교 표에 채용 · 주거비 행이 있다 | 채택하지 않음. 주거비 행은 웹이 회사마다 `/companies/{id}/housing?months=12`를 불러 만든다(최대 3번, 10/13). 채용 행은 없다 |
 | `/companies/{id}` 응답에 `rep_location{lon,lat,accuracy,basis}` (`company_location`에서) | 상세를 열 때 지도를 그 회사로 이동해야 한다 | 채택, 반영(2026-10-13) |
 | `GET /search/suggest?q=` (자동완성) | 검색창 편의 | 보류(P3). `/companies?q=&limit=5`로 대체 |
 | `GET /regions` | 지역 필터 목록 | 보류. 시안 범위가 서울이라 프론트 상수로 충분 |
@@ -153,6 +153,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ### 4.5 서울 열린데이터광장: 부동산 전월세가 정보(OA-21276)
 
 - **용도:** 최근월 증분 수집. 주 1회 최근 3개월을 다시 받아 신고 지연을 반영한다. 과거 24개월 초기 적재는 CSV 파일로 하므로 키가 필요 없다.
+- **실제(10/15):** Open API 증분 수집은 만들지 않았다. 갱신할 때 연도별 CSV를 다시 받아 재적재하고, 신고 지연은 기준월을 신고가 끝난 달로 두어 피한다(decisions/007, runbook 4장).
 - **호출:** 한 번에 받을 수 있는 행 수(시작~끝 인덱스)에 제한이 있어 최대 1,000건씩 페이지 단위로 반복한다. 원본은 매일 1회 갱신된다.
 
 ### 4.6 주소정보누리집: 도로명주소 검색 + 좌표제공
@@ -167,6 +168,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 - **호출 대상:** 캐시에 없는 주소만 호출한다.
 - **저장:** DB에 저장하는 좌표는 이 API 결과뿐이다.
 - **대안:** 대상 건물이 많아 호출 한도가 부담되면, 주소정보 다운로드의 위치정보(좌표) DB 파일을 받아 로컬에서 조인한다.
+- **실제:** API는 회사 좌표의 본사 주소 · 상호 검색(가입자 상위 300곳, 캐시)에만 썼다. 도로 · 동 중심과 전월세 건물 좌표는 위 대안대로 서울 파일(도로명주소 한글 + 출입구, `pipeline/geocode/rnaddr.py`)에서 계산했다(decisions/004 · 007).
 
 ### 4.7 사람인: 채용공고 검색
 
@@ -183,7 +185,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 | 상품 | 사용 | 용도 |
 |---|---|---|
 | Dynamic Map | 필수 | 지도, 회사 핀, 팝업. `react-naver-maps`로 `ncpKeyId`(Client ID) 로드 |
-| Geocoding | 선택(P2) | 지도 검색창의 주소 · 역 위치로 이동. **결과를 DB에 저장하지 않는다** |
+| Geocoding | 사용 안 함 | 계획: 지도 검색창의 주소 · 역 위치로 이동. 실제로는 역 이름 검색만 만들었고 자체 `station` 데이터를 쓴다(FR-MAP-05) |
 | Static Map, Reverse Geocoding, Directions 5/15 | 사용 안 함 | — |
 
 - **신청:** 콘솔 → Services → AI·Application Service → Maps에서 대표 1인 계정에 Application 하나를 만든다. 무료 이용량 안에서 쓰도록 이용량 알림을 켜 둔다.
@@ -200,4 +202,4 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 | A4 | 반영 | **지도 메인 화면에 필요한 필드가 계약에 없다**(위 3장 bbox, 목록 지표, 좌표 없는 회사 수) | 3장 후보를 Phase 8 전에 계약에 반영. T4는 그 전까지 목 응답으로 개발 |
 | A5 | 반영 | **최근 자료 없는 회사는 검색에 안 나온다.** 검색은 `mart_company_summary`를 읽는데 그 회사들은 행이 없다. 상세는 `stale`을 지원하지만 들어갈 경로가 없다 | 검색 결과에 `company`는 있고 summary가 없는 회사를 "최근 자료 없음"으로 뒤에 붙이거나(`include_stale=true`), 의도적으로 제외하고 문서에 명시. **Phase 4: 제외로 결정**(SPEC 8장). 상세 URL로 들어오면 stale로 보여 준다 |
 | A6 | 낮음 | 응답 단위가 섞여 있다. 연봉은 원, 전월세는 만 원, `monthly_pay_est`는 정의 없음 | 필드명 접미사로 단위를 고정(`_won`, `_man`)하거나 이 문서 1장 단위 규칙을 OpenAPI 설명에 넣는다 |
-| A7 | 낮음 | 공개 API라 대량 수집에 열려 있다 | 배포 후 Railway 앞단 또는 미들웨어에서 IP당 요청 수 제한(P2) |
+| A7 | 낮음 | 공개 API라 대량 수집에 열려 있다 | 배포 후 Railway 앞단 또는 미들웨어에서 IP당 요청 수 제한(P2). 10/15: 읽기 전용 · 응답 캐시가 있어 지금 규모에서는 미룸 |
