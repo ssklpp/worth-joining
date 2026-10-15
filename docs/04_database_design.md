@@ -147,6 +147,7 @@ erDiagram
   mart_station_rent {
     INT station_id PK
     INT period_end_ym PK
+    SMALLINT radius_m PK
     TINYINT window_months PK
     INT monthly_median
     INT jeonse_median_man
@@ -154,6 +155,7 @@ erDiagram
   mart_station_rent_trend {
     INT station_id PK
     INT period_end_ym PK
+    SMALLINT radius_m PK
     VARCHAR grain PK
     INT ym PK
     INT monthly_median

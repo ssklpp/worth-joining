@@ -52,11 +52,12 @@ def report_date(conn, yyyymmdd):
                       " VALUES (0, MD5(UUID()), :d)"), {"d": yyyymmdd})
 
 
-def mart(conn, window):
+def mart(conn, window, radius=500):
     return conn.execute(text(
         "SELECT period_end_ym, n_monthly, n_jeonse, monthly_median, deposit_median_man,"
-        " rent_median_man, jeonse_median_man FROM mart_station_rent WHERE window_months = :n"
-    ), {"n": window}).all()
+        " rent_median_man, jeonse_median_man FROM mart_station_rent"
+        " WHERE window_months = :n AND radius_m = :r"
+    ), {"n": window, "r": radius}).all()
 
 
 def test_499m_building_counts_and_501m_does_not(conn):
@@ -71,6 +72,20 @@ def test_499m_building_counts_and_501m_does_not(conn):
     refresh(conn)
 
     assert [r[1] for r in mart(conn, 12)] == [1]
+
+
+def test_750m_radius_adds_buildings_between_500m_and_750m(conn):
+    add_station(conn)
+    for key, meters in (("in500", 499), ("in750", 749), ("out", 751)):
+        add_contract(conn, add_building(conn, key, north(meters)), 202608)
+    conn.execute(text("INSERT INTO conversion_rate VALUES (202608, 0.0600)"))
+    report_date(conn, "20261010")
+
+    refresh(conn)
+
+    assert [r[1] for r in mart(conn, 12, radius=500)] == [1]
+    assert [r[1] for r in mart(conn, 12, radius=750)] == [2]
+    assert [r[1] for r in trend(conn, "month", radius=750)] == [2]
 
 
 def test_window_boundary_is_greater_than_and_end_is_report_complete_month(conn):
@@ -103,10 +118,11 @@ def test_converted_rent_uses_latest_rate_and_splits_jeonse(conn):
     assert mart(conn, 12) == [(202608, 1, 1, 560000, 1200, 50, 20000)]
 
 
-def trend(conn, grain):
+def trend(conn, grain, radius=500):
     return conn.execute(text(
         "SELECT ym, n_monthly, monthly_median, n_jeonse, jeonse_median_man"
-        " FROM mart_station_rent_trend WHERE grain = :g ORDER BY ym"), {"g": grain}).all()
+        " FROM mart_station_rent_trend WHERE grain = :g AND radius_m = :r ORDER BY ym"),
+        {"g": grain, "r": radius}).all()
 
 
 def test_trend_covers_24_months_by_month_and_quarter(conn):
@@ -135,7 +151,7 @@ def test_no_rent_data_skips_station_rent(conn):
 
     counts = refresh(conn)
 
-    assert "mart_station_rent_12" not in counts and mart(conn, 12) == []
+    assert "mart_station_rent_500m_12" not in counts and mart(conn, 12) == []
 
 
 def seed_company(conn, company_id, point):

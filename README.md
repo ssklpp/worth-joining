@@ -223,12 +223,12 @@ flowchart LR
 ```sql
 -- 역-건물 쌍을 먼저 만든다. ST_Distance_Sphere만 쓰면 전체 스캔이므로 MBR로 후보를 거른다.
 -- 윈도 함수가 있는 쿼리 안에 넣으면 공간 인덱스를 쓰지 않아 쌍을 따로 만든다(docs/explain.md 3장)
-INSERT INTO station_building (station_id, building_id)
-SELECT st.station_id, b.building_id
+INSERT INTO station_building (station_id, building_id, dist_m)
+SELECT st.station_id, b.building_id, ST_Distance_Sphere(st.pt, b.pt)
 FROM station st
 STRAIGHT_JOIN building b
-  ON MBRContains(ST_Buffer(st.pt, 0.006), b.pt)
- AND ST_Distance_Sphere(st.pt, b.pt) <= 500;
+  ON MBRContains(ST_Buffer(st.pt, 0.009), b.pt)   -- 750m까지 한 번에, 반경(500 · 750m)은 dist_m으로 거른다
+ AND ST_Distance_Sphere(st.pt, b.pt) <= 750;
 ```
 
 ---

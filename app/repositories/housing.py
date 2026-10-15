@@ -19,7 +19,8 @@ async def rents(conn: AsyncConnection, station_ids: list[int]) -> dict[tuple[int
         return {}
     rows = (await conn.execute(text(
         f"SELECT r.station_id, {RENT_COLUMNS} FROM mart_station_rent r"
-        f" WHERE r.station_id IN ({', '.join(str(int(i)) for i in station_ids)})"
+        f" WHERE r.radius_m = 500"
+        f" AND r.station_id IN ({', '.join(str(int(i)) for i in station_ids)})"
     ))).mappings().all()
     return {(r["station_id"], r["window_months"]): r for r in rows}
 
@@ -55,6 +56,7 @@ async def stations(conn: AsyncConnection, q: str | None, line: str | None,
                r.monthly_median, COALESCE(r.n_monthly, 0) AS n_monthly
           FROM station st
           LEFT JOIN mart_station_rent r ON r.station_id = st.station_id AND r.window_months = 12
+                                       AND r.radius_m = 500
          WHERE (:q IS NULL OR st.station_name LIKE CONCAT(:q, '%'))
            AND (:line IS NULL OR FIND_IN_SET(:line, st.line_names) > 0)
          ORDER BY {order}
@@ -74,6 +76,6 @@ async def trend(conn: AsyncConnection, station_id: int, end_ym: int) -> list[Row
         SELECT grain, ym, n_monthly, monthly_p25, monthly_median, monthly_p75, n_jeonse,
                jeonse_median_man
           FROM mart_station_rent_trend
-         WHERE station_id = :id AND period_end_ym = :end
+         WHERE station_id = :id AND period_end_ym = :end AND radius_m = 500
          ORDER BY grain, ym
     """), {"id": station_id, "end": end_ym})).mappings())
