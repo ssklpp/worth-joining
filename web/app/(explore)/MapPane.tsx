@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { NaverMap, type Bbox, type MapFocus, type MapMarker, type StationMarker } from "@/components/map/NaverMap";
 import { useApi, type Schemas } from "@/lib/api";
-import { MAX_COMPARE, useCompare, useStationCompare } from "@/lib/compare";
+import { MAX_COMPARE, useCompare, useStationCompare, type CompareBox } from "@/lib/compare";
 import { CITY_HALL } from "@/lib/regions";
 import { formatPct, stationLabel } from "@/lib/format";
 import { PIN_LIMIT, pointKey, useExplore, type Metric, type Pin } from "./ExploreContext";
@@ -33,8 +33,10 @@ export function MapPane() {
     && s.lat >= view.bbox.minLat && s.lat <= view.bbox.maxLat) : allStations), [allStations, view]);
   // 역 비교함에 담은 역은 확대와 관계없이 늘 보인다(멀리서도 어디 있는지 알 수 있게)
   const boxedIds = stationBox.items.map((i) => i.id).join(",");
-  const boxed = useMemo(() => allStations.filter((s) => boxedIds.split(",").includes(String(s.station_id))),
-    [allStations, boxedIds]);
+  const boxed = useMemo(() => {
+    const ids = new Set(boxedIds.split(",").map(Number));
+    return allStations.filter((s) => ids.has(s.station_id));
+  }, [allStations, boxedIds]);
   // 역 시세 화면은 역을 음수 id로 select한다(회사 id와 겹치지 않게). 그 역도 확대와 관계없이 강조해 보인다
   const openStation = selected && selected.id < 0 ? -selected.id : null;
   const pinned = boxed.concat(allStations.filter((s) => s.station_id === openStation && !boxed.includes(s)));
@@ -145,7 +147,7 @@ function CompareTray() {
 }
 
 function TrayRow({ label, box, href, action, here }: {
-  label: string; box: ReturnType<typeof useCompare>; href: string; action: string; here: boolean;
+  label: string; box: CompareBox; href: string; action: string; here: boolean;
 }) {
   if (!box.items.length) return null;
   return (

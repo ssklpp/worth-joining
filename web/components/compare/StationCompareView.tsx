@@ -7,9 +7,9 @@ import { useCallback, useEffect, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { eok, man } from "@/components/company/HousingSection";
 import { ErrorBox, Loading } from "@/components/Status";
-import { getJson, type Schemas } from "@/lib/api";
+import { ApiError, getJson, type Schemas } from "@/lib/api";
 import { useStationCompare } from "@/lib/compare";
-import { formatPct, formatYm, stationLabel } from "@/lib/format";
+import { formatPct, formatYm, stationLabel, ymBack, ymShort } from "@/lib/format";
 import companyStyles from "@/components/company/company.module.css";
 import styles from "./compare.module.css";
 
@@ -23,16 +23,14 @@ const LINES = [
   { stroke: "var(--muted)", dash: "2 3", label: "짧은 점선" },
 ];
 
-const label = (ym: number) => `${String(Math.floor(ym / 100)).slice(2)}.${String(ym % 100).padStart(2, "0")}`;
-const back = (ym: number, n: number) => {
-  const total = Math.floor(ym / 100) * 12 + (ym % 100) - 1 - n;
-  return Math.floor(total / 12) * 100 + (total % 12) + 1;
-};
-
 type State = { status: "loading" } | { status: "error"; error: Error } | { status: "ok"; data: Detail[] };
 
-/** 담은 역들의 시세를 한꺼번에 부른다. 하나라도 실패하면 오류(다시 시도) */
-function useStationDetails(ids: number[], months: Months) {
+/** 다시 적재해 id가 바뀌는 등으로 없어진 역 */
+const isGone = (e: unknown) => e instanceof ApiError && (e.status === 404 || e.status === 422);
+
+/** 담은 역들의 시세를 한꺼번에 부른다. 없어진 역은 비교함에서 빼고(drop), 그 밖의 실패는 오류(다시 시도).
+ * 다시 부르는 동안에는 앞 결과를 그대로 둬 표가 로딩 상자로 깜박이지 않게 한다 */
+function useStationDetails(ids: number[], months: Months, drop: (id: number) => void) {
   const key = ids.join(",");
   const [state, setState] = useState<State>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
@@ -41,15 +39,22 @@ function useStationDetails(ids: number[], months: Months) {
   useEffect(() => {
     if (!key) return;
     const controller = new AbortController();
-    setState({ status: "loading" });
-    Promise.all(key.split(",").map((id) =>
+    const list = key.split(",").map(Number);
+    setState((prev) => (prev.status === "ok" ? prev : { status: "loading" }));
+    Promise.allSettled(list.map((id) =>
       getJson<Detail>(`/stations/${id}/rent?months=${months}`, controller.signal)))
-      .then((data) => setState({ status: "ok", data }))
-      .catch((error) => {
-        if (!controller.signal.aborted) setState({ status: "error", error });
+      .then((results) => {
+        if (controller.signal.aborted) return;
+        const data: Detail[] = [];
+        for (const [i, r] of results.entries()) {
+          if (r.status === "fulfilled") data.push(r.value);
+          else if (isGone(r.reason)) drop(list[i]); // 비교함이 바뀌면 남은 역으로 다시 부른다
+          else return setState({ status: "error", error: r.reason });
+        }
+        setState({ status: "ok", data });
       });
     return () => controller.abort();
-  }, [key, months, attempt]);
+  }, [key, months, attempt, drop]);
 
   return { state, retry };
 }
@@ -57,7 +62,7 @@ function useStationDetails(ids: number[], months: Months) {
 export function StationCompareView() {
   const box = useStationCompare();
   const [months, setMonths] = useState<Months>(12);
-  const { state, retry } = useStationDetails(box.items.map((i) => i.id), months);
+  const { state, retry } = useStationDetails(box.items.map((i) => i.id), months, box.remove);
 
   if (!box.items.length) {
     return (
@@ -67,7 +72,9 @@ export function StationCompareView() {
       </p>
     );
   }
-  if (state.status === "loading") return <Loading height={420} />;
+  // 앞 결과에서 지금 비교함에 있는 역만(뺀 역은 바로 사라진다). 새로 담은 역은 불러온 뒤 나온다
+  const data = state.status === "ok" ? state.data.filter((d) => box.has(d.station_id)) : [];
+  if (state.status === "loading" || (state.status === "ok" && !data.length)) return <Loading height={420} />;
   if (state.status === "error") {
     return (
       <div className={styles.block}>
@@ -77,7 +84,6 @@ export function StationCompareView() {
     );
   }
 
-  const data = state.data;
   return (
     <div className={styles.block}>
       {data.length < 2 && <p className="note">한 곳만 담겨 있습니다. 비교하려면 역을 하나 더 담아 주세요.</p>}
@@ -156,10 +162,10 @@ function RentTable({ data, months, onRemove }: { data: Detail[]; months: Months;
 function TrendChart({ data }: { data: Detail[] }) {
   const end = Math.max(...data.map((d) => d.as_of ?? 0));
   if (!end) return null;
-  const yms = Array.from({ length: 24 }, (_, i) => back(end, 23 - i));
+  const yms = Array.from({ length: 24 }, (_, i) => ymBack(end, 23 - i));
   const byStation = data.map((d) => new Map(d.trend.map((p) => [p.ym, p])));
   const rows = yms.map((ym) => {
-    const row: Record<string, string | number | null> = { ym: label(ym) };
+    const row: Record<string, string | number | null> = { ym: ymShort(ym) };
     data.forEach((d, n) => {
       const p = byStation[n].get(ym);
       row[`s${d.station_id}`] = p && p.n_monthly > 0 && p.monthly_median !== null ? p.monthly_median / 10_000 : null;

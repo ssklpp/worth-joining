@@ -47,6 +47,10 @@ function PinList() {
   const current = Math.min(page, pages);
   const shown = items.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
 
+  // 지도를 옮겨 같은 위치 회사가 범위 밖으로 나가면 위치 보기를 푼다
+  useEffect(() => {
+    if (pins && point && !pins.items.some((p) => pointKey(p) === point)) setPoint(null);
+  }, [pins, point, setPoint]);
   // 지도를 옮기거나(pins) 정렬 · 같은 위치 보기를 바꾸면 첫 페이지로
   useEffect(() => setPage(1), [pins, sort, point]);
   // 지도는 이 페이지의 회사만. 목록을 떠나면(상세 · 비교 · 검색) 다시 모든 핀
