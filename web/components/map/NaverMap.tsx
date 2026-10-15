@@ -23,7 +23,7 @@ export type MapMarker = LatLon & {
 };
 
 /** 지하철역 표시(decisions/007 9번). 회사 핀보다 아래에 깔고, 누르면 역 시세를 연다 */
-export type StationMarker = LatLon & { key: string; name: string };
+export type StationMarker = LatLon & { key: string; name: string; selected?: boolean }; // selected: 역 비교함에 담김
 
 /** 지도를 옮길 곳. 객체가 바뀔 때마다 이동한다(같은 회사를 다시 열어도).
  * exact면 그 확대로 맞추고(구 · 서울 전체로 넓게 보기), 아니면 지금보다 멀리 있을 때만 확대한다 */
@@ -36,6 +36,8 @@ type Props = {
   center: LatLon;
   zoom: number;
   focus?: MapFocus | null;
+  /** 이 점들이 모두 보이게 맞춘다(배열이 바뀔 때마다). 점이 하나면 그 점으로 확대 15 */
+  fit?: LatLon[] | null;
   onSelect: (key: string) => void;
   onHover?: (key: string | null) => void;
   onBoundsChange: (bbox: Bbox, zoom: number) => void;
@@ -51,7 +53,7 @@ export function NaverMap(props: Props) {
       </div>
     );
   }
-  const { markers, stations = [], onStationSelect, center, zoom, focus, onSelect, onHover, onBoundsChange } = props;
+  const { markers, stations = [], onStationSelect, center, zoom, focus, fit, onSelect, onHover, onBoundsChange } = props;
   return (
     <NavermapsProvider ncpKeyId={KEY_ID}>
       <Container className={styles.map}
@@ -60,10 +62,13 @@ export function NaverMap(props: Props) {
           zoomControl>
           <BoundsReporter onChange={onBoundsChange} />
           <FocusMover focus={focus ?? null} />
+          <FitMover points={fit ?? null} />
           {stations.map((s) => (
             <CustomOverlay key={s.key} position={{ lat: s.lat, lng: s.lon }} zIndex={0}>
-              <button type="button" className={styles.station} title={`${s.name} 시세 보기`}
-                aria-label={`${s.name} 시세 보기`} onClick={() => onStationSelect?.(s.key)}>
+              <button type="button" className={`${styles.station} ${s.selected ? styles.stationSelected : ""}`}
+                title={`${s.name} 시세 보기${s.selected ? " (비교함에 담음)" : ""}`}
+                aria-label={`${s.name} 시세 보기${s.selected ? " (비교함에 담음)" : ""}`}
+                onClick={() => onStationSelect?.(s.key)}>
                 {s.name}
               </button>
             </CustomOverlay>
@@ -85,6 +90,25 @@ export function NaverMap(props: Props) {
       </Container>
     </NavermapsProvider>
   );
+}
+
+/** points가 모두 들어오도록 지도 범위를 맞춘다. 가장자리 핀 · 비교함 막대에 가리지 않게 여백을 둔다 */
+function FitMover({ points }: { points: LatLon[] | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!points?.length) return;
+    if (points.length === 1) {
+      map.setCenter({ lat: points[0].lat, lng: points[0].lon });
+      map.setZoom(15);
+      return;
+    }
+    const lats = points.map((p) => p.lat), lons = points.map((p) => p.lon);
+    const bounds = new naver.maps.LatLngBounds(
+      new naver.maps.LatLng(Math.min(...lats), Math.min(...lons)),
+      new naver.maps.LatLng(Math.max(...lats), Math.max(...lons)));
+    map.fitBounds(bounds, { top: 80, right: 80, bottom: 120, left: 80 });
+  }, [map, points]);
+  return null;
 }
 
 /** focus가 바뀌면 그 위치로 옮긴다(확대는 MapFocus 설명). 움직임을 줄이는 설정이면 바로 옮긴다 */
