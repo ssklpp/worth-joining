@@ -5,7 +5,7 @@
 // 키는 Client ID(ncpKeyId)만 쓴다. Client Secret이 필요한 REST API는 쓰지 않는다(SPEC 4장).
 import { useEffect, useRef } from "react";
 import {
-  Container, CustomOverlay, NaverMap as Map, NavermapsProvider, useListener, useMap,
+  Circle, Container, CustomOverlay, NaverMap as Map, NavermapsProvider, useListener, useMap,
 } from "react-naver-maps";
 import styles from "./map.module.css";
 
@@ -26,6 +26,9 @@ export type MapMarker = LatLon & {
 // selected: 강조(비교함에 담았거나 지금 연 역), boxed: 역 비교함에 담김(안내 문구)
 export type StationMarker = LatLon & { key: string; name: string; selected?: boolean; boxed?: boolean };
 
+/** 역세권 반경 원(decisions/009). active인 반경은 실선 · 옅은 채움, 나머지는 점선 */
+export type Rings = { center: LatLon; radii: number[]; active: number };
+
 /** 지도를 옮길 곳. 객체가 바뀔 때마다 이동한다(같은 회사를 다시 열어도).
  * exact면 그 확대로 맞추고(구 · 서울 전체로 넓게 보기), 아니면 지금보다 멀리 있을 때만 확대한다 */
 export type MapFocus = LatLon & { zoom: number; exact?: boolean };
@@ -39,6 +42,7 @@ type Props = {
   focus?: MapFocus | null;
   /** 이 점들이 모두 보이게 맞춘다(배열이 바뀔 때마다). 점이 하나면 그 점으로 확대 15 */
   fit?: LatLon[] | null;
+  rings?: Rings | null;
   onSelect: (key: string) => void;
   onHover?: (key: string | null) => void;
   onBoundsChange: (bbox: Bbox, zoom: number) => void;
@@ -54,7 +58,9 @@ export function NaverMap(props: Props) {
       </div>
     );
   }
-  const { markers, stations = [], onStationSelect, center, zoom, focus, fit, onSelect, onHover, onBoundsChange } = props;
+  const {
+    markers, stations = [], onStationSelect, center, zoom, focus, fit, rings, onSelect, onHover, onBoundsChange,
+  } = props;
   return (
     <NavermapsProvider ncpKeyId={KEY_ID}>
       <Container className={styles.map}
@@ -64,6 +70,7 @@ export function NaverMap(props: Props) {
           <BoundsReporter onChange={onBoundsChange} />
           <FocusMover focus={focus ?? null} />
           <FitMover points={fit ?? null} />
+          {rings && <RadiusRings rings={rings} />}
           {stations.map((s) => (
             <CustomOverlay key={s.key} position={{ lat: s.lat, lng: s.lon }} zIndex={0}>
               <button type="button" className={`${styles.station} ${s.selected ? styles.stationSelected : ""}`}
@@ -90,6 +97,35 @@ export function NaverMap(props: Props) {
         </Map>
       </Container>
     </NavermapsProvider>
+  );
+}
+
+// 지도 타일은 화면 테마와 관계없이 밝아서 원 색은 밝은 테마의 --pen 값을 그대로 쓴다
+const RING = "#1D5CB8";
+const M_PER_DEG_LAT = 111_320;
+
+/** 역 둘레에 반경 원과 "500m" 같은 글자(원 위쪽 끝). 원은 누를 수 없고 회사 핀 · 역 표시 아래에 깔린다 */
+function RadiusRings({ rings }: { rings: Rings }) {
+  const center = { lat: rings.center.lat, lng: rings.center.lon };
+  return (
+    <>
+      {rings.radii.map((m) => {
+        const on = m === rings.active;
+        return (
+          <Circle key={m} center={center} radius={m} clickable={false} zIndex={-1}
+            strokeColor={RING} strokeWeight={on ? 2 : 1.5} strokeOpacity={on ? 0.9 : 0.6}
+            strokeStyle={on ? "solid" : "shortdash"} fillColor={RING} fillOpacity={on ? 0.08 : 0} />
+        );
+      })}
+      {rings.radii.map((m) => (
+        <CustomOverlay key={`label-${m}`} zIndex={0}
+          position={{ lat: rings.center.lat + m / M_PER_DEG_LAT, lng: rings.center.lon }}>
+          <span className={`${styles.ringLabel} ${m === rings.active ? styles.ringLabelOn : ""}`} aria-hidden="true">
+            {m}m
+          </span>
+        </CustomOverlay>
+      ))}
+    </>
   );
 }
 

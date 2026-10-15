@@ -12,14 +12,15 @@ import { ErrorBox, Loading } from "@/components/Status";
 import { ApiError, useApi, type Schemas } from "@/lib/api";
 import { useStationCompare } from "@/lib/compare";
 import { formatPct, formatYm, stationLabel, ymBack, ymShort } from "@/lib/format";
-import { useExplore } from "../../ExploreContext";
+import { RADII, useExplore } from "../../ExploreContext";
 
 type Months = 6 | 12 | 24;
 type Detail = Schemas["StationDetail"];
 
 export function StationPage({ id }: { id: number | null }) {
   const [months, setMonths] = useState<Months>(12);
-  const state = useApi<Detail>(id ? `/stations/${id}/rent?months=${months}` : null);
+  const { select, radius, setRadius } = useExplore();
+  const state = useApi<Detail>(id ? `/stations/${id}/rent?months=${months}&radius=${radius}` : null);
   // 기간을 바꾸는 동안에도 앞 결과를 보여 줘 화면과 지도가 흔들리지 않게 한다
   const [kept, setKept] = useState<Detail | null>(null);
   useEffect(() => {
@@ -27,7 +28,6 @@ export function StationPage({ id }: { id: number | null }) {
   }, [state]);
   const d = kept?.station_id === id ? kept : null;
 
-  const { select } = useExplore();
   const stationBox = useStationCompare();
   const name = d?.name, lat = d?.lat, lon = d?.lon;
   useEffect(() => {
@@ -55,9 +55,17 @@ export function StationPage({ id }: { id: number | null }) {
             <CompareButton id={id} name={stationLabel(d.name)} box={stationBox} unit="개 역" />
           </div>
         )}
+        <div className={styles.seg} role="radiogroup" aria-label="역에서 거리">
+          {RADII.map((m) => (
+            <button key={m} type="button" role="radio" aria-checked={radius === m} onClick={() => setRadius(m)}>
+              반경 {m}m
+            </button>
+          ))}
+        </div>
         <p className="small muted">
-          역에서 500m 안, 전용 33㎡ 이하 연립다세대와 오피스텔의 신고된 계약입니다
+          역에서 {radius}m 안(지도의 원), 전용 33㎡ 이하 연립다세대와 오피스텔의 신고된 계약입니다
           {d && <>({formatYm(d.as_of)}까지)</>}. 지금 매물 가격과 다를 수 있습니다.
+          {radius > 500 && " 750m는 이웃 역의 범위와 겹칠 수 있습니다."}
         </p>
       </section>
       <section className={styles.block} aria-labelledby="dist-title">
@@ -71,7 +79,7 @@ export function StationPage({ id }: { id: number | null }) {
             </button>
           ))}
         </div>
-        {d ? <Distribution d={d} months={months} /> : <Loading height={160} />}
+        {d ? <Distribution d={d} months={months} radius={radius} /> : <Loading height={160} />}
       </section>
       <section className={styles.block} aria-labelledby="st-trend-title">
         <div className={styles.head}>
@@ -84,9 +92,9 @@ export function StationPage({ id }: { id: number | null }) {
   );
 }
 
-function Distribution({ d, months }: { d: Detail; months: Months }) {
+function Distribution({ d, months, radius }: { d: Detail; months: Months; radius: number }) {
   const r = d.rent;
-  if (!r) return <p className="small">역 500m 안 원룸 계약이 없습니다.</p>;
+  if (!r) return <p className="small">역 {radius}m 안 원룸 계약이 없습니다.</p>;
   return (
     <>
       <dl className={styles.facts}>
