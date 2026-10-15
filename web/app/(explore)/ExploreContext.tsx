@@ -43,6 +43,9 @@ type Explore = {
 
 const Ctx = createContext<Explore | null>(null);
 
+/** 지도에 한 번에 그리는 회사 핀 수이자 목록 한 페이지의 회사 수 */
+export const PIN_LIMIT = 10;
+
 export const pointKey = (p: { lat: number; lon: number }) => `${p.lat.toFixed(5)},${p.lon.toFixed(5)}`;
 
 export function ExploreProvider({ children }: { children: React.ReactNode }) {

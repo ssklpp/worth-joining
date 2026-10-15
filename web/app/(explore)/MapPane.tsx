@@ -9,7 +9,7 @@ import { useApi, type Schemas } from "@/lib/api";
 import { MAX_COMPARE, useCompare, useStationCompare } from "@/lib/compare";
 import { CITY_HALL } from "@/lib/regions";
 import { formatPct, stationLabel } from "@/lib/format";
-import { pointKey, useExplore, type Metric, type Pin } from "./ExploreContext";
+import { PIN_LIMIT, pointKey, useExplore, type Metric, type Pin } from "./ExploreContext";
 import styles from "./explore.module.css";
 
 const STATION_ZOOM = 14; // 이보다 멀리 보면 역 이름이 회사 핀을 가려 숨긴다
@@ -47,10 +47,13 @@ export function MapPane() {
     [path, boxed]);
 
   // 같은 좌표(같은 건물, 동 · 도로 중심)의 회사는 핀 하나로 묶는다
-  // 목록 패널이 열려 있으면 그 페이지(10곳)의 회사만 그린다
+  // 지도에는 한 번에 10곳까지만 그린다. 목록 패널이 열려 있으면 그 페이지의 회사,
+  // 상세 · 비교 등 다른 패널이면 지금 범위에서 가입자 많은 10곳(API가 가입자 많은 순으로 준다)
   const groups = useMemo(() => {
     const byPoint = new Map<string, Pin[]>();
-    for (const item of (pins?.items ?? []).filter((p) => !pageIds || pageIds.has(p.company_id))) {
+    const items = pins?.items ?? [];
+    const drawn = pageIds ? items.filter((p) => pageIds.has(p.company_id)) : items.slice(0, PIN_LIMIT);
+    for (const item of drawn) {
       const key = pointKey(item);
       byPoint.set(key, [...(byPoint.get(key) ?? []), item]);
     }

@@ -9,11 +9,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Estimate } from "@/components/Estimate";
 import { ErrorBox, Loading } from "@/components/Status";
 import { formatCount, formatPct, formatWon } from "@/lib/format";
-import { pointKey, useExplore, type Pin } from "./ExploreContext";
+import { PIN_LIMIT, pointKey, useExplore, type Pin } from "./ExploreContext";
 import { SearchResults } from "./SearchResults";
 import styles from "./explore.module.css";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = PIN_LIMIT; // 지도 핀 수와 같게
 
 type Sort = "members" | "growth" | "quit" | "salary";
 
