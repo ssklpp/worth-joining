@@ -35,11 +35,14 @@ export function MapPane() {
   const boxedIds = stationBox.items.map((i) => i.id).join(",");
   const boxed = useMemo(() => allStations.filter((s) => boxedIds.split(",").includes(String(s.station_id))),
     [allStations, boxedIds]);
+  // 역 시세 화면은 역을 음수 id로 select한다(회사 id와 겹치지 않게). 그 역도 확대와 관계없이 강조해 보인다
+  const openStation = selected && selected.id < 0 ? -selected.id : null;
+  const pinned = boxed.concat(allStations.filter((s) => s.station_id === openStation && !boxed.includes(s)));
   const shown = view && view.zoom >= STATION_ZOOM
-    ? [...inView, ...boxed.filter((b) => !inView.includes(b))] : boxed;
+    ? [...inView, ...pinned.filter((b) => !inView.includes(b))] : pinned;
   const stations: StationMarker[] = shown.map((s) => ({
     key: String(s.station_id), name: stationLabel(s.name), lat: s.lat, lon: s.lon,
-    selected: boxedIds.split(",").includes(String(s.station_id)),
+    selected: s.station_id === openStation || boxed.includes(s), boxed: boxed.includes(s),
   }));
   // 역 비교 화면에서는 담은 역이 모두 보이게 지도를 맞춘다(담거나 뺄 때마다)
   const path = usePathname();
@@ -74,8 +77,8 @@ export function MapPane() {
       highlighted: items.some((i) => i.company_id === hover),
     };
   });
-  // 상세에서 연 회사가 지금 범위의 상위 200곳에 없어도 핀은 보인다
-  if (selected && !markers.some((m) => m.selected)) {
+  // 상세에서 연 회사가 지금 범위의 상위 200곳에 없어도 핀은 보인다(역은 위의 역 표시로 보이므로 핀을 더하지 않는다)
+  if (selected && selected.id > 0 && !markers.some((m) => m.selected)) {
     markers.push({
       key: `selected-${selected.id}`, lat: selected.lat, lon: selected.lon, label: "", name: selected.name,
       title: selected.name, approx: selected.approx, selected: true,
