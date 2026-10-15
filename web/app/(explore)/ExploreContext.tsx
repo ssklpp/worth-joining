@@ -11,6 +11,9 @@ export type Metric = "growth" | "quit" | "salary";
 export type Pin = Schemas["MapCompany"];
 /** 상세에서 연 회사. 지도는 이 위치로 옮기고 핀을 채운다 */
 export type Selected = { id: number; name: string; lat: number; lon: number; approx: boolean; seq: number };
+/** 역세권 반경(m, decisions/009) */
+export const RADII = [500, 750] as const;
+export type Radius = (typeof RADII)[number];
 
 type Explore = {
   metric: Metric;
@@ -36,6 +39,9 @@ type Explore = {
   /** 목록 패널의 지금 페이지 회사. 값이 있으면 지도는 이 회사들의 핀만 그린다(목록이 닫히면 null) */
   pageIds: Set<number> | null;
   setPageIds: (ids: Set<number> | null) => void;
+  /** 역 시세 화면에서 고른 반경. 지도는 연 역에 반경 원을 그린다. 다른 역으로 옮겨도 유지한다 */
+  radius: Radius;
+  setRadius: (r: Radius) => void;
   /** "목록으로"가 돌아갈 주소(검색어 포함) */
   listUrl: string;
   setListUrl: (url: string) => void;
@@ -65,6 +71,7 @@ export function ExploreProvider({ children }: { children: React.ReactNode }) {
   const [point, setPoint] = useState<string | null>(null);
   const [listUrl, setListUrl] = useState("/");
   const [pageIds, setPageIds] = useState<Set<number> | null>(null);
+  const [radius, setRadius] = useState<Radius>(500);
 
   const pinPath = useMemo(() => {
     if (!bbox) return null; // 지도가 범위를 알려 줄 때까지 기다린다
@@ -89,7 +96,7 @@ export function ExploreProvider({ children }: { children: React.ReactNode }) {
   const value: Explore = {
     metric, setMetric, region, setRegion, regionFocus, industry, setIndustry, setBbox,
     pinPath, pinState, pins, hover, setHover, point, setPoint, listUrl, setListUrl, pageIds, setPageIds,
-    selected, select,
+    radius, setRadius, selected, select,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

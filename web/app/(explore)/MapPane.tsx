@@ -4,12 +4,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { NaverMap, type Bbox, type MapFocus, type MapMarker, type StationMarker } from "@/components/map/NaverMap";
+import { NaverMap, type Bbox, type MapFocus, type MapMarker, type Rings, type StationMarker } from "@/components/map/NaverMap";
 import { useApi, type Schemas } from "@/lib/api";
 import { MAX_COMPARE, useCompare, useStationCompare, type CompareBox } from "@/lib/compare";
 import { CITY_HALL } from "@/lib/regions";
 import { formatPct, stationLabel } from "@/lib/format";
-import { PIN_LIMIT, pointKey, useExplore, type Metric, type Pin } from "./ExploreContext";
+import { PIN_LIMIT, RADII, pointKey, useExplore, type Metric, type Pin } from "./ExploreContext";
 import styles from "./explore.module.css";
 
 const STATION_ZOOM = 14; // 이보다 멀리 보면 역 이름이 회사 핀을 가려 숨긴다
@@ -22,7 +22,7 @@ export function pinLabel(value: number | null, metric: Metric) {
 
 export function MapPane() {
   const router = useRouter();
-  const { pins, metric, selected, regionFocus, hover, point, setHover, setPoint, setBbox, pageIds } = useExplore();
+  const { pins, metric, selected, regionFocus, hover, point, setHover, setPoint, setBbox, pageIds, radius } = useExplore();
   const stationState = useApi<Schemas["StationList"]>("/stations");
   const allStations = useMemo(() => (stationState.status === "ok" ? stationState.data.items : []), [stationState]);
   const [view, setView] = useState<{ bbox: Bbox; zoom: number } | null>(null);
@@ -40,6 +40,10 @@ export function MapPane() {
   // 역 시세 화면은 역을 음수 id로 select한다(회사 id와 겹치지 않게). 그 역도 확대와 관계없이 강조해 보인다
   const openStation = selected && selected.id < 0 ? -selected.id : null;
   const pinned = boxed.concat(allStations.filter((s) => s.station_id === openStation && !boxed.includes(s)));
+  // 역 시세 화면이면 그 역의 반경 원(500 · 750m, 고른 반경을 진하게)
+  const rings: Rings | null = useMemo(() => (openStation && selected
+    ? { center: { lat: selected.lat, lon: selected.lon }, radii: [...RADII], active: radius } : null),
+  [openStation, selected, radius]);
   const shown = view && view.zoom >= STATION_ZOOM
     ? [...inView, ...pinned.filter((b) => !inView.includes(b))] : pinned;
   const stations: StationMarker[] = shown.map((s) => ({
@@ -109,7 +113,7 @@ export function MapPane() {
 
   return (
     <div className={styles.mapPane}>
-      <NaverMap markers={markers} center={CITY_HALL} zoom={15} focus={focus} fit={fit} onSelect={open}
+      <NaverMap markers={markers} center={CITY_HALL} zoom={15} focus={focus} fit={fit} rings={rings} onSelect={open}
         onHover={(key) => {
           const items = key ? groups.get(key) : undefined;
           setHover(items?.length === 1 ? items[0].company_id : null);
