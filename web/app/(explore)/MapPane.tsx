@@ -22,7 +22,7 @@ export function pinLabel(value: number | null, metric: Metric) {
 
 export function MapPane() {
   const router = useRouter();
-  const { pins, metric, selected, regionFocus, hover, point, setHover, setPoint, setBbox } = useExplore();
+  const { pins, metric, selected, regionFocus, hover, point, setHover, setPoint, setBbox, pageIds } = useExplore();
   const stationState = useApi<Schemas["StationList"]>("/stations");
   const allStations = useMemo(() => (stationState.status === "ok" ? stationState.data.items : []), [stationState]);
   const [view, setView] = useState<{ bbox: Bbox; zoom: number } | null>(null);
@@ -47,14 +47,15 @@ export function MapPane() {
     [path, boxed]);
 
   // 같은 좌표(같은 건물, 동 · 도로 중심)의 회사는 핀 하나로 묶는다
+  // 목록 패널이 열려 있으면 그 페이지(10곳)의 회사만 그린다
   const groups = useMemo(() => {
     const byPoint = new Map<string, Pin[]>();
-    for (const item of pins?.items ?? []) {
+    for (const item of (pins?.items ?? []).filter((p) => !pageIds || pageIds.has(p.company_id))) {
       const key = pointKey(item);
       byPoint.set(key, [...(byPoint.get(key) ?? []), item]);
     }
     return byPoint;
-  }, [pins]);
+  }, [pins, pageIds]);
 
   const markers: MapMarker[] = [...groups].map(([key, items]) => {
     const first = items[0];
