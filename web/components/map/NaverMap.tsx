@@ -23,7 +23,7 @@ export type MapMarker = LatLon & {
 };
 
 /** 지하철역 표시(decisions/007 9번). 회사 핀보다 아래에 깔고, 누르면 역 시세를 연다 */
-export type StationMarker = LatLon & { key: string; name: string };
+export type StationMarker = LatLon & { key: string; name: string; selected?: boolean }; // selected: 역 비교함에 담김
 
 /** 지도를 옮길 곳. 객체가 바뀔 때마다 이동한다(같은 회사를 다시 열어도).
  * exact면 그 확대로 맞추고(구 · 서울 전체로 넓게 보기), 아니면 지금보다 멀리 있을 때만 확대한다 */
@@ -62,8 +62,10 @@ export function NaverMap(props: Props) {
           <FocusMover focus={focus ?? null} />
           {stations.map((s) => (
             <CustomOverlay key={s.key} position={{ lat: s.lat, lng: s.lon }} zIndex={0}>
-              <button type="button" className={styles.station} title={`${s.name} 시세 보기`}
-                aria-label={`${s.name} 시세 보기`} onClick={() => onStationSelect?.(s.key)}>
+              <button type="button" className={`${styles.station} ${s.selected ? styles.stationSelected : ""}`}
+                title={`${s.name} 시세 보기${s.selected ? " (비교함에 담음)" : ""}`}
+                aria-label={`${s.name} 시세 보기${s.selected ? " (비교함에 담음)" : ""}`}
+                onClick={() => onStationSelect?.(s.key)}>
                 {s.name}
               </button>
             </CustomOverlay>

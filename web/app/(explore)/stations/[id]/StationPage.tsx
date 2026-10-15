@@ -7,8 +7,10 @@ import { useEffect, useState } from "react";
 import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { eok, man } from "@/components/company/HousingSection";
 import styles from "@/components/company/company.module.css";
+import { CompareButton } from "@/components/CompareButton";
 import { ErrorBox, Loading } from "@/components/Status";
 import { ApiError, useApi, type Schemas } from "@/lib/api";
+import { useStationCompare } from "@/lib/compare";
 import { formatPct, formatYm, stationLabel } from "@/lib/format";
 import { useExplore } from "../../ExploreContext";
 
@@ -32,6 +34,7 @@ export function StationPage({ id }: { id: number | null }) {
   const d = kept?.station_id === id ? kept : null;
 
   const { select } = useExplore();
+  const stationBox = useStationCompare();
   const name = d?.name, lat = d?.lat, lon = d?.lon;
   useEffect(() => {
     if (!id || !name || lat === undefined || lon === undefined) return;
@@ -53,6 +56,11 @@ export function StationPage({ id }: { id: number | null }) {
       <section className={styles.block}>
         <h1>{d ? stationLabel(d.name) : "역 시세"}</h1>
         {d && <p className="small muted">{d.lines.join(", ")}</p>}
+        {d && id && (
+          <div className={styles.actions}>
+            <CompareButton id={id} name={stationLabel(d.name)} box={stationBox} unit="개 역" />
+          </div>
+        )}
         <p className="small muted">
           역에서 500m 안, 전용 33㎡ 이하 연립다세대와 오피스텔의 신고된 계약입니다
           {d && <>({formatYm(d.as_of)}까지)</>}. 지금 매물 가격과 다를 수 있습니다.

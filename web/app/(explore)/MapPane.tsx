@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { NaverMap, type Bbox, type MapFocus, type MapMarker, type StationMarker } from "@/components/map/NaverMap";
 import { useApi, type Schemas } from "@/lib/api";
-import { MAX_COMPARE, useCompare } from "@/lib/compare";
+import { MAX_COMPARE, useCompare, useStationCompare } from "@/lib/compare";
 import { CITY_HALL } from "@/lib/regions";
 import { formatPct, stationLabel } from "@/lib/format";
 import { pointKey, useExplore, type Metric, type Pin } from "./ExploreContext";
@@ -26,12 +26,14 @@ export function MapPane() {
   const stationState = useApi<Schemas["StationList"]>("/stations");
   const allStations = useMemo(() => (stationState.status === "ok" ? stationState.data.items : []), [stationState]);
   const [view, setView] = useState<{ bbox: Bbox; zoom: number } | null>(null);
+  const stationBox = useStationCompare();
   // 지금 지도 범위 안의 역. 검색창 자동완성은 확대와 관계없이 이 역들만, 지도 표시는 확대 14 이상에서만
   const inView = useMemo(() => (view ? allStations.filter((s) =>
     s.lon >= view.bbox.minLon && s.lon <= view.bbox.maxLon
     && s.lat >= view.bbox.minLat && s.lat <= view.bbox.maxLat) : allStations), [allStations, view]);
   const stations: StationMarker[] = view && view.zoom >= STATION_ZOOM
-    ? inView.map((s) => ({ key: String(s.station_id), name: stationLabel(s.name), lat: s.lat, lon: s.lon }))
+    ? inView.map((s) => ({ key: String(s.station_id), name: stationLabel(s.name), lat: s.lat, lon: s.lon,
+      selected: stationBox.has(s.station_id) }))
     : [];
 
   // 같은 좌표(같은 건물, 동 · 도로 중심)의 회사는 핀 하나로 묶는다
@@ -110,21 +112,35 @@ export function MapPane() {
   );
 }
 
-/** 지도 왼쪽 아래 비교함: 담은 회사 칩(×로 빼기)과 "비교하기"(2곳 이상) */
+/** 지도 왼쪽 아래 비교함: 회사 · 역 줄마다 담은 칩(×로 빼기)과 "비교하기"(2개 이상) */
 function CompareTray() {
-  const { items, remove } = useCompare();
-  const onCompare = usePathname() === "/compare";
-  if (!items.length) return null;
+  const companies = useCompare();
+  const stations = useStationCompare();
+  const path = usePathname();
+  if (!companies.items.length && !stations.items.length) return null;
   return (
     <div className={styles.tray} aria-label="비교함">
-      <span className="muted">비교함 <span className="num">{items.length}/{MAX_COMPARE}</span></span>
-      {items.map((i) => (
+      <TrayRow label="비교함" box={companies} href="/compare" action="비교하기" here={path === "/compare"} />
+      <TrayRow label="역 비교" box={stations} href="/stations/compare" action="역 비교하기"
+        here={path === "/stations/compare"} />
+    </div>
+  );
+}
+
+function TrayRow({ label, box, href, action, here }: {
+  label: string; box: ReturnType<typeof useCompare>; href: string; action: string; here: boolean;
+}) {
+  if (!box.items.length) return null;
+  return (
+    <div className={styles.trayRow}>
+      <span className="muted">{label} <span className="num">{box.items.length}/{MAX_COMPARE}</span></span>
+      {box.items.map((i) => (
         <span key={i.id} className={styles.chip}>
           {i.name}
-          <button type="button" aria-label={`${i.name} 비교에서 빼기`} onClick={() => remove(i.id)}>×</button>
+          <button type="button" aria-label={`${i.name} 비교에서 빼기`} onClick={() => box.remove(i.id)}>×</button>
         </span>
       ))}
-      {items.length >= 2 && !onCompare && <Link className="button" href="/compare">비교하기</Link>}
+      {box.items.length >= 2 && !here && <Link className="button" href={href}>{action}</Link>}
     </div>
   );
 }
