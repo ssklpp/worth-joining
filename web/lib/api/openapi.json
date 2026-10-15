@@ -796,7 +796,7 @@
      "stations"
     ],
     "summary": "역 원룸 시세",
-    "description": "월세 계약이 20건 미만이면 24개월로 넓히고 period_extended_to_24m을 단다.\ntrend는 기간과 관계없이 최근 24개월이고, 계약이 적은 역은 분기로 묶는다.",
+    "description": "월세 계약이 20건 미만이면 24개월로 넓히고 period_extended_to_24m을 단다.\ntrend는 기간과 관계없이 최근 24개월이고, 계약이 적은 역은 분기로 묶는다.\n분포 · 추이 모두 radius 안 건물의 계약이다.",
     "operationId": "station_rent_stations__station_id__rent_get",
     "parameters": [
      {
@@ -819,6 +819,17 @@
        "default": 12
       },
       "description": "6 · 12 · 24개월(docs/04 D7)"
+     },
+     {
+      "name": "radius",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "$ref": "#/components/schemas/RadiusParam",
+       "description": "역세권 반경 500 · 750m(decisions/009)",
+       "default": 500
+      },
+      "description": "역세권 반경 500 · 750m(decisions/009)"
      }
     ],
     "responses": {
@@ -2333,6 +2344,15 @@
     ],
     "title": "Percentiles"
    },
+   "RadiusParam": {
+    "type": "integer",
+    "enum": [
+     500,
+     750
+    ],
+    "title": "RadiusParam",
+    "description": "쿼리 파라미터 radius(m). 역세권 반경 500 · 750m(decisions/009)."
+   },
    "Region": {
     "properties": {
      "sido": {
@@ -2426,6 +2446,11 @@
       "title": "As Of",
       "description": "전월세 집계 기준월 YYYYMM"
      },
+     "radius_m": {
+      "type": "integer",
+      "title": "Radius M",
+      "description": "역세권 반경(m). 이 반경 안 건물의 계약으로 집계했다"
+     },
      "rent": {
       "anyOf": [
        {
@@ -2497,6 +2522,7 @@
      "lat",
      "lon",
      "as_of",
+     "radius_m",
      "rent",
      "jeonse_share",
      "flags",

@@ -14,14 +14,14 @@ async def add_station(db, station_id, name, lines="2호선"):
         " VALUES (:id, :n, :n, :l, POINT(127.0, 37.5))"), {"id": station_id, "n": name, "l": lines})
 
 
-async def add_rent(db, station_id, months, n, median=700_000, jeonse=20_000):
+async def add_rent(db, station_id, months, n, median=700_000, jeonse=20_000, radius=500):
     await db.execute(text("""
         INSERT INTO mart_station_rent
-          (station_id, period_end_ym, window_months, n_monthly, n_jeonse, monthly_p25,
+          (station_id, period_end_ym, radius_m, window_months, n_monthly, n_jeonse, monthly_p25,
            monthly_median, monthly_p75, deposit_median_man, rent_median_man, jeonse_p25_man,
            jeonse_median_man, jeonse_p75_man)
-        VALUES (:s, :end, :m, :n, 5, :p25, :p50, :p75, 1000, 60, 15000, :j, 25000)
-    """), {"s": station_id, "end": END, "m": months, "n": n, "p25": median - 100_000,
+        VALUES (:s, :end, :r, :m, :n, 5, :p25, :p50, :p75, 1000, 60, 15000, :j, 25000)
+    """), {"s": station_id, "end": END, "r": radius, "m": months, "n": n, "p25": median - 100_000,
            "p50": median, "p75": median + 100_000, "j": jeonse})
 
 
@@ -114,16 +114,34 @@ async def test_station_rent_detail(client, db):
     assert six["rent"]["months"] == 6 and six["flags"] == []
     assert default["rent"]["n_monthly"] == 100
     assert default["jeonse_share"] == pytest.approx(5 / 105, abs=1e-4)
+    assert default["radius_m"] == 500
 
 
-async def add_trend(db, station_id, grain, yms, n):
+async def test_station_rent_radius_750_reads_its_own_rows(client, db):
+    await add_station(db, 10, "신림")
+    await add_rent(db, 10, 12, n=100)
+    await add_rent(db, 10, 12, n=180, median=650_000, radius=750)
+    await add_trend(db, 10, "month", months_back(24), n=5)
+    await add_trend(db, 10, "month", months_back(24), n=9, radius=750)
+
+    wide = (await client.get("/stations/10/rent", params={"radius": 750})).json()
+    list_row = (await client.get("/stations")).json()["items"][0]
+
+    assert wide["radius_m"] == 750
+    assert (wide["rent"]["n_monthly"], wide["rent"]["monthly_median"]) == (180, 650_000)
+    assert {p["n_monthly"] for p in wide["trend"]} == {9}
+    assert list_row["n"] == 100  # 역 목록은 500m
+    assert (await client.get("/stations/10/rent", params={"radius": 1000})).status_code == 422
+
+
+async def add_trend(db, station_id, grain, yms, n, radius=500):
     for ym in yms:
         await db.execute(text("""
             INSERT INTO mart_station_rent_trend
-              (station_id, period_end_ym, grain, ym, n_monthly, monthly_p25, monthly_median,
-               monthly_p75, n_jeonse, jeonse_median_man)
-            VALUES (:s, :end, :g, :ym, :n, 600000, 700000, 800000, 1, 20000)
-        """), {"s": station_id, "end": END, "g": grain, "ym": ym, "n": n})
+              (station_id, period_end_ym, radius_m, grain, ym, n_monthly, monthly_p25,
+               monthly_median, monthly_p75, n_jeonse, jeonse_median_man)
+            VALUES (:s, :end, :r, :g, :ym, :n, 600000, 700000, 800000, 1, 20000)
+        """), {"s": station_id, "end": END, "r": radius, "g": grain, "ym": ym, "n": n})
 
 
 def months_back(count):

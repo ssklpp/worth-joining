@@ -7,7 +7,13 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from app.core.db import get_conn
 from app.repositories import housing as repo
-from app.schemas.housing import MonthsParam, StationDetail, StationList, StationListItem
+from app.schemas.housing import (
+    MonthsParam,
+    RadiusParam,
+    StationDetail,
+    StationList,
+    StationListItem,
+)
 from app.services.housing import pick_rent, pick_trend
 
 router = APIRouter(prefix="/stations", tags=["stations"])
@@ -39,18 +45,24 @@ async def station_rent(
     conn: Conn, station_id: Annotated[int, Path(ge=1)],
     months: Annotated[MonthsParam, Query(description="6 · 12 · 24개월(docs/04 D7)")] = (
         MonthsParam.m12),
+    radius: Annotated[RadiusParam, Query(description="역세권 반경 500 · 750m(decisions/009)")] = (
+        RadiusParam.r500),
 ) -> StationDetail:
     """월세 계약이 20건 미만이면 24개월로 넓히고 period_extended_to_24m을 단다.
-    trend는 기간과 관계없이 최근 24개월이고, 계약이 적은 역은 분기로 묶는다."""
+    trend는 기간과 관계없이 최근 24개월이고, 계약이 적은 역은 분기로 묶는다.
+    분포 · 추이 모두 radius 안 건물의 계약이다."""
     st = await repo.station(conn, station_id)
     if st is None:
         raise HTTPException(404, "역을 찾을 수 없다")
-    rent, flags = pick_rent(await repo.rents(conn, [station_id]), station_id, int(months))
+    rent, flags = pick_rent(await repo.rents(conn, [station_id], int(radius)), station_id,
+                            int(months))
     total = rent.n_monthly + rent.n_jeonse if rent else 0
     as_of = await repo.rent_as_of(conn)
-    grain, points = pick_trend(await repo.trend(conn, station_id, as_of) if as_of else [])
+    grain, points = pick_trend(
+        await repo.trend(conn, station_id, as_of, int(radius)) if as_of else [])
     return StationDetail(
         station_id=station_id, name=st["station_name"], lines=_lines(st["line_names"]),
-        lat=float(st["lat"]), lon=float(st["lon"]), as_of=as_of, rent=rent, flags=flags,
+        lat=float(st["lat"]), lon=float(st["lon"]), as_of=as_of, radius_m=int(radius),
+        rent=rent, flags=flags,
         jeonse_share=round(rent.n_jeonse / total, 4) if total else None,
         trend_grain=grain, trend=points)

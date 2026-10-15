@@ -19,6 +19,12 @@ class MonthsParam(IntEnum):
     m24 = 24
 
 
+class RadiusParam(IntEnum):
+    """쿼리 파라미터 radius(m). 역세권 반경 500 · 750m(decisions/009)."""
+    r500 = 500
+    r750 = 750
+
+
 class Burden(BaseModel):
     low: float | None = Field(description="환산 월세 p25 ÷ 추정 월급")
     mid: float | None = Field(description="중앙값 ÷ 추정 월급")
@@ -91,6 +97,7 @@ class StationDetail(BaseModel):
     lat: float
     lon: float
     as_of: int | None = Field(description="전월세 집계 기준월 YYYYMM")
+    radius_m: int = Field(description="역세권 반경(m). 이 반경 안 건물의 계약으로 집계했다")
     rent: StationRent | None
     jeonse_share: float | None = Field(description="원룸 계약 중 전세 비율")
     flags: list[Flag]

@@ -243,7 +243,7 @@ STRAIGHT_JOIN building b
 | `GET /companies/{id}/financials` | DART 재무 지표 |
 | `GET /companies/{id}/housing?months=6\|12\|24` | 회사 근처 역(최대 3곳) 원룸 시세와 주거비 부담률 |
 | `GET /stations?q=&line=&sort=` | 서울 역 309곳(좌표 포함)과 12개월 시세 |
-| `GET /stations/{id}/rent?months=6\|12\|24` | 역 원룸 시세 · 전세 비중 · 최근 24개월 추이(월 또는 분기) |
+| `GET /stations/{id}/rent?months=6\|12\|24&radius=500\|750` | 역 원룸 시세 · 전세 비중 · 최근 24개월 추이(월 또는 분기). 반경 기본 500m |
 | `GET /industries?q=` | 업종 목록 |
 | `GET /industries/{code}/distribution?metric=` | 업종 내 분포 (p25 · p50 · p75) |
 | `GET /compare?ids=1,2,3` | 회사 비교 (최대 3곳, 지수 시계열) |
