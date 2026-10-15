@@ -25,8 +25,9 @@ export type MapMarker = LatLon & {
 /** 지하철역 표시(decisions/007 9번). 회사 핀보다 아래에 깔고, 누르면 역 시세를 연다 */
 export type StationMarker = LatLon & { key: string; name: string };
 
-/** 지도를 옮길 곳. 객체가 바뀔 때마다 이동한다(같은 회사를 다시 열어도) */
-export type MapFocus = LatLon & { zoom: number };
+/** 지도를 옮길 곳. 객체가 바뀔 때마다 이동한다(같은 회사를 다시 열어도).
+ * exact면 그 확대로 맞추고(구 · 서울 전체로 넓게 보기), 아니면 지금보다 멀리 있을 때만 확대한다 */
+export type MapFocus = LatLon & { zoom: number; exact?: boolean };
 
 type Props = {
   markers: MapMarker[];
@@ -86,13 +87,13 @@ export function NaverMap(props: Props) {
   );
 }
 
-/** focus가 바뀌면 그 위치로 옮기고, 지금보다 멀리 있으면 확대한다. 움직임을 줄이는 설정이면 바로 옮긴다 */
+/** focus가 바뀌면 그 위치로 옮긴다(확대는 MapFocus 설명). 움직임을 줄이는 설정이면 바로 옮긴다 */
 function FocusMover({ focus }: { focus: MapFocus | null }) {
   const map = useMap();
   useEffect(() => {
     if (!focus) return;
     const center = { lat: focus.lat, lng: focus.lon };
-    const zoom = Math.max(map.getZoom(), focus.zoom);
+    const zoom = focus.exact ? focus.zoom : Math.max(map.getZoom(), focus.zoom);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       map.setCenter(center);
       map.setZoom(zoom);

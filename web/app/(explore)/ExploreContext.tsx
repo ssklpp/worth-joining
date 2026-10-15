@@ -3,8 +3,9 @@
 // 지도 메인 화면(decisions/006)의 공유 상태. 레이아웃이 지도와 패널을 함께 감싸므로
 // 패널(목록 · 상세 · 비교)이 바뀌어도 지도와 이 상태는 그대로 남는다
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import type { Bbox } from "@/components/map/NaverMap";
+import type { Bbox, MapFocus } from "@/components/map/NaverMap";
 import { useApi, type ApiState, type Schemas } from "@/lib/api";
+import { CITY_HALL, CITY_ZOOM, GU, GU_ZOOM } from "@/lib/regions";
 
 export type Metric = "growth" | "quit" | "salary";
 export type Pin = Schemas["MapCompany"];
@@ -15,7 +16,10 @@ type Explore = {
   metric: Metric;
   setMetric: (m: Metric) => void;
   region: string;
+  /** 지역 필터를 바꾸고 지도를 그 구(빈 값이면 서울 전체)로 옮긴다 */
   setRegion: (r: string) => void;
+  /** 지역을 고를 때 옮길 곳. 회사 · 역 선택과 함께 MapPane이 마지막 것을 따른다 */
+  regionFocus: MapFocus | null;
   industry: string;
   setIndustry: (code: string) => void;
   setBbox: (b: Bbox) => void;
@@ -40,7 +44,14 @@ export const pointKey = (p: { lat: number; lon: number }) => `${p.lat.toFixed(5)
 
 export function ExploreProvider({ children }: { children: React.ReactNode }) {
   const [metric, setMetric] = useState<Metric>("growth");
-  const [region, setRegion] = useState("");
+  const [region, setRegionCode] = useState("");
+  const [regionFocus, setRegionFocus] = useState<MapFocus | null>(null);
+  const setRegion = useCallback((code: string) => {
+    setRegionCode(code);
+    const gu = GU.find((g) => g.code === code);
+    setRegionFocus(gu ? { lat: gu.lat, lon: gu.lon, zoom: GU_ZOOM, exact: true }
+      : { ...CITY_HALL, zoom: CITY_ZOOM, exact: true });
+  }, []);
   const [industry, setIndustry] = useState("");
   const [bbox, setBbox] = useState<Bbox | null>(null);
   const [hover, setHover] = useState<number | null>(null);
@@ -69,7 +80,7 @@ export function ExploreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value: Explore = {
-    metric, setMetric, region, setRegion, industry, setIndustry, setBbox,
+    metric, setMetric, region, setRegion, regionFocus, industry, setIndustry, setBbox,
     pinPath, pinState, pins, hover, setHover, point, setPoint, listUrl, setListUrl,
     selected, select,
   };

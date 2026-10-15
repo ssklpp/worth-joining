@@ -5,6 +5,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useApi, type Schemas } from "@/lib/api";
+import { GU } from "@/lib/regions";
 import { useExplore, type Metric } from "./ExploreContext";
 import styles from "./explore.module.css";
 
@@ -12,15 +13,6 @@ const METRICS: { key: Metric; label: string }[] = [
   { key: "growth", label: "12개월 증감" },
   { key: "quit", label: "연간 퇴사율" },
   { key: "salary", label: "추정 연봉" },
-];
-
-// 서울 자치구(법정동코드 앞 5자리). region 테이블과 같다
-const GU: [string, string][] = [
-  ["11110", "종로구"], ["11140", "중구"], ["11170", "용산구"], ["11200", "성동구"], ["11215", "광진구"],
-  ["11230", "동대문구"], ["11260", "중랑구"], ["11290", "성북구"], ["11305", "강북구"], ["11320", "도봉구"],
-  ["11350", "노원구"], ["11380", "은평구"], ["11410", "서대문구"], ["11440", "마포구"], ["11470", "양천구"],
-  ["11500", "강서구"], ["11530", "구로구"], ["11545", "금천구"], ["11560", "영등포구"], ["11590", "동작구"],
-  ["11620", "관악구"], ["11650", "서초구"], ["11680", "강남구"], ["11710", "송파구"], ["11740", "강동구"],
 ];
 
 export function Toolbar() {
@@ -69,7 +61,7 @@ export function Toolbar() {
           지역
           <select value={region} onChange={(e) => setRegion(e.target.value)}>
             <option value="">서울 전체</option>
-            {GU.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+            {GU.map((g) => <option key={g.code} value={g.code}>{g.name}</option>)}
           </select>
         </label>
         <div className={styles.seg} role="radiogroup" aria-label="지도 핀에 표시할 값">
