@@ -40,7 +40,7 @@
 .itMetrics i { font-style: normal; font-size: var(--fs-xs); color: var(--muted); }
 
 .mapPane { position: relative; min-height: 0; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
-.legend { position: absolute; right: 12px; bottom: 12px; display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; font-size: var(--fs-xs); color: var(--muted); background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; }
+.legend { position: absolute; right: 12px; bottom: 40px; /* 네이버 축척 · 로고(오른쪽 아래) 위로 */ display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; font-size: var(--fs-xs); color: var(--muted); background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; }
 .legend span { display: flex; align-items: center; gap: 6px; }
 .lgTag { width: 22px; height: 12px; border: 1.5px solid var(--pen); border-radius: 6px; }
 .lgDash { border-style: dashed; }
