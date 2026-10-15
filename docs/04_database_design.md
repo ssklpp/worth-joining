@@ -4,7 +4,7 @@
 |---|---|
 | 대상 | T2(스키마 · SQL 담당), DB를 읽고 쓰는 T1 · T3 |
 | 기준 | SPEC 5장(DDL), 6장(계산 규칙), 7장(핵심 SQL). 충돌하면 SPEC을 따르고, 이 문서의 "제안"은 SPEC에 반영되기 전까지 확정이 아니다 |
-| 상태 | 초안 · 2026-10-08 |
+| 상태 | 최종 수정 2026-10-15 (마이그레이션 `0009`까지 반영) |
 
 ---
 
@@ -20,11 +20,11 @@
 | 좌표 | `POINT(경도, 위도)` WGS84, `SRID` 속성 없음 | MariaDB 문법 제약(SPEC 5.3). juso 좌표만 저장 |
 | 기준값 | `nps_rate`, `conversion_rate` 테이블 | 보험료율 · 상한 · 전환율이 기간마다 바뀐다. 코드 상수로 두지 않는다 |
 | 멱등 | 자연키 UNIQUE + `INSERT … ON DUPLICATE KEY UPDATE`, 전월세는 `row_hash` | 같은 입력을 다시 넣어도 결과가 같아야 한다 |
-| 파티션 | `workplace_monthly`(연 단위), `rent_contract`(월 단위, 24개월 순환) | 가장 큰 두 테이블. 오래된 전월세는 `DROP PARTITION`으로 지운다 |
+| 파티션 | `workplace_monthly`(연 단위), `rent_contract`(월 단위, 24개월 보관) | 가장 큰 두 테이블. 오래된 전월세는 `DROP PARTITION`으로 지운다. 자동 순환은 없고 갱신할 때 `pipeline.rent.partitions --drop-before`를 실행한다 |
 
-## 2. ERD (초안)
+## 2. ERD (2026-10-15, 마이그레이션 0009)
 
-SPEC 5.2에 DDL이 있는 테이블은 그대로 옮겼고, DDL이 없는 테이블은 **제안**으로 표시했다(3장).
+SPEC 5.2에 DDL이 있는 테이블은 그대로 옮겼고, DDL이 없던 테이블은 **제안**으로 표시했다(3장). 채용 테이블(`saramin_company_link`, `job_posting`, `mart_company_jobs`)은 만들지 않아 그림에서 뺐다([decisions/008](./decisions/008-채용-연계를-바로가기로-대체.md)).
 
 ```mermaid
 erDiagram
@@ -46,9 +46,6 @@ erDiagram
   building ||--o{ rent_contract : "계약"
   geocode_cache ||--o{ building : "addr_key"
   conversion_rate ||--o{ rent_contract : "contract_ym"
-  saramin_company_link }o--o| company : "매칭 (없을 수 있음)"
-  job_posting }o--o| company : "공고"
-  company ||--o| mart_company_jobs : "채용 요약"
 
   company {
     INT company_id PK
@@ -160,12 +157,6 @@ erDiagram
     INT ym PK
     INT monthly_median
   }
-  job_posting {
-    VARCHAR job_id PK
-    INT company_id
-    DATETIME expires_at
-    VARCHAR url
-  }
 ```
 
 운영 · 기준 테이블(`ingestion_log`, `api_call_log`, `nps_rate`, `conversion_rate`)과 raw 테이블은 다른 테이블과 키로 연결되지 않아 그림에서 뺐다. `nps_rate`는 `snapshot_ym BETWEEN valid_from_ym AND valid_to_ym` 범위 조인으로 쓰인다.
@@ -181,7 +172,7 @@ erDiagram
 | company ↔ station (company_station) | N:M, 회사당 최대 3 | 없음(mart 성격) | 대표 사업장 기준, 1km 이내 |
 | company → company_location → geocode_cache | 1:0..1:1 | 없음 | 회사별 최종 좌표와 정확도 · 근거(decisions/004) |
 | building → rent_contract | 1:N | 없음 | 좌표 변환 전 계약은 `building_id` NULL |
-| saramin_company_link → company | N:0..1 | 없음 | `match_type='none'`이면 company_id NULL |
+| ~~saramin_company_link → company~~ | N:0..1 | 없음 | 만들지 않음(decisions/008) |
 | 대표 사업장 | company당 1 | q2에서 계산 | 최신 월 가입자 수 최대(동률은 `workplace_id` 작은 쪽) |
 
 mart와 매칭 테이블에 FK를 걸지 않는 이유: 배치가 테이블을 통째로 다시 만들기 때문에 FK가 있으면 삭제 · 재적재 순서가 꼬인다. 정합성은 SQL 회귀 테스트로 확인한다.
@@ -240,9 +231,9 @@ CREATE TABLE mart_company_jobs (
 
 `company_location`(회사별 지도 좌표)과 `dart_corp.adres`(본사 주소)는 [decisions/004](./decisions/004-회사-좌표-정확도.md)로 채택되어 SPEC 5.2에 DDL이 들어갔다.
 
-위 제안 중 `industry`, `ingestion_log`, `api_call_log`는 마이그레이션 `0001`로, `dart_financial`은 `0004`로 만들었다(2026-10-12, SPEC 5.2에 반영). `mart_company_jobs`는 Phase 10에서 만든다.
+위 제안 중 `industry`, `ingestion_log`, `api_call_log`는 마이그레이션 `0001`로, `dart_financial`은 `0004`로 만들었다(2026-10-12, SPEC 5.2에 반영). `mart_company_jobs`는 만들지 않는다(Phase 10을 바로가기로 대체, decisions/008).
 
-`raw_nps_workplace`는 프로파일링 결과대로 확정해 `0001`로 만들었다. 컬럼은 `pipeline/nps/columns.py`의 22개 필드 + `snapshot_ym`, `run_id`, `name_norm`이고, 인덱스는 `0002`의 `(snapshot_ym, biz_no6, name_norm)`이다(troubleshooting TS-012). `raw_rent_contract`는 `0007`에서 CSV 23열을 글자 그대로 두고, 접수연도를 뺀 원본 필드의 `row_hash`로 연도 파일끼리 겹친 계약을 한 번만 넣는다(decisions/007). `raw_saramin_job`은 Phase 10 프로파일링 뒤에 확정한다. 공통으로 `snapshot_ym`(또는 수집일)과 적재 `run_id`를 둔다.
+`raw_nps_workplace`는 프로파일링 결과대로 확정해 `0001`로 만들었다. 컬럼은 `pipeline/nps/columns.py`의 22개 필드 + `snapshot_ym`, `run_id`, `name_norm`이고, 인덱스는 `0002`의 `(snapshot_ym, biz_no6, name_norm)`이다(troubleshooting TS-012). `raw_rent_contract`는 `0007`에서 CSV 23열을 글자 그대로 두고, 접수연도를 뺀 원본 필드의 `row_hash`로 연도 파일끼리 겹친 계약을 한 번만 넣는다(decisions/007). `raw_saramin_job`은 만들지 않는다(decisions/008). 공통으로 `snapshot_ym`(또는 수집일)과 적재 `run_id`를 둔다.
 
 ## 4. 설계 검토: 발견한 문제점
 
@@ -254,8 +245,8 @@ CREATE TABLE mart_company_jobs (
 | D2 | 반영 | **q1이 `nps_rate`와 INNER JOIN이라, 기준표에 없는 달은 조용히 빠진다.** 초기값이 202407부터라 그 이전 파일을 백필하면 행이 사라진다 | SPEC 7장 q1 | 적재 전 품질 검사에 "적재 월이 `nps_rate` 범위 안인가"를 추가하고, 범위 밖이면 `failed` |
 | D3 | 중간 | **상호가 바뀌면 회사가 둘로 갈린다.** `company`의 키가 `biz_no6 + name_norm`이라 "예시소프트" → "예시소프트웨어"면 새 회사가 생기고 추이가 끊긴다 | SPEC 5.2 `uk_company` | MVP는 그대로 두고 한계로 표시. 이후 같은 `biz_no6` · 같은 주소 · 이름 유사도 높은 회사를 묶는 `company_alias` 검토 |
 | D4 | 반영 | **q1도 사라진 행을 지우지 않는다.** raw를 정정해 어떤 회사-월이 없어져도 `mart_company_monthly`에는 남는다 | SPEC 7장 q1 | 갱신 대상 월 범위를 지운 뒤 다시 넣는다(`DELETE … WHERE snapshot_ym BETWEEN`) |
-| D5 | 중간 | **q6가 `DELETE` 후 `INSERT`라 그 사이 API가 빈 결과를 볼 수 있다.** 또 대표 사업장을 `workplace_monthly`에서 다시 계산해 q2와 기준이 둘이 된다 | SPEC 7장 q6 | 한 트랜잭션으로 묶고, 대표 주소는 `mart_company_summary.rep_addr_key`를 쓴다 |
+| D5 | 반영 | **q6가 `DELETE` 후 `INSERT`라 그 사이 API가 빈 결과를 볼 수 있다.** 또 대표 사업장을 `workplace_monthly`에서 다시 계산해 q2와 기준이 둘이 된다 | SPEC 7장 q6 | 한 트랜잭션으로 묶고, 대표 주소는 `mart_company_summary.rep_addr_key`를 쓴다. **Phase 9: `refresh_mart`가 q1 → q2 → q6 → q5 → q5t를 한 트랜잭션으로 돌리고, q6는 `company_location`(대표 사업장 기준 좌표 하나)만 쓴다** |
 | D6 | 반영 | **표본 부족 회사가 백분위 계산에 그대로 들어간다.** 가입자 3~9명 회사의 극단값(퇴사율 50% 등)이 업종 분포를 흔든다 | SPEC 7장 q2 | 백분위 분모에서 `small_sample` 회사를 빼고, 그 회사들의 백분위는 NULL로 둔다. 업종 분포 API(`p25/p50/p75`)도 같은 기준 |
 | D7 | 반영(decisions/007) | **`mart_station_rent`는 12 · 24개월만 미리 집계하는데, 화면은 6개월도 고른다.** `/stations/{id}/rent`는 1~24개월을 "요청 시 계산"이라 "요청 시점에 집계하지 않는다" 원칙과 충돌한다 | SPEC 7장 q5, 8장 | `window_months`에 6을 추가하고, API의 `months`는 6 · 12 · 24만 받는다. 1~24 자유 입력은 뺀다 |
-| D8 | 낮음 | SPEC에 DDL이 없는 테이블이 6개다(`industry`, `ingestion_log`, `api_call_log`, `dart_financial`, `mart_company_jobs`, raw 3종) | SPEC 5.1 vs 5.2 | 3장 제안 DDL을 T2가 검토해 SPEC에 반영 |
-| D9 | 낮음 | `workplace_monthly` 파티션이 `p2026`까지라 2027년 데이터는 `pmax`에 쌓인다 | SPEC 5.2 | 연 1회 `REORGANIZE PARTITION pmax`를 운영 문서(runbook)에 넣는다 |
+| D8 | 반영 | SPEC에 DDL이 없는 테이블이 6개다(`industry`, `ingestion_log`, `api_call_log`, `dart_financial`, `mart_company_jobs`, raw 3종) | SPEC 5.1 vs 5.2 | 3장 제안 DDL을 T2가 검토해 SPEC에 반영. **만든 테이블은 모두 SPEC 5.2에 있다. `mart_company_jobs` · `raw_saramin_job`은 만들지 않는다(decisions/008)** |
+| D9 | 낮음 | `workplace_monthly` 파티션이 `p2026`까지라 2027년 데이터는 `pmax`에 쌓인다 | SPEC 5.2 | 연 1회 `REORGANIZE PARTITION pmax`를 운영 문서(runbook)에 넣는다. **runbook 4장 다음 갱신 계획에 2026-12 항목으로 넣었다** |
