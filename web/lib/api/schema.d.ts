@@ -253,6 +253,7 @@ export interface paths {
          * 역 원룸 시세
          * @description 월세 계약이 20건 미만이면 24개월로 넓히고 period_extended_to_24m을 단다.
          *     trend는 기간과 관계없이 최근 24개월이고, 계약이 적은 역은 분기로 묶는다.
+         *     분포 · 추이 모두 radius 안 건물의 계약이다.
          */
         get: operations["station_rent_stations__station_id__rent_get"];
         put?: never;
@@ -781,6 +782,12 @@ export interface components {
             salary: number | null;
         };
         /**
+         * RadiusParam
+         * @description 쿼리 파라미터 radius(m). 역세권 반경 500 · 750m(decisions/009).
+         * @enum {integer}
+         */
+        RadiusParam: 500 | 750;
+        /**
          * Region
          * @description 대표 사업장의 시도 · 시군구 이름.
          */
@@ -816,6 +823,11 @@ export interface components {
              * @description 전월세 집계 기준월 YYYYMM
              */
             as_of: number | null;
+            /**
+             * Radius M
+             * @description 역세권 반경(m). 이 반경 안 건물의 계약으로 집계했다
+             */
+            radius_m: number;
             rent: components["schemas"]["StationRent"] | null;
             /**
              * Jeonse Share
@@ -1363,6 +1375,8 @@ export interface operations {
             query?: {
                 /** @description 6 · 12 · 24개월(docs/04 D7) */
                 months?: components["schemas"]["MonthsParam"];
+                /** @description 역세권 반경 500 · 750m(decisions/009) */
+                radius?: components["schemas"]["RadiusParam"];
             };
             header?: never;
             path: {

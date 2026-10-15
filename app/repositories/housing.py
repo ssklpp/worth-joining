@@ -13,15 +13,16 @@ async def rent_as_of(conn: AsyncConnection) -> int | None:
     return (await conn.execute(text("SELECT MAX(period_end_ym) FROM mart_station_rent"))).scalar()
 
 
-async def rents(conn: AsyncConnection, station_ids: list[int]) -> dict[tuple[int, int], RowMapping]:
-    """(역, 기간) → 시세 행."""
+async def rents(conn: AsyncConnection, station_ids: list[int],
+                radius: int = 500) -> dict[tuple[int, int], RowMapping]:
+    """(역, 기간) → 반경 radius(m)의 시세 행."""
     if not station_ids:
         return {}
     rows = (await conn.execute(text(
         f"SELECT r.station_id, {RENT_COLUMNS} FROM mart_station_rent r"
-        f" WHERE r.radius_m = 500"
+        f" WHERE r.radius_m = :radius"
         f" AND r.station_id IN ({', '.join(str(int(i)) for i in station_ids)})"
-    ))).mappings().all()
+    ), {"radius": radius})).mappings().all()
     return {(r["station_id"], r["window_months"]): r for r in rows}
 
 
@@ -70,12 +71,13 @@ async def station(conn: AsyncConnection, station_id: int) -> RowMapping | None:
     ), {"id": station_id})).mappings().first()
 
 
-async def trend(conn: AsyncConnection, station_id: int, end_ym: int) -> list[RowMapping]:
-    """기준월의 월 · 분기 추이 행(grain, ym 순)."""
+async def trend(conn: AsyncConnection, station_id: int, end_ym: int,
+                radius: int = 500) -> list[RowMapping]:
+    """기준월 · 반경의 월 · 분기 추이 행(grain, ym 순)."""
     return list((await conn.execute(text("""
         SELECT grain, ym, n_monthly, monthly_p25, monthly_median, monthly_p75, n_jeonse,
                jeonse_median_man
           FROM mart_station_rent_trend
-         WHERE station_id = :id AND period_end_ym = :end AND radius_m = 500
+         WHERE station_id = :id AND period_end_ym = :end AND radius_m = :radius
          ORDER BY grain, ym
-    """), {"id": station_id, "end": end_ym})).mappings())
+    """), {"id": station_id, "end": end_ym, "radius": radius})).mappings())
