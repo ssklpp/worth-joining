@@ -24,6 +24,12 @@
 .listHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; }
 .listHead select { font-size: var(--fs-s); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 4px 6px; }
 .items { list-style: none; margin: 0; padding: 0; }
+.pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }
+.pager > div { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+.pager button { min-width: 32px; min-height: 32px; padding: 0 6px; font: inherit; font-size: var(--fs-s); font-variant-numeric: tabular-nums; border: 1px solid transparent; border-radius: 4px; background: none; color: var(--ink); cursor: pointer; }
+.pager button:hover:not(:disabled) { border-color: var(--rule); }
+.pager button[aria-current="page"] { background: var(--ink); color: var(--surface); }
+.pager button:disabled { color: var(--muted); cursor: default; opacity: .5; }
 .items li:last-child .item { border-bottom: 1px solid var(--rule); }
 .item { display: flex; flex-direction: column; gap: 4px; padding: 12px 4px; border-top: 1px solid var(--rule); color: var(--ink); text-decoration: none; }
 .item:hover, .on { background: var(--paper); }
