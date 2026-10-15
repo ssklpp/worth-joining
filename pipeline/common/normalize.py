@@ -1,3 +1,5 @@
+"""상호 정규화. 회사 식별(biz_no6 + name_norm), DART 매칭, 회사명 검색이 같은 규칙을 쓴다."""
+
 import re
 import unicodedata
 

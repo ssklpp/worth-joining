@@ -47,7 +47,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 월별 추이 */
+        /**
+         * 월별 추이
+         * @description 기간을 주지 않으면 적재된 모든 달. 직전 달 자료가 없는 달의 입 · 퇴사율은 null이다(SPEC 6장).
+         */
         get: operations["company_trend_companies__company_id__trend_get"];
         put?: never;
         post?: never;
@@ -185,7 +188,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 계산 방법 · 한계 · 출처 */
+        /**
+         * 계산 방법 · 한계 · 출처
+         * @description 계산식 · 한계 · 출처와 데이터 기간. 화면 /methodology가 그대로 보여 준다.
+         */
         get: operations["get_methodology_meta_methodology_get"];
         put?: never;
         post?: never;
@@ -596,7 +602,10 @@ export interface components {
              */
             idx: number | null;
         };
-        /** Industry */
+        /**
+         * Industry
+         * @description 업종(국민연금 업종 코드 6자리). 999999는 분류 없음("BIZ_NO미존재사업장").
+         */
         Industry: {
             /** Code */
             code: string | null;
@@ -771,7 +780,10 @@ export interface components {
             /** Salary */
             salary: number | null;
         };
-        /** Region */
+        /**
+         * Region
+         * @description 대표 사업장의 시도 · 시군구 이름.
+         */
         Region: {
             /** Sido */
             sido: string | null;

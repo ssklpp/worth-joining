@@ -1,3 +1,8 @@
+"""API용 비동기 DB 엔진(asyncmy)과 라우터 의존성 `get_conn`.
+
+파이프라인 · 적재는 동기 엔진(pipeline/common/db.py)을 쓰고, 둘 다 `connect_args()`로 TLS를 정한다.
+"""
+
 import ssl
 from collections.abc import AsyncIterator
 
@@ -20,6 +25,9 @@ def connect_args(verify: bool) -> dict:
 
 
 def make_engine(url: str) -> AsyncEngine:
+    """pool_pre_ping으로 끊긴 연결을 쓰기 전에 확인해 다시 연다. 테스트는 테스트 DB URL로 따로
+    만든다.
+    """
     return create_async_engine(
         url, pool_pre_ping=True, connect_args=connect_args(settings.db_ssl_verify)
     )

@@ -1,3 +1,8 @@
+"""FastAPI 앱 진입점(`uvicorn app.main:app`). 미들웨어(CORS · 캐시 헤더)와 라우터를 묶는다.
+
+읽기 전용 API라 GET만 연다(SPEC 8장).
+"""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

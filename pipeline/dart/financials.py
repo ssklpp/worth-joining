@@ -42,6 +42,7 @@ def default_year(today: date | None = None) -> int:
 
 
 def amount(value: str | None) -> int | None:
+    """DART 금액 문자열("1,234", "-", "") → 정수. 숫자가 아니면 None."""
     value = (value or "").replace(",", "").strip()
     return int(value) if value.lstrip("-").isdigit() else None
 
@@ -75,6 +76,7 @@ def parse(body: dict, year: int) -> list[dict]:
 
 
 def save(engine: Engine, rows: list[dict]) -> None:
+    """(법인, 사업연도, 보고서) 키로 덮어쓴다. 다시 받아도 행이 늘지 않는다."""
     if not rows:
         return
     columns = ["revenue", "operating_income", "net_income", "total_liabilities", "total_equity"]
@@ -88,6 +90,10 @@ def save(engine: Engine, rows: list[dict]) -> None:
 
 
 def run(engine: Engine, client: ApiClient, api_key: str, year: int) -> int:
+    """year와 year - 3의 사업보고서를 받는다. 보고서 하나에 당기 · 전기 · 전전기가 있어 두 번이면
+    6년이 찬다.
+    한도에 닿으면 실패로 남기지 않고 그때까지 저장한 뒤 끝낸다.
+    """
     with engine.connect() as conn:
         codes = [r[0] for r in conn.execute(text(
             "SELECT DISTINCT corp_code FROM company_dart_link ORDER BY corp_code"))]

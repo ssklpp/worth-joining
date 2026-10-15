@@ -1,3 +1,4 @@
+// 계산 방법 화면(FR-OPS-02). 지도 그룹 밖의 한 단 읽기 화면이고, 본문은 /meta/methodology를 그대로 보여 준다
 import type { Metadata } from "next";
 import { MethodologyBody } from "./MethodologyBody";
 

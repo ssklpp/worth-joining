@@ -47,6 +47,7 @@ def parse(lines) -> dict[int, Decimal]:
 
 
 def run(engine: Engine, path: Path) -> str:
+    """같은 파일(체크섬)은 건너뛴다. 월별 전환율(% → 소수)을 upsert."""
     checksum = file_checksum(path)
     with engine.begin() as conn:
         if already_succeeded(conn, SOURCE, checksum):

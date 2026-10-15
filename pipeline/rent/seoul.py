@@ -54,6 +54,7 @@ MONEY_COLS = {13, 14, 21, 22}
 
 
 def month_add(ym: int, n: int) -> int:
+    """YYYYMM에 n개월을 더한다(202612 + 1 → 202701)."""
     y, m = divmod(ym // 100 * 12 + ym % 100 - 1 + n, 12)
     return y * 100 + m + 1
 
@@ -65,6 +66,9 @@ def period_end(as_of: dt.date) -> int:
 
 
 def normalize(fields: list[str]) -> list[str]:
+    """같은 계약이면 파일이 달라도 row_hash가 같게 나오도록 숫자 표기를 맞춘다
+    (앞자리 0, 금액 쉼표, 면적 소수점 끝 0).
+    """
     g = [f.strip() for f in fields]
     for i in INTEGER_COLS:
         if g[i].lstrip("-").isdigit():
@@ -85,6 +89,7 @@ def row_hash(fields: list[str]) -> str:
 
 
 def read_csv(path: Path):
+    """CP949 CSV에서 열 수가 맞는 행만 낸다(머리글 제외)."""
     with path.open(encoding="cp949", newline="") as fh:
         reader = csv.reader(fh)
         next(reader)  # 머리글
@@ -94,6 +99,10 @@ def read_csv(path: Path):
 
 
 def load_raw(engine: Engine, path: Path) -> str:
+    """CSV → raw_rent_contract. row_hash 키로 INSERT IGNORE라 연도 파일끼리 겹친 계약은 한 번만
+    들어간다.
+    같은 파일(체크섬)은 건너뛴다.
+    """
     checksum = file_checksum(path)
     with engine.begin() as conn:
         if already_succeeded(conn, SOURCE, checksum):
@@ -160,6 +169,7 @@ GROUP BY r.addr_key, r.house_type
 
 
 def load_core(engine: Engine, first_ym: int) -> int:
+    """raw → rent_contract(first_ym부터). 필요한 월 파티션을 먼저 만든다."""
     with engine.connect() as conn:
         last = conn.execute(text(
             "SELECT MAX(CAST(LEFT(contract_date, 6) AS UNSIGNED)) FROM raw_rent_contract"
@@ -187,6 +197,7 @@ def lot_points(buildings) -> dict[tuple[str, bool, int, int], tuple[float, float
 
 
 def load_buildings(engine: Engine, lots, juso=None) -> Counter:
+    """계약 건물(지번)에 좌표를 붙인다. 주소 파일의 지번 → 없으면 juso 검색(부속 지번 등) 순서."""
     counts = Counter()
     with engine.connect() as conn:
         rows = conn.execute(text(BUILDINGS)).mappings().all()
@@ -244,6 +255,9 @@ def search_lot(juso, row) -> tuple[float, float] | None:
 
 def run(engine: Engine, files: list[Path], as_of: dt.date, juso=None,
         address_path: Path = rnaddr.ADDRESS_PATH) -> Counter:
+    """기준월(신고가 끝난 달)과 보관 시작월(기준월 - 23개월)을 정하고 raw → core → building 순서로
+    적재한다.
+    """
     end = period_end(as_of)
     first = month_add(end, -(RETENTION - 1))
     log.info("집계 기준월 %s, 보관 %s ~", end, first)

@@ -43,6 +43,7 @@ def parse_sigungu(path: Path) -> dict[str, tuple[str, str]]:
 
 
 def load_region(conn: Connection, regions: dict[str, tuple[str, str]]) -> int:
+    """시군구 코드 5자리 → 시도 · 시군구 이름 upsert."""
     for code, (sido, sigungu) in regions.items():
         conn.execute(
             text("INSERT INTO region (region_code, sido_name, sigungu_name) VALUES (:c, :s, :g)"
@@ -54,6 +55,7 @@ def load_region(conn: Connection, regions: dict[str, tuple[str, str]]) -> int:
 
 
 def run(engine: Engine, path: Path) -> str:
+    """같은 파일(체크섬)은 건너뛴다."""
     checksum = file_checksum(path)
     with engine.begin() as conn:
         if already_succeeded(conn, SOURCE, checksum):

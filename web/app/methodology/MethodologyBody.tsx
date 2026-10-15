@@ -1,5 +1,6 @@
 "use client";
 
+// 계산식 · 한계 · 출처 · 데이터 기간. 문구는 API(app/services/methodology.py)에만 두고 화면은 그리기만 한다
 import { ErrorBox, Loading } from "@/components/Status";
 import { useApi, type Schemas } from "@/lib/api";
 import { formatYm } from "@/lib/format";

@@ -208,6 +208,7 @@
      "companies"
     ],
     "summary": "월별 추이",
+    "description": "기간을 주지 않으면 적재된 모든 달. 직전 달 자료가 없는 달의 입 · 퇴사율은 null이다(SPEC 6장).",
     "operationId": "company_trend_companies__company_id__trend_get",
     "parameters": [
      {
@@ -665,6 +666,7 @@
      "meta"
     ],
     "summary": "계산 방법 · 한계 · 출처",
+    "description": "계산식 · 한계 · 출처와 데이터 기간. 화면 /methodology가 그대로 보여 준다.",
     "operationId": "get_methodology_meta_methodology_get",
     "responses": {
      "200": {
@@ -1889,7 +1891,8 @@
      "code",
      "name"
     ],
-    "title": "Industry"
+    "title": "Industry",
+    "description": "업종(국민연금 업종 코드 6자리). 999999는 분류 없음(\"BIZ_NO미존재사업장\")."
    },
    "IndustryItem": {
     "properties": {
@@ -2360,7 +2363,8 @@
      "sido",
      "sigungu"
     ],
-    "title": "Region"
+    "title": "Region",
+    "description": "대표 사업장의 시도 · 시군구 이름."
    },
    "Source": {
     "properties": {

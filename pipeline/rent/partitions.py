@@ -23,6 +23,7 @@ NAME = re.compile(r"^p(\d{6})$")
 
 
 def next_ym(ym: int) -> int:
+    """다음 달 YYYYMM(202612 → 202701)."""
     return ym + 1 if ym % 100 < 12 else (ym // 100 + 1) * 100 + 1
 
 

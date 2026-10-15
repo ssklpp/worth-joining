@@ -32,6 +32,7 @@ class Building:
 
     @property
     def sgg(self) -> str:
+        """시군구 코드 5자리(법정동코드 앞 5자리)."""
         return self.adm_cd[:5]
 
 
@@ -65,6 +66,9 @@ def read(address_lines: Iterable[str], points: dict[str, tuple[float, float]]
 
 
 def read_files(address: Path = ADDRESS_PATH, entrance: Path | None = None) -> Iterator[Building]:
+    """주소 파일과 가장 최근 출입구 파일을 읽어 좌표가 있는 건물을 하나씩 낸다.
+    출입구 파일이 없으면 FileNotFoundError.
+    """
     entrance = entrance or entrance_path(address.parent)
     if entrance is None:
         raise FileNotFoundError(f"{address.parent}/{ENTRANCE_GLOB}이 없다(docs/runbook.md)")

@@ -1,3 +1,8 @@
+"""회사 API(SPEC 8장): 검색 · 상세 · 월별 추이 · 재무 · 근처 주거비.
+
+요청 시점에 집계하지 않는다. repositories가 읽은 mart 행을 응답 스키마로 옮기고 flags를 붙인다.
+"""
+
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -124,6 +129,8 @@ async def company_detail(company_id: CompanyId, conn: Conn):
 async def company_trend(
     company_id: CompanyId, conn: Conn, from_ym: YM = None, to_ym: YM = None,
 ) -> CompanyTrend:
+    """기간을 주지 않으면 적재된 모든 달. 직전 달 자료가 없는 달의 입 · 퇴사율은 null이다(SPEC 6장).
+    """
     if await repo.get_company(conn, company_id) is None:
         raise HTTPException(404, "회사를 찾을 수 없다")
     if from_ym and to_ym and from_ym > to_ym:

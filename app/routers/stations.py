@@ -1,3 +1,5 @@
+"""역 API(SPEC 8장, Phase 9): 역 목록과 12개월 시세, 역별 기간 시세와 24개월 추이."""
+
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
