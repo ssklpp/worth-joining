@@ -137,11 +137,15 @@ def same_building(sgg: str, street: str, number: str):
 
 
 def on_road(sgg: str, road: str):
+    """검색 결과 중 같은 시군구 · 같은 도로명이 딱 하나일 때만 고른다.
+    여럿이면 어느 건물인지 모르므로 쓰지 않는다.
+    """
     return lambda results: (lambda hits: hits[0] if len(hits) == 1 else None)(
         [r for r in results if r.get("sggNm") == sgg and r.get("rn") == road])
 
 
 def save(engine: Engine, company_id: int, g, basis: str, addr_key: str) -> None:
+    """회사 좌표 한 행을 넣거나 바꾼다(REPLACE). basis는 dart_hq · name_search · road · dong."""
     with engine.begin() as conn:
         conn.execute(text("""
             REPLACE INTO company_location
@@ -152,6 +156,9 @@ def save(engine: Engine, company_id: int, g, basis: str, addr_key: str) -> None:
 
 
 def step_dart(engine: Engine, juso: Juso, limit: int) -> Counter:
+    """1단계: DART 본사 주소를 juso로 건물 좌표로 바꾼다.
+    본사 구가 국민연금 대표 사업장 구와 다르면 쓰지 않는다(decisions/004).
+    """
     counts = Counter()
     with engine.connect() as conn:
         rows = conn.execute(text(DART_TARGETS), {"limit": limit}).all()
@@ -177,6 +184,9 @@ def step_dart(engine: Engine, juso: Juso, limit: int) -> Counter:
 
 
 def step_name(engine: Engine, juso: Juso, limit: int) -> Counter:
+    """2단계: "도로명 + 사업장명"으로 검색해 같은 도로의 건물 하나를 찾는다(가입자 많은 회사부터
+    limit곳).
+    """
     counts = Counter()
     with engine.connect() as conn:
         rows = conn.execute(text(NAME_TARGETS), {"limit": limit}).all()
@@ -259,6 +269,9 @@ def step_area(engine: Engine, steps: set[str], buildings) -> Counter:
 
 def run(engine: Engine, juso: Juso | None, steps: set[str], name_limit: int,
         dart_limit: int = 1_000_000, address_path=rnaddr.ADDRESS_PATH) -> Counter:
+    """steps(dart · name · road · dong)를 순서대로 실행한다.
+    juso 키가 없으면 1 · 2단계는 건너뛰고 파일만 쓰는 3 · 4단계(도로 · 동 중심)만 한다.
+    """
     with engine.begin() as conn:
         run_id = start_run(conn, SOURCE, ",".join(sorted(steps)), None)
     counts, status = Counter(), "failed"

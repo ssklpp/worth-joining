@@ -1,3 +1,5 @@
+"""환경 변수 설정(SPEC 3장). `settings` 하나를 API · 파이프라인 · Alembic이 함께 쓴다."""
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 

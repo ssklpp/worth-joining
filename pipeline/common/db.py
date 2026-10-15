@@ -1,3 +1,5 @@
+"""파이프라인 · 적재용 동기 DB 엔진(pymysql). API는 app/core/db.py의 비동기 엔진을 쓴다."""
+
 from sqlalchemy import Engine, create_engine
 
 from app.core.config import settings

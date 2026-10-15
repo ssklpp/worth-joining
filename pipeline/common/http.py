@@ -27,10 +27,14 @@ class QuotaExceeded(RuntimeError):
 
 
 class ApiError(RuntimeError):
+    """4xx, 또는 5xx · 네트워크 오류를 재시도해도 실패한 호출. 메시지의 키는 가려져 있다."""
     pass
 
 
 class ApiClient:
+    """출처 하나의 호출 창구. 호출 수를 api_call_log로 세므로 여러 실행이 같은 하루 한도를 나눠
+    쓴다.
+    """
     def __init__(self, engine: Engine, source: str, daily_limit: int, secret: str = "",
                  transport: httpx.BaseTransport | None = None, backoff: float = 1.0):
         self.engine, self.daily_limit = engine, daily_limit
@@ -40,6 +44,7 @@ class ApiClient:
         self.client = httpx.Client(timeout=TIMEOUT, transport=transport)
 
     def calls_today(self) -> int:
+        """오늘(로컬 날짜) 이 출처 · 키로 센 호출 수."""
         with self.engine.connect() as conn:
             return conn.execute(text(
                 "SELECT count FROM api_call_log WHERE source = :s AND call_date = :d"

@@ -18,6 +18,9 @@ SIDO = FIELDS.index("sido_code")
 
 
 def extract(src: Path, out_dir: Path) -> tuple[Path, int, int]:
+    """파일 하나에서 서울 행만 골라 자료 월 이름으로 쓴다. (출력 경로, 전체 행 수, 서울 행 수)를
+    돌려준다.
+    """
     total, lines, months = 0, [], set()
     with src.open(encoding=ENCODING, newline="") as f:
         header = f.readline()

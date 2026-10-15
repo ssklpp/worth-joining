@@ -1,3 +1,5 @@
+"""회사 비교 API(SPEC 8장 /compare): 1 ~ 3곳의 12개월 전 = 100 가입자 지수와 요약 지표."""
+
 from collections import defaultdict
 from typing import Annotated
 

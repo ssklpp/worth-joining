@@ -35,6 +35,9 @@ UNSAFE = re.compile(r"[%=><\[\]{}\"'`;|\\^~!?*+$#@&]")
 
 @dataclass
 class Geocode:
+    """juso 변환 결과(geocode_cache 한 행과 같은 모양). status가 fail이면 좌표 대신 fail_reason이
+    있다.
+    """
     status: str  # ok | fail
     lon: float | None = None
     lat: float | None = None
@@ -51,10 +54,14 @@ def only_one(results: list[dict]) -> dict | None:
 
 
 def clean_keyword(keyword: str) -> str:
+    """검색 API가 거부하는 특수문자를 공백으로 바꾸고 연속 공백을 하나로 줄인다."""
     return " ".join(UNSAFE.sub(" ", keyword).split())
 
 
 class Juso:
+    """주소정보누리집 검색 API → 좌표제공 API 두 단계 변환.
+    성공 · 실패 모두 geocode_cache에 남겨 같은 주소를 다시 부르지 않는다(SPEC 4장).
+    """
     def __init__(self, engine: Engine, search_key: str, coord_key: str, transport=None,
                  backoff: float = 1.0, interval: float = INTERVAL):
         self.engine, self.interval = engine, interval
@@ -111,6 +118,7 @@ class Juso:
         return utmk_to_wgs84(float(found[0]["entX"]), float(found[0]["entY"]))
 
     def cached(self, addr_key: str) -> Geocode | None:
+        """geocode_cache에 있으면 그 결과(실패 포함), 없으면 None."""
         with self.engine.connect() as conn:
             row = conn.execute(text(
                 "SELECT status, lon, lat, accuracy, fail_reason FROM geocode_cache"

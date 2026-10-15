@@ -63,6 +63,10 @@ def similar(a: str, b: str) -> float | None:
 
 
 def fuzzy_links(conn: Connection) -> list[dict]:
+    """정확 연결이 안 된 회사를 같은 사업자번호 6자리의 법인과만 비교한다(similar,
+    docs/matching.md).
+    동점이면 상장사 · corp_code 순으로 앞선 법인을 고른다.
+    """
     corps = defaultdict(list)
     for code, bizr6, name in conn.execute(text(
         "SELECT corp_code, bizr6, corp_name FROM dart_corp"
@@ -85,6 +89,7 @@ def fuzzy_links(conn: Connection) -> list[dict]:
 
 
 def match(conn: Connection) -> dict[str, int]:
+    """manual 연결은 남기고 exact → fuzzy 순으로 다시 만든다. 몇 번을 돌려도 결과가 같다."""
     conn.execute(text("DELETE FROM company_dart_link WHERE match_type <> 'manual'"))
     exact = conn.execute(text(EXACT)).rowcount
     links = fuzzy_links(conn)

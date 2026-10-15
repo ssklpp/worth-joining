@@ -40,6 +40,9 @@ SELECT d.corp_code FROM dart_corp d
 
 
 def targets(engine: Engine, limit: int | None) -> list[str]:
+    """아직 받지 않은 법인(fetched_at NULL) 중 상장사 → 국민연금 회사와 이름이 같은 법인 순, 가입자
+    많은 순.
+    """
     with engine.connect() as conn:
         sql = TARGETS + (f" LIMIT {int(limit)}" if limit else "")
         return [r[0] for r in conn.execute(text(sql))]
@@ -62,6 +65,9 @@ def parse(body: dict) -> dict | None:
 
 
 def save(engine: Engine, corp_code: str, info: dict | None) -> None:
+    """응답이 없거나 오류면 빈 값으로 저장하고 fetched_at만 찍는다. 다음 실행에서 다시 받지 않기
+    위해서다.
+    """
     info = info or {"bizr_no": None, "corp_cls": None, "adres": None}
     with engine.begin() as conn:
         conn.execute(text(
@@ -72,6 +78,9 @@ def save(engine: Engine, corp_code: str, info: dict | None) -> None:
 
 def run(engine: Engine, client: ApiClient, api_key: str, limit: int | None = None,
         interval: float = INTERVAL) -> int:
+    """하루 한도에 닿으면(QuotaExceeded) 실패로 남기지 않고 멈춘다. 남은 법인은 다음 실행에서 이어
+    받는다.
+    """
     codes = targets(engine, limit)
     with engine.begin() as conn:
         run_id = start_run(conn, SOURCE, f"{len(codes)}건", None)

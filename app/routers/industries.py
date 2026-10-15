@@ -1,3 +1,5 @@
+"""업종 API(SPEC 8장): 업종 목록(이름 검색)과 업종 안 지표 분포(p25 · p50 · p75)."""
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query

@@ -48,6 +48,7 @@ def parse(zip_bytes: bytes) -> list[dict]:
 
 
 def load(conn: Connection, rows: list[dict]) -> int:
+    """corpCode.xml 행을 묶음 단위로 upsert. 이름 · 종목코드가 바뀐 법인도 갱신된다."""
     sql = text(
         "INSERT INTO dart_corp (corp_code, corp_name, corp_name_norm, stock_code)"
         " VALUES (:code, :name, :norm, :stock)"
@@ -60,6 +61,7 @@ def load(conn: Connection, rows: list[dict]) -> int:
 
 
 def download(engine: Engine, api_key: str) -> bytes:
+    """corpCode.xml ZIP을 받는다. 키가 틀리면 ZIP 대신 오류 XML이 와서 ApiError."""
     client = ApiClient(engine, API_SOURCE, DAILY_LIMIT, secret=api_key)
     try:
         body = client.get(URL, {"crtfc_key": api_key}).content
@@ -71,6 +73,7 @@ def download(engine: Engine, api_key: str) -> bytes:
 
 
 def run(engine: Engine, zip_bytes: bytes) -> str:
+    """같은 ZIP(체크섬)이면 건너뛴다."""
     checksum = hashlib.sha256(zip_bytes).hexdigest()
     with engine.begin() as conn:
         if already_succeeded(conn, SOURCE, checksum):

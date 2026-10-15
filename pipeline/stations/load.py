@@ -40,6 +40,7 @@ Locate = Callable[[str], tuple[float, float] | None]  # 주소 → (경도, 위�
 
 @dataclass
 class Row:
+    """역사정보 한 행(노선 하나). 같은 이름 · 400m 안의 행을 묶어 station 하나로 만든다."""
     name: str
     line: str
     lon: float
@@ -65,6 +66,7 @@ def line_label(line: str) -> str:
 
 
 def in_seoul(lon: float, lat: float) -> bool:
+    """서울 대략 범위 상자 안인지. 다른 지역 같은 이름 역의 좌표(양원역)를 걸러낸다."""
     return SEOUL["lon"][0] <= lon <= SEOUL["lon"][1] and SEOUL["lat"][0] <= lat <= SEOUL["lat"][1]
 
 
@@ -94,6 +96,7 @@ def read_rows(frame: pd.DataFrame, locate: Locate | None) -> tuple[list[Row], in
 
 
 def distance_m(a: Row, b: Row) -> float:
+    """두 역 사이 거리(m). 400m 묶음 판단용이라 평면 근사로 충분하다."""
     dy = (a.lat - b.lat) * 111_320
     dx = (a.lon - b.lon) * 111_320 * math.cos(math.radians((a.lat + b.lat) / 2))
     return math.hypot(dx, dy)
@@ -145,6 +148,7 @@ def distinguish(stations: list[dict]) -> list[dict]:
 
 
 def load(conn: Connection, stations: list[dict]) -> int:
+    """station_key로 upsert. 다시 적재해도 역 id가 바뀌지 않는다."""
     for s in stations:
         conn.execute(text("""
             INSERT INTO station (station_key, station_name, line_names, pt)
@@ -156,6 +160,8 @@ def load(conn: Connection, stations: list[dict]) -> int:
 
 
 def run(engine: Engine, path: Path, locate: Locate | None) -> str:
+    """같은 파일(체크섬)은 건너뛴다. 서울 행 → 묶기(cluster) → 같은 이름 구분(distinguish) → 저장.
+    """
     checksum = file_checksum(path)
     with engine.begin() as conn:
         if already_succeeded(conn, SOURCE, checksum):
@@ -180,6 +186,7 @@ def run(engine: Engine, path: Path, locate: Locate | None) -> str:
 
 
 def juso_locator(engine: Engine) -> tuple[Locate | None, Callable[[], None]]:
+    """서울 밖 좌표를 주소로 고칠 때 쓸 함수. juso 키가 없으면 None이고, 그런 역은 뺀다."""
     if not (settings.juso_search_key and settings.juso_coord_key):
         log.warning("juso 키가 없어 서울 밖 좌표의 역은 고치지 않고 뺀다")
         return None, lambda: None

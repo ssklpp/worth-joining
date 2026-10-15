@@ -1,3 +1,5 @@
+"""지도 핀 API(SPEC 8장 /map/companies, Phase 8). 좌표가 있는 회사만, 가입자 많은 순 최대 200곳."""
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -18,6 +20,8 @@ def _num(value):
 
 
 def parse_bbox(bbox: str | None) -> tuple[float, float, float, float] | None:
+    """min_lon,min_lat,max_lon,max_lat" → 숫자 4개. 형식이 틀리거나 최솟값이 최댓값보다 크면 422.
+    """
     if bbox is None:
         return None
     try:

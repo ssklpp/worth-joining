@@ -73,6 +73,8 @@ def rent_end_ym(conn: Connection) -> int | None:
 
 
 def run(engine: Engine) -> dict[str, int]:
+    """ingestion_log 시작 → mart 갱신(한 트랜잭션) → 성공 · 실패 기록. 실패하면 예외를 다시 던진다.
+    """
     with engine.begin() as conn:
         latest = conn.execute(text("SELECT MAX(snapshot_ym) FROM workplace_monthly")).scalar()
         run_id = start_run(conn, "mart", str(latest), None)

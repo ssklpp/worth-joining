@@ -1,3 +1,8 @@
+"""메타 API: 계산 방법(/meta/methodology, 화면 /methodology와 같은 내용)과 상태 확인(/health).
+
+/health는 Railway 헬스체크와 화면 하단 기준월이 함께 쓴다.
+"""
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -16,6 +21,7 @@ Conn = Annotated[AsyncConnection, Depends(get_conn)]
 
 @router.get("/meta/methodology", response_model=Methodology, summary="계산 방법 · 한계 · 출처")
 async def get_methodology(conn: Conn) -> Methodology:
+    """계산식 · 한계 · 출처는 app/services/methodology.py의 상수이고, 기간만 mart에서 읽는다."""
     period_from = (await conn.execute(
         text("SELECT MIN(snapshot_ym) FROM mart_company_monthly")
     )).scalar()

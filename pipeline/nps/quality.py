@@ -14,12 +14,14 @@ ACTIVE_ZERO_LIMIT = 0.01  # 등록 행 중 members <= 0 비율
 
 @dataclass
 class Check:
+    """검사 하나의 결과. detail은 ingestion_log.message에 그대로 남는다."""
     name: str
     passed: bool
     detail: str
 
 
 class QualityError(Exception):
+    """실패한 검사 목록. 적재 트랜잭션을 되돌리라는 신호다."""
     def __init__(self, failed: list[Check]):
         self.failed = failed
         super().__init__("; ".join(f"{c.name}: {c.detail}" for c in failed))
@@ -30,6 +32,9 @@ def _one(conn: Connection, sql: str, ym: int):
 
 
 def check_row_change(conn: Connection, ym: int) -> Check:
+    """전월 대비 raw 행 수가 ±10%를 넘으면 실패. 파일이 잘렸거나 다른 범위로 추출된 경우를 잡는다.
+    전월 raw가 없는 첫 달은 통과시킨다.
+    """
     cur, prev = _one(conn, """
         SELECT SUM(snapshot_ym = :ym), SUM(snapshot_ym = PERIOD_ADD(:ym, -1))
           FROM raw_nps_workplace WHERE snapshot_ym IN (:ym, PERIOD_ADD(:ym, -1))
@@ -42,6 +47,9 @@ def check_row_change(conn: Connection, ym: int) -> Check:
 
 
 def check_active_zero(conn: Connection, ym: int) -> Check:
+    """등록(status 1) 행 중 가입자 0명 이하가 1%를 넘으면 실패.
+    탈퇴 행은 0명이 정상이라 등록 행만 본다(decisions/003).
+    """
     active, zero = _one(conn, """
         SELECT COUNT(*), SUM(members <= 0)
           FROM raw_nps_workplace WHERE snapshot_ym = :ym AND status_code = '1'
@@ -53,6 +61,9 @@ def check_active_zero(conn: Connection, ym: int) -> Check:
 
 
 def check_billed_cap(conn: Connection, ym: int) -> Check:
+    """고지금액이 가입자 수 × 소득 상한 × 보험료율을 넘는 등록 행이 있으면 실패.
+    열 밀림 · 단위 오류를 잡는다.
+    """
     (over,) = _one(conn, """
         SELECT COUNT(*)
           FROM raw_nps_workplace r
@@ -64,6 +75,7 @@ def check_billed_cap(conn: Connection, ym: int) -> Check:
 
 
 def check_rate_covered(conn: Connection, ym: int) -> Check:
+    """그 달에 맞는 nps_rate 행이 정확히 1개여야 한다. 없으면 추정 연봉을 계산할 수 없다."""
     (n,) = _one(conn, """
         SELECT COUNT(*) FROM nps_rate WHERE :ym BETWEEN valid_from_ym AND valid_to_ym
     """, ym)
