@@ -1,6 +1,6 @@
 // 지도가 있어야 보이는 동작. 네이버 지도 키(web/.env.local)와 로컬 API(:8000)가 필요해 로컬에서만 돈다:
 //   npm run test:e2e:map
-import { expect, test } from "@playwright/test";
+import { expect, liveTest as test } from "./fixtures";
 
 test.skip(!!process.env.CI, "지도 키와 로컬 API가 필요하다");
 
