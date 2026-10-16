@@ -36,3 +36,20 @@ test("map-station-click 회사 핀 옆의 역도 눌린다: 핀을 감싼 지도
   await expect(page).toHaveURL(/\/stations\/\d+$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("서현역");
 });
+
+test("map-list-size 목록을 20곳씩 보면 지도 핀도 20개, 다시 10곳씩", async ({ page }) => {
+  await page.goto("/");
+  const items = page.locator("ul li a[href^='/companies/']");
+  await expect(items).toHaveCount(10);
+  const size = page.getByRole("combobox", { name: "한 페이지에 보일 회사 수" });
+
+  await size.selectOption("20");
+  await expect(items).toHaveCount(20);
+  // 지도 핀도 이 페이지의 20곳. 같은 위치의 회사는 핀 하나로 묶여 20개보다 적을 수 있다
+  await expect.poll(() => page.locator("button[aria-pressed]").count()).toBeGreaterThan(10);
+  expect(await page.locator("button[aria-pressed]").count()).toBeLessThanOrEqual(20);
+  await expect(page.getByText(/^1–20 \//)).toBeVisible();
+
+  await size.selectOption("10");
+  await expect(items).toHaveCount(10);
+});
