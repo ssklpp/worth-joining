@@ -56,6 +56,7 @@ python -m pipeline.rent.seoul --as-of YYYY-MM-DD   # 전월세 CSV(data/raw/rent
 python -m pipeline.rent.conversion           # 전월세전환율(R-ONE 서울 연립다세대 CSV, data/raw/rent/conversion_rate_seoul.csv) → conversion_rate
 uvicorn app.main:app --reload                # API, :8000/docs
 cd web && npm install && npm run dev         # 프론트엔드, :3000 (lint · typecheck · build, API 계약이 바뀌면 npm run gen:api. web/README.md)
+cd web && npm run test:e2e                    # 화면 테스트(Playwright smoke, 저장된 API 응답 e2e/api/). 지도는 test:e2e:map(로컬), 응답 다시 저장은 test:e2e:record
 ruff check .
 pytest                                       # 전체 테스트 (Windows: python -P -m pytest, CI와 같은 조건. TS-011)
 pytest tests/sql/test_x.py::test_name        # 단일 테스트
