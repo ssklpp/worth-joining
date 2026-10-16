@@ -4,7 +4,7 @@
 |---|---|
 | 대상 | T4 프론트엔드 (`web/`), API 응답 필드를 정하는 T3 |
 | 시안 | [`docs/mockups/map-home.html`](./mockups/map-home.html) (메인: 지도 + 패널), [`docs/mockups/company-detail.html`](./mockups/company-detail.html) (이전안: 상세 단독 화면). 브라우저로 열면 됨. 가상 데이터 |
-| 상태 | 최종 수정 2026-10-15 (실제 화면 반영. 시안과 다른 곳은 본문에 적었다) |
+| 상태 | 최종 수정 2026-10-16 (실제 화면 반영. 시안과 다른 곳은 본문에 적었다) |
 
 SPEC 9장(화면)의 구성과 문구 규칙을 바꾸지 않고, 그 위에 **보이는 모양**을 정한다. SPEC과 충돌하면 SPEC을 따른다.
 
