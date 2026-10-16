@@ -21,7 +21,7 @@ LLM · RAG 같은 AI 기능 없이 **데이터 수집 → 정제 → DB 모델�
 
 **지도 메인:** 지도를 움직이면 왼쪽 목록이 지도 범위 안의 회사(가입자 많은 순 최대 200곳)로 바뀝니다. 목록은 10곳 또는 20곳씩 페이지로 보여 주고(정렬 옆에서 고름), 지도에는 그 페이지 회사의 핀만 나옵니다(목록에서는 그 페이지 회사, 상세 · 비교에서는 지금 범위의 가입자 많은 10곳). 핀에는 고른 지표(12개월 증감 · 연간 퇴사율 · 추정 연봉)가 보이고, 점선 핀은 도로 · 동 중심의 대략 위치입니다. 지역에서 구를 고르면 지도가 그 구로 이동하고, 확대하면 지하철역이 보이며 "역 이름으로 이동"으로 역을 찾습니다. 위쪽 검색창은 지도와 관계없이 서울 회사 전체에서 찾습니다.
 
-![지도 메인 화면: 왼쪽 지도 안 회사 목록(10곳씩)과 오른쪽 네이버 지도의 지표 핀 · 지하철역](./docs/images/screen-home.png)
+![지도 메인 화면: 왼쪽 지도 안 회사 목록(10 · 20곳씩)과 오른쪽 네이버 지도의 지표 핀 · 지하철역](./docs/images/screen-home.png)
 
 **회사 상세:** 핀이나 목록을 누르면 왼쪽 패널에 상세가 열리고 지도가 그 회사로 이동합니다. 성장 · 안정 · 연봉을 같은 업종의 중간 50% 범위 위에 표시하고, 아래에 회사 근처 역의 원룸 시세와 주거비 부담률, 가입자 추이, 월별 입퇴사, 재무가 이어집니다.
 
@@ -107,7 +107,7 @@ LLM · RAG 같은 AI 기능 없이 **데이터 수집 → 정제 → DB 모델�
 | 연봉 | 같은 5곳 모두 DART 평균보다 −15 ~ −44% (소득 상한 → 하한 추정으로 표시) | 〃 |
 | DART 매칭률 | 서울 본사 상장사 69.1% | [matching.md](./docs/matching.md) |
 | 회사 지도 좌표 | 137,128 / 137,129곳 (건물 13,030 · 도로 중심 122,334 · 동 중심 1,764) | [validation.md](./docs/validation.md) 1장 |
-| 전월세 | 연립다세대 · 오피스텔 계약 443,227건, 건물 좌표 99.92% | validation.md 2장 |
+| 전월세 | 연립다세대 · 오피스텔 계약 471,419건(서울 443,227 · 성남 28,192), 건물 좌표 99.9% | validation.md 2장 |
 | 응답 시간 (로컬 부하 20명) | 상세 p95 8ms, 검색 p95 6ms, 지도 p95 270ms | [performance.md](./docs/performance.md) |
 | mart 갱신 | 회사 지표 · 회사 근처 역 · 역세권 시세 한 트랜잭션 35초 | 〃 |
 
@@ -159,7 +159,7 @@ flowchart LR
 | | rapidfuzz | 국민연금 · DART 회사명 유사도 매칭 |
 | | pyproj (DLL이 막힌 PC는 같은 공식의 순수 Python 대체) | 좌표계 변환 (UTM-K → WGS84 경위도) |
 | DB | MariaDB 11.4 LTS (InnoDB) | 윈도 함수 · CTE, `PERCENTILE_CONT`, 월 파티션, 생성 컬럼, SPATIAL 인덱스 |
-| | Alembic | 스키마 마이그레이션 (`0001` ~ `0009`) |
+| | Alembic | 스키마 마이그레이션 (`0001` ~ `0010`) |
 | 백엔드 | FastAPI, uvicorn, Pydantic v2 | REST API, 파라미터 검증, 자동 문서 |
 | | SQLAlchemy 2.0 (async) + asyncmy | DB 연결. 통계 쿼리는 `sql/`에 SQL로 작성 |
 | 프론트엔드 | Next.js 15 (App Router), React 19, Recharts | 지도 메인 · 상세 · 비교 화면, 그래프 |
@@ -245,7 +245,7 @@ STRAIGHT_JOIN building b
 | `GET /companies/{id}/trend?from_ym=&to_ym=` | 월별 가입자 · 입퇴사율 · 추정 연봉 |
 | `GET /companies/{id}/financials` | DART 재무 지표 |
 | `GET /companies/{id}/housing?months=6\|12\|24` | 회사 근처 역(최대 3곳) 원룸 시세와 주거비 부담률 |
-| `GET /stations?q=&line=&sort=` | 서울 역 309곳(좌표 포함)과 12개월 시세 |
+| `GET /stations?q=&line=&sort=` | 서울 · 성남 역 327곳(좌표 포함)과 12개월 시세 |
 | `GET /stations/{id}/rent?months=6\|12\|24&radius=500\|750` | 역 원룸 시세 · 전세 비중 · 최근 24개월 추이(월 또는 분기). 반경 기본 500m |
 | `GET /industries?q=` | 업종 목록 |
 | `GET /industries/{code}/distribution?metric=` | 업종 내 분포 (p25 · p50 · p75) |
@@ -276,7 +276,7 @@ worth-joining/
 │  ├─ stations/          # 역 (환승역 묶기)
 │  ├─ rent/              # 전월세 적재 · 월 파티션 · 전환율
 │  └─ refresh_mart.py    # sql/q1 → q2 → q6 → q5 → q5t
-├─ migrations/           # Alembic 0001 ~ 0009
+├─ migrations/           # Alembic 0001 ~ 0010
 ├─ sql/                  # mart · 지도 · 비교 · 역세권 SQL
 ├─ web/                  # Next.js (app/(explore): 지도 메인 + 패널), e2e/: 화면 테스트
 ├─ tests/                # pytest (unit, sql, api, fixtures), perf/locustfile.py

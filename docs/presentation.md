@@ -135,7 +135,7 @@ FROM station st STRAIGHT_JOIN building b
 
 ## 9. 시연 순서
 
-1. 지도 메인: 핀 지표 바꾸기(증감 → 퇴사율 → 연봉), 목록 10곳씩 페이지
+1. 지도 메인: 핀 지표 바꾸기(증감 → 퇴사율 → 연봉), 목록 10 · 20곳씩 페이지
 2. "우아한형제들" 검색 → 상세: 결과표, 근처 역 주거비, 채용 사이트 바로가기
 3. 비교에 담기 3곳 → 가입자 지수 그래프
 4. 지역 "관악구" → 역 "신림" → 반경 500 → 750m(지도에 두 원)
@@ -144,7 +144,7 @@ FROM station st STRAIGHT_JOIN building b
 
 인터넷이 안 되면 로컬 서버(:8000 API, :3000 웹)나 미리 녹화한 영상으로 대신한다.
 
-## 10. 확장판 ★: 트러블슈팅 (troubleshooting.md TS-001 ~ 031)
+## 10. 확장판 ★: 트러블슈팅 (troubleshooting.md TS-001 ~ 032)
 
 | 주제 | 무엇이 문제였나 | 어떻게 풀었나 |
 |---|---|---|
@@ -171,10 +171,10 @@ FROM station st STRAIGHT_JOIN building b
 
 ## 12. 테스트 · 보안 · 일한 방식
 
-- **테스트:** pytest 215개(SQL 계산 규칙 · API, 실제 키 없이 `tests/fixtures/`, CI는 MariaDB 11.4 컨테이너). Playwright 화면 테스트 10개(smoke 8개는 저장된 API 응답으로 CI에서, 지도 2개는 로컬). 고친 버그는 되돌리면 실패하는 테스트로 남겼다.
+- **테스트:** pytest 230개(SQL 계산 규칙 · API, 실제 키 없이 `tests/fixtures/`, CI는 MariaDB 11.4 컨테이너). Playwright 화면 테스트 12개(smoke 8개는 저장된 API 응답으로 CI에서, 지도 4개는 로컬). 고친 버그는 되돌리면 실패하는 테스트로 남겼다.
 - **보안:** CSP(허용 목록 밖 스크립트 · 연결 차단, 위반이 있으면 화면 테스트 실패), CORS는 웹 도메인 · GET만, 입력 길이 · 범위 검증, SQL은 모두 바인딩(정렬 열은 정해 둔 목록), DB는 사설망, API 키는 저장소에 없음.
 - **CI 세 작업:** 테스트 · 웹(lint · 타입 · 빌드 · 화면) · API 이미지. 릴리스 `v1.0.0` ~ `v1.3.0`.
-- **확장판 ★ 일한 방식:** 병합한 PR 97개(10/16), 트랙 4개, 결정 기록 10건, 트러블슈팅 31건. main 보호 · PR · squash 병합, Conventional Commits. SPEC이 기준이고 결정이 바뀌면 SPEC부터 고친다.
+- **확장판 ★ 일한 방식:** 병합한 PR 103개(10/16), 트랙 4개, 결정 기록 10건, 트러블슈팅 32건. main 보호 · PR · squash 병합, Conventional Commits. SPEC이 기준이고 결정이 바뀌면 SPEC부터 고친다.
 
 | 결정 | 왜 |
 |---|---|
@@ -193,4 +193,4 @@ FROM station st STRAIGHT_JOIN building b
 - 채용공고는 API를 개인에게 주지 않아(사람인, 고용24) 모으지 않고 사람인 · 잡코리아 검색으로 연결한다. 크롤링은 하지 않았다(decisions/008).
 - **확장판 ★ 다음 할 일:** 월 갱신을 명령 하나로(`pipeline.monthly`), 경기 다른 시로 확장, API 서버를 아시아 리전으로(응답 약 70ms 단축 예상).
 - 배운 것: 공공데이터는 "있다"와 "쓸 수 있다" 사이가 멀다. 그 사이를 SQL과 검증 숫자로 메웠다.
-- 문서: SPEC, decisions 001 ~ 010, profiling · matching · validation · explain · performance · runbook · troubleshooting(TS-001 ~ 031)
+- 문서: SPEC, decisions 001 ~ 010, profiling · matching · validation · explain · performance · runbook · troubleshooting(TS-001 ~ 032)
