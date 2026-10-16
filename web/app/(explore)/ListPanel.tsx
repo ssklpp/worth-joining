@@ -5,21 +5,15 @@
 // 지도 안의 회사는 10곳 또는 20곳씩 페이지로 나누고, 지도도 그 페이지의 회사 핀만 그린다
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Estimate } from "@/components/Estimate";
 import { ErrorBox, Loading } from "@/components/Status";
 import { formatCount, formatPct, formatWon } from "@/lib/format";
-import { PIN_LIMIT, pointKey, useExplore, type Pin } from "./ExploreContext";
+import { PAGE_SIZES, pointKey, useExplore, type ListSort, type PageSize, type Pin } from "./ExploreContext";
 import { SearchResults } from "./SearchResults";
 import styles from "./explore.module.css";
 
-// 한 페이지의 회사 수 = 지도에 그리는 핀 수. 기본은 PIN_LIMIT(10)
-const PAGE_SIZES = [PIN_LIMIT, 20] as const;
-type PageSize = (typeof PAGE_SIZES)[number];
-
-type Sort = "members" | "growth" | "quit" | "salary";
-
-const SORTS: Record<Sort, { label: string; fn: (a: Pin, b: Pin) => number }> = {
+const SORTS: Record<ListSort, { label: string; fn: (a: Pin, b: Pin) => number }> = {
   members: { label: "가입자 많은 순", fn: (a, b) => b.members - a.members },
   growth: { label: "12개월 증감 높은 순", fn: (a, b) => (b.growth_12m ?? -9) - (a.growth_12m ?? -9) },
   quit: { label: "퇴사율 낮은 순", fn: (a, b) => (a.quit_rate_12m ?? 9) - (b.quit_rate_12m ?? 9) },
@@ -35,11 +29,12 @@ export function ListPanel() {
 }
 
 function PinList() {
-  const { pins, pinPath, pinState, point, setPoint, hover, setHover, setPageIds } = useExplore();
-  const [sort, setSort] = useState<Sort>("members");
-  const [page, setPage] = useState(1);
-  const [size, setSize] = useState<PageSize>(PIN_LIMIT);
+  const { pins, pinPath, pinState, point, setPoint, hover, setHover, setPageIds,
+    listSort: sort, setListSort, listSize: size, setListSize, listPage, setListPage } = useExplore();
   const top = useRef<HTMLDivElement>(null);
+  // 정렬 · 페이지 크기 · 페이지는 공유 상태라 상세에 갔다 돌아와도 남는다. 페이지는 그때와 같은
+  // 핀 결과 · 같은 위치 보기일 때만 쓰고, 지도를 옮겼거나 정렬 · 크기를 바꾸면 1페이지
+  const page = listPage.pins === pins && listPage.point === point ? listPage.page : 1;
 
   const items = useMemo(() => {
     if (!pins) return [];
@@ -54,8 +49,6 @@ function PinList() {
   useEffect(() => {
     if (pins && point && !pins.items.some((p) => pointKey(p) === point)) setPoint(null);
   }, [pins, point, setPoint]);
-  // 지도를 옮기거나(pins) 정렬 · 같은 위치 보기 · 페이지 크기를 바꾸면 첫 페이지로
-  useEffect(() => setPage(1), [pins, sort, point, size]);
   // 지도는 이 페이지의 회사만. 목록을 떠나면(상세 · 비교 · 검색) 다시 모든 핀
   const shownKey = shown.map((p) => p.company_id).join(",");
   useEffect(() => {
@@ -64,8 +57,11 @@ function PinList() {
   useEffect(() => () => setPageIds(null), [setPageIds]);
 
   function go(n: number) {
-    setPage(n);
+    setListPage({ page: n, pins, point });
     top.current?.scrollIntoView({ block: "nearest" });
+  }
+  function reset() {
+    setListPage({ page: 1, pins, point });
   }
 
   if (!pins) {
@@ -84,13 +80,13 @@ function PinList() {
         <div className={styles.listOpts}>
           <label>
             <span className="sr-only">정렬</span>
-            <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
-              {(Object.keys(SORTS) as Sort[]).map((k) => <option key={k} value={k}>{SORTS[k].label}</option>)}
+            <select value={sort} onChange={(e) => { setListSort(e.target.value as ListSort); reset(); }}>
+              {(Object.keys(SORTS) as ListSort[]).map((k) => <option key={k} value={k}>{SORTS[k].label}</option>)}
             </select>
           </label>
           <label>
             <span className="sr-only">한 페이지에 보일 회사 수</span>
-            <select value={size} onChange={(e) => setSize(Number(e.target.value) as PageSize)}>
+            <select value={size} onChange={(e) => { setListSize(Number(e.target.value) as PageSize); reset(); }}>
               {PAGE_SIZES.map((n) => <option key={n} value={n}>{n}곳씩</option>)}
             </select>
           </label>

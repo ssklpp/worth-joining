@@ -14,6 +14,12 @@ export type Selected = { id: number; name: string; lat: number; lon: number; app
 /** 역세권 반경(m, decisions/009) */
 export const RADII = [500, 750] as const;
 export type Radius = (typeof RADII)[number];
+/** 목록 정렬과 한 페이지 회사 수(= 지도 핀 수) */
+export type ListSort = "members" | "growth" | "quit" | "salary";
+export const PAGE_SIZES = [10, 20] as const;
+export type PageSize = (typeof PAGE_SIZES)[number];
+/** 목록 페이지는 그때의 핀 결과 · 같은 위치 보기와 함께 기억한다. 둘이 바뀌면(지도 이동 등) 1페이지 */
+export type ListPage = { page: number; pins: Schemas["MapCompanies"] | null; point: string | null };
 
 type Explore = {
   metric: Metric;
@@ -42,6 +48,13 @@ type Explore = {
   /** 역 시세 화면에서 고른 반경. 지도는 연 역에 반경 원을 그린다. 다른 역으로 옮겨도 유지한다 */
   radius: Radius;
   setRadius: (r: Radius) => void;
+  /** 목록의 정렬 · 페이지 크기 · 페이지. 상세 · 비교로 갔다 돌아와도 그대로다 */
+  listSort: ListSort;
+  setListSort: (s: ListSort) => void;
+  listSize: PageSize;
+  setListSize: (n: PageSize) => void;
+  listPage: ListPage;
+  setListPage: (p: ListPage) => void;
   /** "목록으로"가 돌아갈 주소(검색어 포함) */
   listUrl: string;
   setListUrl: (url: string) => void;
@@ -72,6 +85,9 @@ export function ExploreProvider({ children }: { children: React.ReactNode }) {
   const [listUrl, setListUrl] = useState("/");
   const [pageIds, setPageIds] = useState<Set<number> | null>(null);
   const [radius, setRadius] = useState<Radius>(500);
+  const [listSort, setListSort] = useState<ListSort>("members");
+  const [listSize, setListSize] = useState<PageSize>(PAGE_SIZES[0]);
+  const [listPage, setListPage] = useState<ListPage>({ page: 1, pins: null, point: null });
 
   const pinPath = useMemo(() => {
     if (!bbox) return null; // 지도가 범위를 알려 줄 때까지 기다린다
@@ -97,6 +113,7 @@ export function ExploreProvider({ children }: { children: React.ReactNode }) {
     metric, setMetric, region, setRegion, regionFocus, industry, setIndustry, setBbox,
     pinPath, pinState, pins, hover, setHover, point, setPoint, listUrl, setListUrl, pageIds, setPageIds,
     radius, setRadius, selected, select,
+    listSort, setListSort, listSize, setListSize, listPage, setListPage,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

@@ -53,3 +53,21 @@ test("map-list-size 목록을 20곳씩 보면 지도 핀도 20개, 다시 10곳�
   await size.selectOption("10");
   await expect(items).toHaveCount(10);
 });
+
+test("map-list-keep 상세에 갔다 '목록으로' 돌아와도 정렬 · 20곳씩이 남는다", async ({ page }) => {
+  await page.goto("/");
+  const sort = page.getByRole("combobox", { name: "정렬" });
+  const size = page.getByRole("combobox", { name: "한 페이지에 보일 회사 수" });
+  await sort.selectOption("growth");
+  await size.selectOption("20");
+  const items = page.locator("ul li a[href^='/companies/']");
+  await expect(items).toHaveCount(20);
+
+  await items.first().click();
+  await expect(page).toHaveURL(/\/companies\/\d+$/);
+  await page.getByRole("button", { name: "목록으로" }).click();
+
+  await expect(sort).toHaveValue("growth");
+  await expect(size).toHaveValue("20");
+  await expect(items).toHaveCount(20);
+});
