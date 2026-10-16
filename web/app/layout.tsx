@@ -4,11 +4,14 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
 
-// 글꼴은 IBM Plex Sans KR 한 가족만(docs/03 3장)
+// 글꼴은 IBM Plex Sans KR 한 가족만(docs/03 3장).
+// 한글 글꼴은 글자 범위마다 파일이 100여 개로 나뉜다. 미리 받기(preload)를 켜면 굵기 4종의 조각 280개(2.6MB)를
+// 모두 <link rel="preload">로 받아 첫 화면이 늦어진다. 끄면 브라우저가 화면에 쓰인 글자 조각만 받는다
 const plex = IBM_Plex_Sans_KR({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
   display: "swap",
+  preload: false,
   variable: "--font-plex",
 });
 
