@@ -1,6 +1,6 @@
 # SPEC: 다닐만한가 (worth-joining)
 
-공공데이터로 **서울특별시 사업장** 회사의 인원 추이·입퇴사율·추정 연봉을 보여주고, 회사 근처 역세권 전월세 시세와 채용 사이트(사람인 · 잡코리아) 바로가기를 연결하는 구직자용 웹 서비스.
+공공데이터로 **서울특별시와 경기도 성남시 사업장** 회사의 인원 추이·입퇴사율·추정 연봉을 보여주고, 회사 근처 역세권 전월세 시세와 채용 사이트(사람인 · 잡코리아) 바로가기를 연결하는 구직자용 웹 서비스.
 
 이 문서는 구현 지시서다. 4인 팀이 4개 트랙으로 나눠 병렬로 진행한다(12장). 각 단계의 완료 조건을 모두 만족해야 그 단계가 끝난 것으로 본다. 10장의 단계별 기간은 1인 작업량 기준이며, 실제 일정은 12.2의 일정표(2026-10-02 ~ 10-21)를 따른다. Phase 9 · 10은 기간 이후 과제다. 요구사항 ID · 우선순위(P0~P3) · User Story · Task 분해는 `docs/02_requirements.md`, API 명세와 외부 API 키 신청은 `docs/05_api_spec.md`를 따른다.
 
@@ -106,7 +106,7 @@ GRANT ALL PRIVILEGES ON worth_joining_test.* TO 'wj'@'localhost';
 
 | 소스 | 형식 | 수집 주기 | 비고 |
 |---|---|---|---|
-| 국민연금 가입 사업장 내역 | CSV(ZIP), 월별 스냅샷 | 월 1회 | 인코딩 CP949. 사업자번호는 앞 6자리만 제공. 전국 파일에서 **법정동 시도 코드 `11`(서울)만 추출해 적재**(`pipeline.nps.extract_seoul`, docs/decisions/002). 파일 이름이 자료 월보다 한 달 늦을 수 있으므로 자료생성년월로 판단 |
+| 국민연금 가입 사업장 내역 | CSV(ZIP), 월별 스냅샷 | 월 1회 | 인코딩 CP949. 사업자번호는 앞 6자리만 제공. 전국 파일에서 **법정동 시도 코드 `11`(서울)과 성남시 3개 구(시도 `41`, 시군구 `131` · `133` · `135`)만 추출해 적재**(`pipeline.nps.extract_seoul`, docs/decisions/002 · 010). 파일 이름이 자료 월보다 한 달 늦을 수 있으므로 자료생성년월로 판단 |
 | OpenDART corpCode.xml | ZIP(XML) | 월 1회 | 회사 고유번호 마스터 |
 | OpenDART company.json | JSON | 필요 시 | 일 20,000건 한도. bizr_no 획득용 |
 | OpenDART fnlttMultiAcnt.json (다중회사 주요계정) | JSON | 분기 1회 | reprt_code 11011(사업보고서). 한 번에 100개 법인 · 3개년. 단일회사 API는 법인 수만큼 불러야 해 하루 한도를 넘는다 |
@@ -436,7 +436,7 @@ CREATE TABLE job_posting (
 | 입사율·퇴사율 | `new ÷ 전월 members`, `lost ÷ 전월 members`. 직전 달이 없으면 NULL |
 | 12개월 성장률 | `members(최신) ÷ members(12개월 전) − 1` |
 | 연간 퇴사율 | 최근 12개월 `lost` 합 ÷ 같은 기간 평균 `members` |
-| 백분위 | 서울 사업장 중 대표 업종 내 `PERCENT_RANK` × 100. 안정 = 100 − 퇴사율 백분위 |
+| 백분위 | 서울 · 성남 사업장 중 대표 업종 내 `PERCENT_RANK` × 100. 안정 = 100 − 퇴사율 백분위 |
 | 표본 부족 | 회사: members < 10. 역: 계약 < 20건 |
 | 원룸 | 전용 33㎡ 이하 연립다세대·오피스텔 |
 | 월세/전세 | `monthly_man > 0`이면 월세, 0이면 전세 |
@@ -737,7 +737,7 @@ services:
 
 ### Phase 1. 데이터 프로파일링 (1~2일)
 
-1. 국민연금 최근 13개월 파일을 내려받아 `data/raw/nps/all/`(gitignore)에 두고, `python -m pipeline.nps.extract_seoul data/raw/nps/all/*.csv`로 서울 사업장만 `data/raw/nps/YYYYMM.csv`(자료 월 이름)에 추출한다.
+1. 국민연금 최근 13개월 파일을 내려받아 `data/raw/nps/all/`(gitignore)에 두고, `python -m pipeline.nps.extract_seoul data/raw/nps/all/*.csv`로 서울 · 성남 사업장만 `data/raw/nps/YYYYMM.csv`(자료 월 이름)에 추출한다.
 2. `notebooks/` 대신 `pipeline/nps/profile.py`로 다음을 출력한다: 인코딩, 실제 헤더명, 행 수, 컬럼별 결측률, 사업자번호 6자리 중복률, 가입자 0 이하 행 수, **주소 상세 수준(도로명 주소에 건물번호가 있는지)**.
    - 과거 월 파일을 몇 개월까지 구할 수 있는지 확인한다. 13개월이 안 되면 확보 범위를 기록하고 팀장에게 알린다.
    - 건물번호가 없으면 Phase 8의 회사 좌표는 건물 단위가 아니다. 대체 방법을 정하고 `accuracy`를 `road` 또는 `dong`으로 저장한다. → 확인 결과 건물번호 0건, 대체 방법은 docs/decisions/004.
@@ -749,7 +749,7 @@ services:
 ### Phase 2. 스키마와 국민연금 적재 (3~4일)
 
 1. Alembic으로 5.2의 회사 관련 테이블 + `nps_rate`, `ingestion_log`, `api_call_log`, `raw_nps_workplace` 생성.
-2. `nps_rate` 초기값 시드 마이그레이션. `region`은 법정동코드 전체자료(서울 행만 남긴 `data/raw/region/legal_dong_codes_seoul.txt`)에서 `python -m pipeline.region.load`로, `industry`는 국민연금 파일의 업종 코드 · 이름에서 채운다.
+2. `nps_rate` 초기값 시드 마이그레이션. `region`은 법정동코드 전체자료(`data/raw/region/legal_dong_codes_all.txt`)에서 `python -m pipeline.region.load`로 서울 · 성남 시군구만, `industry`는 국민연금 파일의 업종 코드 · 이름에서 채운다.
 3. 적재기 `python -m pipeline.nps.load --ym YYYYMM`:
    - CSV → UTF-8 변환 → `LOAD DATA LOCAL INFILE`로 `raw_nps_workplace`(해당 월 삭제 후 적재)
    - `normalize_name`으로 `name_norm` 계산
@@ -917,7 +917,7 @@ services:
 - 기업 리뷰 작성·수집
 - 채용공고 본문 저장·재배포
 - 직무별·개인별 연봉 산출
-- 서울 외 지역 사업장(docs/decisions/002)
+- 서울 · 성남 외 지역 사업장(docs/decisions/002 · 010)
 - 단독·다가구 전월세(프로파일링 결과에 따라 재검토), 서울 외 지역 전월세
 - 실시간 부동산 매물 정보(민간 플랫폼 크롤링 · 매물 링크 포함). 시세는 신고된 실거래가로만 제공한다
 - 유료 기능

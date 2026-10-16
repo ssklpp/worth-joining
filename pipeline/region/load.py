@@ -1,9 +1,11 @@
 """법정동코드 전체자료 → region (시군구 코드 5자리 → 시도 · 시군구 이름, SPEC Phase 2-2).
 
-python -m pipeline.region.load [--file data/raw/region/legal_dong_codes_seoul.txt]
+python -m pipeline.region.load [--file data/raw/region/legal_dong_codes_all.txt]
 
 원본은 행정표준코드관리시스템(code.go.kr)의 "법정동코드 전체자료"(CP949, 탭 구분:
-법정동코드, 법정동명, 폐지여부)다. 서울 범위(decisions/002)라 서울 행만 남긴 파일을 쓴다.
+법정동코드, 법정동명, 폐지여부)다. 서비스 범위(서울 · 성남시 3개 구, decisions/002 · 010)
+행만 넣는다.
+경기 시군구 이름은 "성남시 분당구"처럼 시와 구를 함께 둔다(juso 검색 결과의 sggNm과 같다).
 같은 시군구 코드가 존재 · 폐지 둘 다 있으면 존재 쪽 이름을 쓴다. 다시 넣어도 결과가 같다.
 """
 
@@ -16,24 +18,26 @@ from sqlalchemy import Connection, Engine, text
 
 from pipeline.common.db import sync_engine
 from pipeline.common.ingestion import already_succeeded, file_checksum, finish_run, start_run
+from pipeline.nps.extract_seoul import in_scope
 
 log = logging.getLogger(__name__)
 
 SOURCE = "region"
 ENCODING = "cp949"
 HEADER = ["법정동코드", "법정동명", "폐지여부"]
-DEFAULT_FILE = Path("data/raw/region/legal_dong_codes_seoul.txt")
+DEFAULT_FILE = Path("data/raw/region/legal_dong_codes_all.txt")
 
 
 def parse_sigungu(path: Path) -> dict[str, tuple[str, str]]:
-    """시군구 행(코드 뒤 5자리가 00000, 시도 행 제외)만 골라 {코드5: (시도, 시군구)}."""
+    """서비스 범위의 시군구 행(코드 뒤 5자리가 00000, 시도 행 제외)만 골라
+    {코드5: (시도, 시군구)}."""
     lines = path.read_text(encoding=ENCODING).splitlines()
     if lines[0].split("\t") != HEADER:
         raise ValueError(f"법정동코드 파일 헤더가 다르다: {lines[0]!r}")
     result: dict[str, tuple[str, str, bool]] = {}
     for line in lines[1:]:
         code, name, status = line.split("\t")
-        if code[5:] != "00000" or code[2:5] == "000":
+        if code[5:] != "00000" or code[2:5] == "000" or not in_scope(code[:2], code[2:5]):
             continue
         sido, sigungu = name.split(" ", 1)
         alive = status == "존재"

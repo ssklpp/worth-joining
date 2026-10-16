@@ -1,4 +1,5 @@
-"""전국 국민연금 CSV에서 서울특별시 사업장만 추출한다(docs/decisions/002).
+"""전국 국민연금 CSV에서 서비스 범위의 사업장만 추출한다: 서울특별시 전체와 경기도 성남시
+3개 구(docs/decisions/002 · 010). 모듈 이름은 서울만 다루던 때의 것을 그대로 쓴다.
 
 python -m pipeline.nps.extract_seoul data/raw/nps/all/*.csv
 
@@ -13,12 +14,22 @@ from pathlib import Path
 
 from pipeline.nps.columns import ENCODING, FIELDS, check_header, to_snapshot_ym
 
-SEOUL_SIDO_CODE = "11"
+# 시도 코드 → 시군구 코드(None이면 시도 전체). 성남시 수정구 · 중원구 · 분당구
+TARGETS: dict[str, set[str] | None] = {"11": None, "41": {"131", "133", "135"}}
 SIDO = FIELDS.index("sido_code")
+SIGUNGU = FIELDS.index("sigungu_code")
+
+
+def in_scope(sido: str, sigungu: str) -> bool:
+    """서비스 범위(TARGETS) 안의 사업장인지."""
+    if sido not in TARGETS:
+        return False
+    sigungus = TARGETS[sido]
+    return sigungus is None or sigungu in sigungus
 
 
 def extract(src: Path, out_dir: Path) -> tuple[Path, int, int]:
-    """파일 하나에서 서울 행만 골라 자료 월 이름으로 쓴다. (출력 경로, 전체 행 수, 서울 행 수)를
+    """파일 하나에서 범위 안 행만 골라 자료 월 이름으로 쓴다. (출력 경로, 전체 행 수, 남긴 행 수)를
     돌려준다.
     """
     total, lines, months = 0, [], set()
@@ -29,7 +40,7 @@ def extract(src: Path, out_dir: Path) -> tuple[Path, int, int]:
             row = next(csv.reader([line]))
             total += 1
             months.add(row[0])
-            if row[SIDO] == SEOUL_SIDO_CODE:
+            if in_scope(row[SIDO], row[SIGUNGU]):
                 lines.append(line)
     if len(months) != 1:
         raise ValueError(f"{src.name}: 자료 월이 하나가 아니다 {sorted(months)}")
@@ -47,7 +58,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     for src in args.files:
         out, total, kept = extract(src, args.out)
-        print(f"{src.name} -> {out.name}: 전체 {total:,}행, 서울 {kept:,}행 ({kept / total:.1%})")
+        print(f"{src.name} -> {out.name}: 전체 {total:,}행, "
+              f"서울 · 성남 {kept:,}행 ({kept / total:.1%})")
     return 0
 
 

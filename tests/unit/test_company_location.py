@@ -30,7 +30,11 @@ GN, SP = "서울특별시 강남구", "서울특별시 송파구"
     # 동 이름의 숫자를 건물번호로 읽지 않는다
     ("서울특별시 종로구 종로1가 1", ("서울특별시 종로구 종로1가 1", "종로구", "종로1가", "1-0")),
     ("서울특별시 중구 남대문로2가 국민은행본점빌딩", None),  # 번지가 없으면 쓰지 않는다
-    ("경기도 수원시 영통구 삼성로 129", None),
+    ("경기도 수원시 영통구 삼성로 129", None),  # 성남 밖 경기(decisions/010)
+    ("경기도 성남시 분당구 판교역로 235 (삼평동)",
+     ("경기도 성남시 분당구 판교역로 235", "성남시 분당구", "판교역로", "235-0")),
+    ("경기 성남시 분당구 삼평동 681",
+     ("경기도 성남시 분당구 삼평동 681", "성남시 분당구", "삼평동", "681-0")),
 ])
 def test_hq_query(adres, expected):
     assert hq_query(adres) == expected
@@ -100,3 +104,16 @@ def test_medians_use_every_building_on_the_road_or_in_the_dong():
     assert road_pt[("11990", "가상로")][0] == buildings[1].lon  # 경도 가운데 건물
     assert ("11880", "가상로") not in road_pt  # 좌표 없는 건물뿐
     assert dong_pt["1199010200"] == (buildings[3].lon, buildings[3].lat)
+
+
+def test_rnaddr_reads_each_region_with_its_own_entrance_file():
+    # 시험 폴더에는 서울 이름의 주소 파일(rnaddrkor_seoul.txt)이 없어 경기 쌍만 잡힌다
+    assert rnaddr.region_pairs(FIXTURES) == [
+        (FIXTURES / "rnaddrkor_gyunggi.txt", FIXTURES / "RNENTDATA_2610_41000.txt")]
+    buildings = list(rnaddr.read_all(FIXTURES))
+
+    assert [(b.sgg, b.road, b.lot_main) for b in buildings] == [
+        ("41135", "가상판교로", 7), ("41135", "가상판교로", 8)]
+    assert all(127.0 < b.lon < 127.3 and 37.3 < b.lat < 37.5 for b in buildings)  # 성남 근처
+    # 모르는 이름의 주소 파일은 서울 출입구 파일과 짝짓는다
+    assert rnaddr.sido_of(FIXTURES / "rnaddrkor_sample.txt") == "11000"
