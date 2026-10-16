@@ -102,11 +102,11 @@ LLM · RAG 같은 AI 기능 없이 **데이터 수집 → 정제 → DB 모델�
 
 | 항목 | 값 | 자세히 |
 |---|---|---|
-| 서울 회사 | 126,407곳 (국민연금 13개월, 2025-08 ~ 2026-08) | [profiling.md](./docs/profiling.md) |
+| 회사 | 서울 126,407곳 · 성남 10,722곳 (국민연금 13개월, 2025-08 ~ 2026-08) | [profiling.md](./docs/profiling.md), [decisions/010](./docs/decisions/010-서비스-범위에-성남시-추가.md) |
 | 인원 정확도 | 서울 본사 상장사 5곳 DART 직원 수 대비 **±6% 안** | [validation.md](./docs/validation.md) 3장 |
 | 연봉 | 같은 5곳 모두 DART 평균보다 −15 ~ −44% (소득 상한 → 하한 추정으로 표시) | 〃 |
 | DART 매칭률 | 서울 본사 상장사 69.1% | [matching.md](./docs/matching.md) |
-| 회사 지도 좌표 | 100% (건물 11,961 · 도로 중심 112,867 · 동 중심 1,579) | [validation.md](./docs/validation.md) 1장 |
+| 회사 지도 좌표 | 137,128 / 137,129곳 (건물 13,030 · 도로 중심 122,334 · 동 중심 1,764) | [validation.md](./docs/validation.md) 1장 |
 | 전월세 | 연립다세대 · 오피스텔 계약 443,227건, 건물 좌표 99.92% | validation.md 2장 |
 | 응답 시간 (로컬 부하 20명) | 상세 p95 8ms, 검색 p95 6ms, 지도 p95 270ms | [performance.md](./docs/performance.md) |
 | mart 갱신 | 회사 지표 · 회사 근처 역 · 역세권 시세 한 트랜잭션 35초 | 〃 |
@@ -361,7 +361,7 @@ Railway(api · mariadb)와 Vercel(web) 배포, DB 복원, 월 갱신 절차는 [
 |---|---|
 | [SPEC.md](./SPEC.md) | 구현 지시서: 스택, DDL, 계산 규칙, 핵심 SQL, API 계약, 화면, 단계별 완료 조건 |
 | [docs/01 ~ 06](./docs/) | 개요, 요구사항, 화면 디자인, DB 설계, API, 아키텍처 |
-| [docs/decisions/](./docs/decisions/) | 결정 기록 001 ~ 009 (서울 한정, 좌표 정확도, 지도 메인, Phase 9 범위, 역세권 반경 등) |
+| [docs/decisions/](./docs/decisions/) | 결정 기록 001 ~ 010 (서울 한정, 좌표 정확도, 지도 메인, Phase 9 범위, 역세권 반경, 성남 추가 등) |
 | [docs/profiling.md](./docs/profiling.md) | 국민연금 · 전월세 · 역 원본 프로파일링 |
 | [docs/matching.md](./docs/matching.md) | DART 매칭 규칙 · 매칭률 |
 | [docs/validation.md](./docs/validation.md) | 좌표 성공률, 회사 5곳 대조, 데이터 품질 지표 |
