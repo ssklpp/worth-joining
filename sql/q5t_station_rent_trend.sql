@@ -4,6 +4,7 @@
 -- 반경(500 · 750m)마다 따로 실행한다.
 -- month 구간은 계약 달, quarter 구간은 기준월부터 3개월씩 거꾸로 묶고 구간의 마지막 달을 ym으로 쓴다.
 -- 월세(monthly_man > 0)는 환산 월세(원) 분포, 전세(monthly_man = 0)는 보증금(만원) 중앙값이다.
+-- 전환율은 q5와 같이 건물과 같은 시도(addr_key 앞 2자리)의 계약 달 또는 그 이전 가장 가까운 달 값이다.
 -- PERCENTILE_CONT는 윈도 함수라 DISTINCT와 쓰고, 월세 · 전세를 파티션으로 나눈 뒤 한 행으로 모은다.
 -- 주석에는 콜론 + 이름을 쓰지 않는다(TS-020).
 INSERT INTO mart_station_rent_trend
@@ -17,7 +18,8 @@ WITH near AS (
          CASE WHEN r.monthly_man = 0 THEN r.deposit_man
               ELSE (r.monthly_man + r.deposit_man * (
                       SELECT cr.rate_year FROM conversion_rate cr
-                      WHERE cr.ym <= r.contract_ym ORDER BY cr.ym DESC LIMIT 1) / 12) * 10000
+                      WHERE cr.sido = LEFT(r.addr_key, 2) AND cr.ym <= r.contract_ym
+                      ORDER BY cr.ym DESC LIMIT 1) / 12) * 10000
          END AS amount
   FROM station_building st
   JOIN rent_contract r ON r.building_id = st.building_id

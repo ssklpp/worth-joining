@@ -349,9 +349,11 @@ PARTITION BY RANGE (contract_ym) (
   PARTITION pmax VALUES LESS THAN MAXVALUE
 );
 
-CREATE TABLE conversion_rate (
-  ym        INT PRIMARY KEY,
-  rate_year DECIMAL(5,4) NOT NULL
+CREATE TABLE conversion_rate (  -- 0010: 시도별(서울 11 · 경기 41, decisions/010)
+  sido      VARCHAR(2) NOT NULL DEFAULT '11',
+  ym        INT NOT NULL,
+  rate_year DECIMAL(5,4) NOT NULL,
+  PRIMARY KEY (sido, ym)
 );
 
 CREATE TABLE company_station (
