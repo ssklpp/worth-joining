@@ -5,7 +5,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { Bbox, MapFocus } from "@/components/map/NaverMap";
 import { useApi, type ApiState, type Schemas } from "@/lib/api";
-import { CITY_HALL, CITY_ZOOM, GU, GU_ZOOM } from "@/lib/regions";
+import { ALL_CENTER, CITY_ZOOM, GU, GU_ZOOM } from "@/lib/regions";
 
 export type Metric = "growth" | "quit" | "salary";
 export type Pin = Schemas["MapCompany"];
@@ -19,7 +19,7 @@ type Explore = {
   metric: Metric;
   setMetric: (m: Metric) => void;
   region: string;
-  /** 지역 필터를 바꾸고 지도를 그 구(빈 값이면 서울 전체)로 옮긴다 */
+  /** 지역 필터를 바꾸고 지도를 그 구(빈 값이면 서울 · 성남 전체)로 옮긴다 */
   setRegion: (r: string) => void;
   /** 지역을 고를 때 옮길 곳. 회사 · 역 선택과 함께 MapPane이 마지막 것을 따른다 */
   regionFocus: MapFocus | null;
@@ -62,7 +62,7 @@ export function ExploreProvider({ children }: { children: React.ReactNode }) {
     setRegionCode(code);
     const gu = GU.find((g) => g.code === code);
     setRegionFocus(gu ? { lat: gu.lat, lon: gu.lon, zoom: GU_ZOOM, exact: true }
-      : { ...CITY_HALL, zoom: CITY_ZOOM, exact: true });
+      : { ...ALL_CENTER, zoom: CITY_ZOOM, exact: true });
   }, []);
   const [industry, setIndustry] = useState("");
   const [bbox, setBbox] = useState<Bbox | null>(null);

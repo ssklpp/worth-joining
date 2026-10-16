@@ -5,7 +5,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useApi, type Schemas } from "@/lib/api";
-import { GU } from "@/lib/regions";
+import { CITIES, GU } from "@/lib/regions";
 import { useExplore, type Metric } from "./ExploreContext";
 import styles from "./explore.module.css";
 
@@ -60,8 +60,13 @@ export function Toolbar() {
         <label>
           지역
           <select value={region} onChange={(e) => setRegion(e.target.value)}>
-            <option value="">서울 전체</option>
-            {GU.map((g) => <option key={g.code} value={g.code}>{g.name}</option>)}
+            <option value="">전체(서울 · 성남)</option>
+            {CITIES.map((c) => (
+              <optgroup key={c.prefix} label={c.label}>
+                {GU.filter((g) => g.code.startsWith(c.prefix)).map((g) => (
+                  <option key={g.code} value={g.code}>{g.name}</option>))}
+              </optgroup>
+            ))}
           </select>
         </label>
         <div className={styles.seg} role="radiogroup" aria-label="지도 핀에 표시할 값">

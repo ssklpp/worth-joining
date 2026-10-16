@@ -30,7 +30,7 @@ export type StationMarker = LatLon & { key: string; name: string; selected?: boo
 export type Rings = { center: LatLon; radii: number[]; active: number };
 
 /** 지도를 옮길 곳. 객체가 바뀔 때마다 이동한다(같은 회사를 다시 열어도).
- * exact면 그 확대로 맞추고(구 · 서울 전체로 넓게 보기), 아니면 지금보다 멀리 있을 때만 확대한다 */
+ * exact면 그 확대로 맞추고(구 · 전체로 넓게 보기), 아니면 지금보다 멀리 있을 때만 확대한다 */
 export type MapFocus = LatLon & { zoom: number; exact?: boolean };
 
 type Props = {
