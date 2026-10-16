@@ -5,9 +5,27 @@
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { test as base } from "@playwright/test";
+import { test as base, expect } from "@playwright/test";
 
-export { expect } from "@playwright/test";
+export { expect };
+
+// 이 PC 같은 일부 환경의 광고 차단 프로그램이 페이지에 끼워 넣는 스크립트. 사이트 코드가 아니다
+const IGNORED_CSP = /getunicorn\.org/;
+
+/** 모든 화면 테스트의 page: 브라우저 콘솔에 CSP 위반이 하나라도 찍히면 실패한다(next.config.ts). 실제 API를 쓴다 */
+export const liveTest = base.extend({
+  page: async ({ page }, run) => { // run: Playwright의 use(React Hook 규칙과 이름이 겹쳐 바꿈)
+    const violations: string[] = [];
+    page.on("console", (msg) => {
+      const text = msg.text();
+      if (msg.type() === "error" && text.includes("Content Security Policy") && !IGNORED_CSP.test(text)) {
+        violations.push(text);
+      }
+    });
+    await run(page);
+    expect(violations, "CSP 위반(next.config.ts의 허용 목록 확인)").toEqual([]);
+  },
+});
 
 export const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 const RECORD = process.env.E2E_RECORD === "1";
@@ -20,8 +38,9 @@ function fileFor(dir: string, url: URL) {
   return path.join(dir, `${slug}_${createHash("sha1").update(key).digest("hex").slice(0, 8)}.json`);
 }
 
-export const test = base.extend({
-  page: async ({ page }, run, testInfo) => { // run: Playwright의 use(React Hook 규칙과 이름이 겹쳐 바꿈)
+/** smoke 테스트의 page: liveTest(CSP 검사) + 저장된 API 응답 */
+export const test = liveTest.extend({
+  page: async ({ page }, run, testInfo) => {
     const dir = path.join(testInfo.project.testDir, "api");
     if (RECORD) await mkdir(dir, { recursive: true });
     await page.route(`${API}/**`, async (route) => {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_KR } from "next/font/google";
+import { preconnect } from "react-dom";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
@@ -15,12 +16,19 @@ const plex = IBM_Plex_Sans_KR({
   variable: "--font-plex",
 });
 
+// lib/api.ts(클라이언트 모듈)의 API_BASE와 같은 값. 서버 컴포넌트라 직접 읽는다
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+
 export const metadata: Metadata = {
   title: { default: "다닐만한가", template: "%s | 다닐만한가" },
   description: "국민연금 공개 자료로 보는 서울 회사의 인원 추이, 입퇴사율, 추정 연봉",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // 첫 화면이 곧 부를 API와 네이버 지도 서버에 미리 연결해 둔다(Lighthouse "Preconnect to required origins")
+  preconnect(API_BASE, { crossOrigin: "anonymous" });
+  preconnect("https://oapi.map.naver.com");
+  preconnect("https://nrbe.pstatic.net");
   return (
     <html lang="ko" className={plex.variable}>
       <body>

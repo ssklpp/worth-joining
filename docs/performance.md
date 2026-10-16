@@ -59,6 +59,7 @@ Railway(api · mariadb 사설망), 국내에서 `curl` 한 번씩(새 TLS 연결
 | `refresh_mart` 전체 | 위 두 가지 | | 5분 이상 | 35초 | explain.md 1 · 3장 |
 | 회사 좌표 3 · 4단계 | 표본 건물 좌표 API 2.6만 회(분당 약 95회) | 주소정보누리집 출입구 파일로 계산 | 약 4.5시간 예상 | 16초 | validation.md 1장 |
 | 전월세 건물 좌표 | 지번 → 검색 → 좌표 API | 지번 → 도로명주소 파일 → 출입구 좌표, 부속 지번만 검색 | 약 5시간 예상 | 수 분(부속 지번 검색 약 1,200회, 실패 캐시를 지우고 한 번 더 돌린 것 포함) | validation.md 2장 |
+| 웹 첫 화면 글꼴(2026-10-16, #92) | `next/font`가 한글 글꼴 조각 280개(굵기 4종)를 모두 `<link rel=preload>`로 받음. 배포 HTML 77KB의 대부분이 이 링크 | `preload: false`로 화면에 쓰인 글자 조각만 받음 | Lighthouse(모바일 · 느린 4G) 첫 화면 65점 · LCP 20.6초 · 전송 4.0MB, 상세 53점 · LCP 16.9초 · CLS 0.231 | 첫 화면 67 ~ 72점 · LCP 8.2초 · 1.5MB, 상세 81점 · LCP 4.8초 · CLS 0 ~ 0.001. 글꼴 2.6MB → 234 ~ 334KB | 이 문서 |
 
 ## 4. 개선 여지 (지금은 하지 않음)
 
@@ -66,4 +67,5 @@ Railway(api · mariadb 사설망), 국내에서 `curl` 한 번씩(새 TLS 연결
 |---|---|
 | 지도 핀이 더 느려짐(지금 단독 39ms, summary `ALL` + filesort) | `company_location`에 `(lat, lon)` 인덱스를 두고 bbox가 있으면 좌표 범위부터 읽기 |
 | `sort=growth` 전체 조회(51ms) | summary에 `(growth_12m, company_id)` 인덱스(explain.md 2장) |
-| 배포 응답의 네트워크 시간 | Railway 리전을 사용자와 가까운 곳으로, 또는 Vercel에서 서버 쪽 캐시 |
+| 배포 응답의 네트워크 시간(2026-10-16: 운영 API 모든 응답 약 250ms, 그중 약 140ms가 Railway 엣지 → 앱 구간. 로컬 서버 처리는 2 ~ 60ms) | Railway 리전을 사용자와 가까운 곳으로, 또는 Vercel에서 서버 쪽 캐시 |
+| 첫 화면 LCP 8초(가장 큰 요소가 네이버 지도 타일 이미지) | 지도 · API 미리 연결(`preconnect`)은 넣었다. 그 이상은 지도 SDK 쪽이라 어렵다 |
