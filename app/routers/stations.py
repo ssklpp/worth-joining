@@ -24,7 +24,7 @@ def _lines(value: str) -> list[str]:
     return value.split(",") if value else []
 
 
-@router.get("", response_model=StationList, summary="서울 역과 원룸 시세")
+@router.get("", response_model=StationList, summary="서울 · 성남 역과 원룸 시세")
 async def list_stations(
     conn: Conn,
     q: str | None = Query(None, max_length=50, description="역 이름 앞부분"),

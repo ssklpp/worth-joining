@@ -38,12 +38,19 @@ def add_building(conn, key, point, house_type="오피스텔"):
     ), {"k": key, "t": house_type, "x": point[0], "y": point[1]}).lastrowid
 
 
-def add_contract(conn, building_id, ym, deposit=1000, monthly=60, area=25):
+def add_contract(conn, building_id, ym, deposit=1000, monthly=60, area=25,
+                 addr_key="11990-10100-1-1-0"):
+    """addr_key 앞 2자리(시도)로 전환율을 고른다(서울 11 · 경기 41, decisions/010)."""
     conn.execute(text(
         "INSERT INTO rent_contract (contract_ym, row_hash, addr_key, building_id, house_type,"
-        " area_m2, deposit_man, monthly_man) VALUES (:ym, MD5(UUID()), 'x', :b, '오피스텔',"
+        " area_m2, deposit_man, monthly_man) VALUES (:ym, MD5(UUID()), :key, :b, '오피스텔',"
         " :area, :dep, :mon)"), {"ym": ym, "b": building_id, "area": area, "dep": deposit,
-                                 "mon": monthly})
+                                 "mon": monthly, "key": addr_key})
+
+
+def add_rate(conn, ym, rate, sido="11"):
+    conn.execute(text("INSERT INTO conversion_rate (sido, ym, rate_year) VALUES (:s, :ym, :r)"),
+                 {"s": sido, "ym": ym, "r": rate})
 
 
 def report_date(conn, yyyymmdd):
@@ -66,7 +73,7 @@ def test_499m_building_counts_and_501m_does_not(conn):
     far = add_building(conn, "far", north(501))
     add_contract(conn, near, 202608)
     add_contract(conn, far, 202608)
-    conn.execute(text("INSERT INTO conversion_rate VALUES (202608, 0.0600)"))
+    add_rate(conn, 202608, 0.0600)
     report_date(conn, "20261010")
 
     refresh(conn)
@@ -78,7 +85,7 @@ def test_750m_radius_adds_buildings_between_500m_and_750m(conn):
     add_station(conn)
     for key, meters in (("in500", 499), ("in750", 749), ("out", 751)):
         add_contract(conn, add_building(conn, key, north(meters)), 202608)
-    conn.execute(text("INSERT INTO conversion_rate VALUES (202608, 0.0600)"))
+    add_rate(conn, 202608, 0.0600)
     report_date(conn, "20261010")
 
     refresh(conn)
@@ -93,7 +100,7 @@ def test_window_boundary_is_greater_than_and_end_is_report_complete_month(conn):
     b = add_building(conn, "b", north(100))
     for ym in (202508, 202509, 202608, 202609):  # 202508은 12개월 밖(>), 202609는 기준월 뒤
         add_contract(conn, b, ym)
-    conn.execute(text("INSERT INTO conversion_rate VALUES (202501, 0.0600)"))
+    add_rate(conn, 202501, 0.0600)
     report_date(conn, "20261010")  # 9/10이 속한 9월의 전월 → 202608
 
     refresh(conn)
@@ -109,13 +116,27 @@ def test_converted_rent_uses_latest_rate_and_splits_jeonse(conn):
     add_contract(conn, b, 202608, deposit=1200, monthly=50)  # 8월 전환율이 없어 7월 값 6%
     add_contract(conn, b, 202608, deposit=20000, monthly=0)  # 전세
     add_contract(conn, b, 202608, deposit=500, monthly=40, area=40)  # 33㎡ 초과는 원룸 아님
-    conn.execute(text("INSERT INTO conversion_rate VALUES (202607, 0.0600)"))
+    add_rate(conn, 202607, 0.0600)
     report_date(conn, "20261010")
 
     refresh(conn)
 
     # (50 + 1200 × 0.06 ÷ 12) × 10000 = 560,000원
     assert mart(conn, 12) == [(202608, 1, 1, 560000, 1200, 50, 20000)]
+
+
+def test_converted_rent_uses_rate_of_the_buildings_sido(conn):
+    add_station(conn)
+    b = add_building(conn, "b", north(100))
+    add_contract(conn, b, 202608, deposit=1200, monthly=50, addr_key="41135-10900-1-1-0")
+    add_rate(conn, 202607, 0.0600)  # 서울
+    add_rate(conn, 202607, 0.0800, sido="41")  # 경기
+    report_date(conn, "20261010")
+
+    refresh(conn)
+
+    # (50 + 1200 × 0.08 ÷ 12) × 10000 = 580,000원. 서울 6%면 560,000원
+    assert [r[3] for r in mart(conn, 12)] == [580000]
 
 
 def trend(conn, grain, radius=500):
@@ -133,7 +154,7 @@ def test_trend_covers_24_months_by_month_and_quarter(conn):
                         (202609, 60)):
         add_contract(conn, b, ym, deposit=0, monthly=monthly)
     add_contract(conn, b, 202608, deposit=20000, monthly=0)  # 전세
-    conn.execute(text("INSERT INTO conversion_rate VALUES (202401, 0.0600)"))
+    add_rate(conn, 202401, 0.0600)
     report_date(conn, "20261010")
 
     refresh(conn)

@@ -3,7 +3,8 @@
 -- 기간은 기준월 이하이고 기준월 - N개월보다 뒤(>, >= 아님)인 계약. 기준월은 신고가 끝난 달이다.
 -- 원룸은 전용 33㎡ 이하 연립다세대 · 오피스텔, 역세권은 역에서 반경(radius) 이내 건물이다.
 -- 역-건물 쌍과 거리는 q5a_station_building.sql이 임시 테이블 station_building에 먼저 넣는다.
--- 환산 월세(원) = (월세 + 보증금 × 전환율 ÷ 12) × 10000. 전환율은 계약 달 값이고,
+-- 환산 월세(원) = (월세 + 보증금 × 전환율 ÷ 12) × 10000. 전환율은 건물과 같은 시도(addr_key 앞 2자리,
+-- 서울 11 · 경기 41, decisions/010)의 계약 달 값이고,
 -- 발표 전이라 없으면 가장 가까운 이전 달 값을 쓴다(docs/profiling.md 13장).
 -- 월세는 monthly_man > 0, 전세는 monthly_man = 0. PERCENTILE_CONT는 윈도 함수라 DISTINCT와 쓴다.
 -- 주석에는 콜론 + 이름을 쓰지 않는다(TS-020).
@@ -21,7 +22,8 @@ LEFT JOIN (
     SELECT st.station_id, r.deposit_man, r.monthly_man,
            (r.monthly_man + r.deposit_man * (
               SELECT cr.rate_year FROM conversion_rate cr
-              WHERE cr.ym <= r.contract_ym ORDER BY cr.ym DESC LIMIT 1) / 12) * 10000 AS conv_rent
+              WHERE cr.sido = LEFT(r.addr_key, 2) AND cr.ym <= r.contract_ym
+              ORDER BY cr.ym DESC LIMIT 1) / 12) * 10000 AS conv_rent
     FROM station_building st
     JOIN rent_contract r ON r.building_id = st.building_id
     WHERE st.dist_m <= :radius

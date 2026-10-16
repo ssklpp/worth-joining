@@ -230,7 +230,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 서울 역과 원룸 시세
+         * 서울 · 성남 역과 원룸 시세
          * @description 12개월 원룸 환산 월세 중앙값. 원룸 계약이 없는 역은 monthly_median null, n 0.
          */
         get: operations["list_stations_stations_get"];

@@ -126,6 +126,7 @@ API 키(DART · 공공데이터포털 등)는 배포 서비스에 넣지 않는�
    분기마다(4월 이후 첫 갱신 등) `python -m pipeline.dart.financials`도 실행한다.
    - 회사 좌표의 도로 · 동 중심은 `data/raw/juso/`의 주소정보누리집 지역별 파일 두 개로 계산한다: "도로명주소 한글"(`rnaddrkor_seoul.txt` · `rnaddrkor_gyunggi.txt`)과 "도로명주소 출입구"(`RNENTDATA_YYMM_11000.txt` · `_41000.txt`, 가장 최근 YYMM을 쓴다). 경기 파일 두 개는 받은 뒤 성남시 행(건물관리번호 · 법정동코드 앞 5자리 `41131` · `41133` · `41135`)만 남긴다(decisions/010). 둘 다 `.gitignore` 대상이라 각자 받는다. 새 도로가 많이 생기면(분기에 한 번 정도) 같은 달 파일 두 개를 다시 받아 바꾼다.
    - **전월세(분기 또는 필요할 때):** 서울 열린데이터광장 OA-21276에서 올해 CSV를 다시 받아 `data/raw/rent/seoul_rent_YYYY.csv`로 바꾸고, R-ONE 전월세전환율(서울 연립다세대, 월)을 `conversion_rate_seoul.csv`로 받는다. 그다음 `python -m pipeline.rent.seoul --as-of <받은 날>` → `python -m pipeline.rent.conversion` → `python -m pipeline.refresh_mart`. 보관 기간이 지난 달은 `python -m pipeline.rent.partitions --drop-before <기준월 - 23개월>`로 지운다. Open API 증분 수집과 자동 순환은 하지 않는다(decisions/007).
+   - **성남 전월세(decisions/010):** 국토교통부 실거래가 공개시스템(rt.molit.go.kr)에서 성남시 3개 구의 연립다세대 · 오피스텔 전월세를 받아(한 번에 1년까지라 기간을 나눠 받는다) 앞쪽 안내문 · 번호 열을 지우고 유형별로 합쳐 `data/raw/rent/seongnam_rent_villa.csv` · `seongnam_rent_officetel.csv`로 둔다. R-ONE 전환율(경기 연립다세대)은 `conversion_rate_gyeonggi.csv`. 그다음 `python -m pipeline.rent.molit --as-of <받은 날>` → `python -m pipeline.rent.conversion` → `python -m pipeline.refresh_mart`.
 3. 로컬 API와 웹으로 회사 몇 곳을 열어 본다(기준월이 바뀌었는지, 추이에 새 달이 붙었는지).
 4. 덤프를 만들어 공유 드라이브에 올린다(이름 `worth_joining_YYYYMMDD.zip`, zip 안에 행 수 · Alembic 버전을 적은 `README.txt`).
 5. 2.1의 TCP Proxy를 켜고 2.2처럼 복원한 뒤 끈다. 복원하는 몇 분 동안은 API가 오류를 낼 수 있다. 사용자가 적은 시간에 한다.

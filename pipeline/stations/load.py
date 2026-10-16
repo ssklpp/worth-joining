@@ -2,12 +2,13 @@
 
 python -m pipeline.stations.load [--file data/raw/station/railway_stations_20260630.xlsx]
 
-- 역사 도로명주소가 서울인 행만 쓴다.
+- 역사 도로명주소가 서울 또는 경기도 성남시인 행만 쓴다(decisions/010).
 - 환승역은 노선마다 행이 따로 있다. 이름이 같고(끝의 "역"과 괄호를 뺀 이름, 괄호 안 이름 포함)
   400m 안에 있는 행을 물리적 역 하나로 묶는다. 좌표는 묶인 행의 평균, 노선은 이름순으로 잇는다.
-- 서울 범위 밖 좌표(예: 양원역이 다른 지역 같은 이름 역의 좌표)는 역 주소를 juso로 바꿔 쓴다.
+- 서비스 범위 밖 좌표(예: 양원역이 다른 지역 같은 이름 역의 좌표)는 역 주소를 juso로 바꿔 쓴다.
   juso 키가 없거나 찾지 못하면 그 행을 빼고 경고한다.
 - station_key(정규화한 이름)로 upsert하므로 다시 넣어도 station_id가 바뀌지 않는다.
+  같은 파일을 범위만 바꿔 다시 넣을 때는 --force로 체크섬 건너뛰기를 끈다.
 """
 
 import argparse
@@ -32,7 +33,9 @@ SOURCE = "station"
 DEFAULT_FILE = Path("data/raw/station/railway_stations_20260630.xlsx")
 COLUMNS = {"역사명": "name", "노선명": "line", "역위도": "lat", "역경도": "lon",
            "역사도로명주소": "address"}
-SEOUL = {"lat": (37.41, 37.72), "lon": (126.73, 127.27)}
+# 서울 · 성남 대략 범위 상자. 성남 남쪽 끝 오리역이 위도 37.34
+SCOPE = {"lat": (37.33, 37.72), "lon": (126.73, 127.27)}
+ADDRESS = r"^(서울|경기도 성남시)"
 SAME_STATION_M = 400
 
 Locate = Callable[[str], tuple[float, float] | None]  # 주소 → (경도, 위도)
@@ -65,9 +68,9 @@ def line_label(line: str) -> str:
     return line.split()[-1]
 
 
-def in_seoul(lon: float, lat: float) -> bool:
-    """서울 대략 범위 상자 안인지. 다른 지역 같은 이름 역의 좌표(양원역)를 걸러낸다."""
-    return SEOUL["lon"][0] <= lon <= SEOUL["lon"][1] and SEOUL["lat"][0] <= lat <= SEOUL["lat"][1]
+def in_scope(lon: float, lat: float) -> bool:
+    """서울 · 성남 대략 범위 상자 안인지. 다른 지역 같은 이름 역의 좌표(양원역)를 걸러낸다."""
+    return SCOPE["lon"][0] <= lon <= SCOPE["lon"][1] and SCOPE["lat"][0] <= lat <= SCOPE["lat"][1]
 
 
 def address_keyword(address: str) -> str:
@@ -77,16 +80,16 @@ def address_keyword(address: str) -> str:
 
 
 def read_rows(frame: pd.DataFrame, locate: Locate | None) -> tuple[list[Row], int]:
-    """서울 행 → Row 목록과 뺀 행 수."""
+    """서울 · 성남 행 → Row 목록과 뺀 행 수."""
     df = frame.rename(columns=COLUMNS)
-    df = df[df["address"].fillna("").str.match(r"^서울")]
+    df = df[df["address"].fillna("").str.match(ADDRESS)]
     rows, dropped = [], 0
     for r in df.itertuples():
         lon, lat = float(r.lon), float(r.lat)
-        if not in_seoul(lon, lat):
+        if not in_scope(lon, lat):
             point = locate(address_keyword(r.address)) if locate else None
-            if point is None or not in_seoul(*point):
-                log.warning("역 좌표가 서울 밖이고 주소로도 찾지 못해 뺀다: %s %s", r.name, r.line)
+            if point is None or not in_scope(*point):
+                log.warning("역 좌표가 범위 밖이고 주소로도 찾지 못해 뺀다: %s %s", r.name, r.line)
                 dropped += 1
                 continue
             log.info("역 좌표를 주소로 고쳤다: %s %s (%.5f, %.5f)", r.name, r.line, *point)
@@ -159,12 +162,13 @@ def load(conn: Connection, stations: list[dict]) -> int:
     return len(stations)
 
 
-def run(engine: Engine, path: Path, locate: Locate | None) -> str:
-    """같은 파일(체크섬)은 건너뛴다. 서울 행 → 묶기(cluster) → 같은 이름 구분(distinguish) → 저장.
+def run(engine: Engine, path: Path, locate: Locate | None, force: bool = False) -> str:
+    """같은 파일(체크섬)은 건너뛴다(force면 다시 넣는다). 서울 · 성남 행 → 묶기(cluster)
+    → 같은 이름 구분(distinguish) → 저장.
     """
     checksum = file_checksum(path)
     with engine.begin() as conn:
-        if already_succeeded(conn, SOURCE, checksum):
+        if not force and already_succeeded(conn, SOURCE, checksum):
             finish_run(conn, start_run(conn, SOURCE, path.name, checksum), "skipped",
                        message="같은 체크섬이 이미 success")
             return "skipped"
@@ -176,8 +180,8 @@ def run(engine: Engine, path: Path, locate: Locate | None) -> str:
             n = load(conn, stations)
         with engine.begin() as conn:
             finish_run(conn, run_id, "success", n,
-                       f"서울 {len(rows)}행 → 역 {n}곳, 뺀 행 {dropped}")
-        log.info("station 서울 %s행 → 역 %s곳 (뺀 행 %s)", len(rows), n, dropped)
+                       f"서울 · 성남 {len(rows)}행 → 역 {n}곳, 뺀 행 {dropped}")
+        log.info("station 서울 · 성남 %s행 → 역 %s곳 (뺀 행 %s)", len(rows), n, dropped)
         return "success"
     except Exception as e:
         with engine.begin() as conn:
@@ -186,9 +190,9 @@ def run(engine: Engine, path: Path, locate: Locate | None) -> str:
 
 
 def juso_locator(engine: Engine) -> tuple[Locate | None, Callable[[], None]]:
-    """서울 밖 좌표를 주소로 고칠 때 쓸 함수. juso 키가 없으면 None이고, 그런 역은 뺀다."""
+    """범위 밖 좌표를 주소로 고칠 때 쓸 함수. juso 키가 없으면 None이고, 그런 역은 뺀다."""
     if not (settings.juso_search_key and settings.juso_coord_key):
-        log.warning("juso 키가 없어 서울 밖 좌표의 역은 고치지 않고 뺀다")
+        log.warning("juso 키가 없어 범위 밖 좌표의 역은 고치지 않고 뺀다")
         return None, lambda: None
     from pipeline.geocode.juso import Juso
 
@@ -203,12 +207,13 @@ def juso_locator(engine: Engine) -> tuple[Locate | None, Callable[[], None]]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--file", type=Path, default=DEFAULT_FILE)
+    parser.add_argument("--force", action="store_true", help="같은 파일이어도 다시 넣는다")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     engine = sync_engine()
     locate, close = juso_locator(engine)
     try:
-        run(engine, args.file, locate)
+        run(engine, args.file, locate, args.force)
     finally:
         close()
     return 0

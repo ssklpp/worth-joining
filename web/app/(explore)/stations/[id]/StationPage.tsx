@@ -123,7 +123,7 @@ function Distribution({ d, months, radius }: { d: Detail; months: Months; radius
         <p className="note">24개월 계약도 20건보다 적어 시세가 크게 흔들릴 수 있습니다.</p>
       )}
       <p className="small muted">
-        환산 월세는 월세에 보증금을 전월세전환율(한국부동산원, 서울 연립다세대)로 바꾼 금액을 더한 값입니다.
+        환산 월세는 월세에 보증금을 전월세전환율(한국부동산원 연립다세대, 서울 · 경기 중 건물이 있는 시도 값)로 바꾼 금액을 더한 값입니다.
       </p>
     </>
   );
@@ -190,7 +190,7 @@ function NotFound() {
   return (
     <section className={styles.block}>
       <h1>역을 찾을 수 없습니다</h1>
-      <p>주소가 잘못되었거나 서울 역 목록에 없는 역입니다.</p>
+      <p>주소가 잘못되었거나 서울 · 성남 역 목록에 없는 역입니다.</p>
       <p><Link href="/">지도로 돌아가기</Link></p>
     </section>
   );
