@@ -3,7 +3,7 @@
 > 공공데이터로 보는 회사 · 채용 · 주거비
 > "이 회사, 다닐 만한가?"에 숫자로 답하는 구직자용 웹 서비스
 
-![status](https://img.shields.io/badge/status-v1.1.0%20(역세권%20반경%20500·750m)-blue)
+![status](https://img.shields.io/badge/status-v1.3.0%20(서울%20·%20성남)-blue)
 ![python](https://img.shields.io/badge/Python-3.12-3776AB)
 ![fastapi](https://img.shields.io/badge/FastAPI-backend-009688)
 ![mariadb](https://img.shields.io/badge/MariaDB-11.4%20LTS-003545)
@@ -382,7 +382,7 @@ Railway(api · mariadb)와 Vercel(web) 배포, DB 복원, 월 갱신 절차는 [
   - [x] FastAPI, DART 연동 · 매칭 · 재무, 웹, Railway + Vercel 배포
 - [x] **지도 · 비교** (Phase 8): 회사 좌표 100%, 지도 메인 화면, 회사 비교
 - [x] **역세권 전월세** (Phase 9, 범위는 decisions/007): 역 · 전월세 적재, 건물 좌표, 역세권 시세, 회사 근처 주거비
-- [x] **마무리** (Phase 11): 검증 · 성능 · 문서, `v1.0.0` · `v1.1.0` 릴리스(10/15), 화면 테스트 · CSP · 글꼴 개선(10/16)
+- [x] **마무리** (Phase 11): 검증 · 성능 · 문서, `v1.0.0` · `v1.1.0` 릴리스(10/15), 화면 테스트 · CSP · 글꼴 개선, 성남시 추가 `v1.2.0` · `v1.3.0`(10/16)
 - [ ] **발표** (10/21)
 - [ ] **이후 과제**
   - [x] ~~채용 정보 연계(Phase 10)~~: 개인 API 불가로 사람인 · 잡코리아 바로가기로 대체(decisions/008)
