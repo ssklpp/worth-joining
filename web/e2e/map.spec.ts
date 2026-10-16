@@ -25,3 +25,14 @@ test("map-station 역 시세: 빈 회사 핀 없이(#80) 역을 강조하고 반
   await expect(page.getByText("500m", { exact: true })).toBeVisible();
   await expect(page.getByText("750m", { exact: true })).toBeVisible();
 });
+
+test("map-station-click 회사 핀 옆의 역도 눌린다: 핀을 감싼 지도 칸이 클릭을 가로채지 않는다", async ({ page }) => {
+  await page.goto("/");
+  // 분당구는 서현역 바로 위에 회사 핀(삼성전자판매)이 있다(2026-10-16 성남 추가 뒤 발견)
+  await page.getByRole("combobox", { name: "지역" }).selectOption("41135");
+  const station = page.getByRole("button", { name: "서현역 시세 보기" });
+  await expect(station).toBeVisible();
+  await station.click({ timeout: 5000 });
+  await expect(page).toHaveURL(/\/stations\/\d+$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("서현역");
+});
