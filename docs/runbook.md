@@ -21,6 +21,7 @@ Vercel   web   (Next.js, 저장소의 web/)  ──HTTPS──▶  Railway api (
 
 - 데이터는 로컬에서 적재 · 검증한 DB를 덤프해 Railway에 복원한다. Railway에서 적재 작업(cron)은 돌리지 않는다(2026-10-12 결정, 6장).
 - API는 읽기 전용이다. Railway DB에 쓰는 것은 복원 작업뿐이다.
+- Railway 리전은 us-west(캘리포니아)이고 api · mariadb가 같은 리전이다. 배포 API 응답은 약 250ms이며 그중 약 140ms가 Railway 엣지 → 앱 구간이다(2026-10-16, performance.md 4장). 아시아 리전 이전은 기간 뒤에 검토한다.
 
 ## 2. 처음 배포
 

@@ -21,5 +21,5 @@
 - [ ] API 계약을 바꿨으면 T4 리뷰 요청
 - [ ] 관련 문서(README, SPEC, docs) 갱신
 - [ ] 에러 · 버그를 해결했으면 `docs/troubleshooting.md`에 TS 항목 추가 (번호: )
-- [ ] 화면 변경이면 스크린샷 첨부
+- [ ] 화면 변경이면 `cd web && npm run test:e2e` 통과(화면이 부르는 API가 바뀌면 `npm run test:e2e:record`로 다시 저장) · 스크린샷 첨부
 - [ ] API 키 · 비밀번호가 들어 있지 않음

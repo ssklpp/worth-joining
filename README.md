@@ -3,7 +3,7 @@
 > 공공데이터로 보는 회사 · 채용 · 주거비
 > "이 회사, 다닐 만한가?"에 숫자로 답하는 구직자용 웹 서비스
 
-![status](https://img.shields.io/badge/status-v1.0.0%20(Phase%209%20완료)-blue)
+![status](https://img.shields.io/badge/status-v1.1.0%20(역세권%20반경%20500·750m)-blue)
 ![python](https://img.shields.io/badge/Python-3.12-3776AB)
 ![fastapi](https://img.shields.io/badge/FastAPI-backend-009688)
 ![mariadb](https://img.shields.io/badge/MariaDB-11.4%20LTS-003545)
@@ -32,6 +32,8 @@ LLM · RAG 같은 AI 기능 없이 **데이터 수집 → 정제 → DB 모델�
 ![회사 비교 화면: 우아한형제들 · 비바리퍼블리카 · 무신사의 가입자 지수 그래프와 지표 표](./docs/images/screen-compare.png)
 
 **역 시세 · 역 비교:** 지도의 역이나 회사 상세의 근처 역을 누르면 역 원룸 시세(6 · 12 · 24개월)와 최근 24개월 추이가 열립니다. 반경은 500m · 750m 중에서 고르고, 지도에 두 반경이 원으로 보입니다. 역을 최대 3개 담아 시세와 추이를 나란히 비교할 수 있고(`/stations/compare?ids=1,2,3`), 비교 화면을 열면 담은 역이 모두 보이게 지도가 맞춰집니다.
+
+![역 시세 화면: 강남역 반경 750m의 원룸 시세와 지도의 500m · 750m 반경 원](./docs/images/screen-station-radius.png)
 
 ![역 비교 화면: 신림 · 홍대입구 · 강남역의 시세 표와 24개월 추이, 세 역이 모두 보이게 맞춘 지도](./docs/images/screen-station-compare.png)
 
@@ -157,12 +159,13 @@ flowchart LR
 | | rapidfuzz | 국민연금 · DART 회사명 유사도 매칭 |
 | | pyproj (DLL이 막힌 PC는 같은 공식의 순수 Python 대체) | 좌표계 변환 (UTM-K → WGS84 경위도) |
 | DB | MariaDB 11.4 LTS (InnoDB) | 윈도 함수 · CTE, `PERCENTILE_CONT`, 월 파티션, 생성 컬럼, SPATIAL 인덱스 |
-| | Alembic | 스키마 마이그레이션 (`0001` ~ `0007`) |
+| | Alembic | 스키마 마이그레이션 (`0001` ~ `0009`) |
 | 백엔드 | FastAPI, uvicorn, Pydantic v2 | REST API, 파라미터 검증, 자동 문서 |
 | | SQLAlchemy 2.0 (async) + asyncmy | DB 연결. 통계 쿼리는 `sql/`에 SQL로 작성 |
 | 프론트엔드 | Next.js 15 (App Router), React 19, Recharts | 지도 메인 · 상세 · 비교 화면, 그래프 |
 | | 네이버 지도 Web Dynamic Map (react-naver-maps) | 지도, 지표 핀 |
 | 테스트 | pytest, locust, GitHub Actions 서비스 컨테이너(MariaDB 11.4) | 단위 · SQL 회귀 · API · 성능 테스트 |
+| | Playwright | 화면 테스트(검색 → 상세 → 비교 · 역 반경, CSP 위반 검사) |
 | 배포 | Railway (api · mariadb), Vercel (web), GitHub Actions | API · DB, 프론트엔드, CI |
 
 ---
@@ -272,10 +275,10 @@ worth-joining/
 │  ├─ geocode/           # juso 지오코더, 주소 · 출입구 파일, 회사 좌표
 │  ├─ stations/          # 역 (환승역 묶기)
 │  ├─ rent/              # 전월세 적재 · 월 파티션 · 전환율
-│  └─ refresh_mart.py    # sql/q1 → q2 → q6 → q5
-├─ migrations/           # Alembic 0001 ~ 0007
+│  └─ refresh_mart.py    # sql/q1 → q2 → q6 → q5 → q5t
+├─ migrations/           # Alembic 0001 ~ 0009
 ├─ sql/                  # mart · 지도 · 비교 · 역세권 SQL
-├─ web/                  # Next.js (app/(explore): 지도 메인 + 패널)
+├─ web/                  # Next.js (app/(explore): 지도 메인 + 패널), e2e/: 화면 테스트
 ├─ tests/                # pytest (unit, sql, api, fixtures), perf/locustfile.py
 └─ docs/                 # 설계 · 결정 기록 · 프로파일링 · 검증 · 성능 · 운영 · 트러블슈팅
 ```
@@ -341,6 +344,7 @@ cd web && npm install && npm run dev       # http://localhost:3000 (NEXT_PUBLIC_
 python -P -m pytest                         # CI와 같은 조건 (Windows는 -P)
 ruff check .
 cd web && npm run lint && npm run typecheck && npm run build
+cd web && npm run test:e2e                 # 화면 테스트. 저장된 API 응답으로 돌아 DB · 지도 키 없이 된다(web/README.md)
 ```
 
 부하 측정은 [tests/perf/locustfile.py](./tests/perf/locustfile.py) 첫 부분, 결과는 [docs/performance.md](./docs/performance.md)에 있습니다.
@@ -357,13 +361,13 @@ Railway(api · mariadb)와 Vercel(web) 배포, DB 복원, 월 갱신 절차는 [
 |---|---|
 | [SPEC.md](./SPEC.md) | 구현 지시서: 스택, DDL, 계산 규칙, 핵심 SQL, API 계약, 화면, 단계별 완료 조건 |
 | [docs/01 ~ 06](./docs/) | 개요, 요구사항, 화면 디자인, DB 설계, API, 아키텍처 |
-| [docs/decisions/](./docs/decisions/) | 결정 기록 001 ~ 007 (서울 한정, 좌표 정확도, 지도 메인, Phase 9 범위 등) |
+| [docs/decisions/](./docs/decisions/) | 결정 기록 001 ~ 009 (서울 한정, 좌표 정확도, 지도 메인, Phase 9 범위, 역세권 반경 등) |
 | [docs/profiling.md](./docs/profiling.md) | 국민연금 · 전월세 · 역 원본 프로파일링 |
 | [docs/matching.md](./docs/matching.md) | DART 매칭 규칙 · 매칭률 |
 | [docs/validation.md](./docs/validation.md) | 좌표 성공률, 회사 5곳 대조, 데이터 품질 지표 |
 | [docs/explain.md](./docs/explain.md) · [docs/performance.md](./docs/performance.md) | 실행 계획, 부하 측정, 개선 전후 |
 | [docs/runbook.md](./docs/runbook.md) | 배포 · 복원 · 월 갱신 |
-| [docs/troubleshooting.md](./docs/troubleshooting.md) | 겪은 문제와 해결 (TS-001 ~) |
+| [docs/troubleshooting.md](./docs/troubleshooting.md) | 겪은 문제와 해결 (TS-001 ~ 031) |
 
 ---
 
@@ -377,7 +381,8 @@ Railway(api · mariadb)와 Vercel(web) 배포, DB 복원, 월 갱신 절차는 [
   - [x] FastAPI, DART 연동 · 매칭 · 재무, 웹, Railway + Vercel 배포
 - [x] **지도 · 비교** (Phase 8): 회사 좌표 100%, 지도 메인 화면, 회사 비교
 - [x] **역세권 전월세** (Phase 9, 범위는 decisions/007): 역 · 전월세 적재, 건물 좌표, 역세권 시세, 회사 근처 주거비
-- [ ] **마무리** (Phase 11): 검증 · 성능 · 문서 · `v1.0.0`
+- [x] **마무리** (Phase 11): 검증 · 성능 · 문서, `v1.0.0` · `v1.1.0` 릴리스(10/15), 화면 테스트 · CSP · 글꼴 개선(10/16)
+- [ ] **발표** (10/21)
 - [ ] **이후 과제**
   - [x] ~~채용 정보 연계(Phase 10)~~: 개인 API 불가로 사람인 · 잡코리아 바로가기로 대체(decisions/008)
   - [ ] 전월세 Open API 증분 수집 · 파티션 자동 순환
