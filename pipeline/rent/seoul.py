@@ -243,10 +243,14 @@ def one_building(sgg: str, dong: str):
     return pick
 
 
+SIDO_NAME = {"11": "서울특별시", "41": "경기도"}  # addr_key 앞 2자리(decisions/010)
+
+
 def search_lot(juso, row) -> tuple[float, float] | None:
-    """파일에 없는 지번: "자치구 법정동 (산)본번-부번"을 검색해 한 건물이면 그 좌표."""
+    """파일에 없는 지번: "시도 자치구 법정동 (산)본번-부번"을 검색해 한 건물이면 그 좌표.
+    성남은 자치구 이름이 "성남시 분당구"라 juso의 sggNm과 그대로 비교된다."""
     _, mountain, main, sub = lot_key(row["addr_key"])
-    keyword = (f"서울특별시 {row['sgg_name']} {row['bjdong_name']} "
+    keyword = (f"{SIDO_NAME[row['addr_key'][:2]]} {row['sgg_name']} {row['bjdong_name']} "
                f"{'산 ' if mountain else ''}{main}-{sub}")
     g = juso.geocode(f"jibun:{row['addr_key']}", keyword,
                      pick=one_building(row["sgg_name"], row["bjdong_name"]))
@@ -254,9 +258,9 @@ def search_lot(juso, row) -> tuple[float, float] | None:
 
 
 def run(engine: Engine, files: list[Path], as_of: dt.date, juso=None,
-        address_path: Path = rnaddr.ADDRESS_PATH) -> Counter:
+        address_path: Path | None = None) -> Counter:
     """기준월(신고가 끝난 달)과 보관 시작월(기준월 - 23개월)을 정하고 raw → core → building 순서로
-    적재한다.
+    적재한다. 건물 좌표는 서울 · 성남 주소 파일을 함께 쓴다(address_path는 시험용 파일 하나).
     """
     end = period_end(as_of)
     first = month_add(end, -(RETENTION - 1))
@@ -264,7 +268,8 @@ def run(engine: Engine, files: list[Path], as_of: dt.date, juso=None,
     for path in files:
         load_raw(engine, path)
     counts = Counter(rent_contract=load_core(engine, first))
-    counts += load_buildings(engine, lot_points(rnaddr.read_files(address_path)), juso)
+    buildings = rnaddr.read_files(address_path) if address_path else rnaddr.read_all()
+    counts += load_buildings(engine, lot_points(buildings), juso)
     return counts
 
 

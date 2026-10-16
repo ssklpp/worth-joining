@@ -48,15 +48,19 @@ def test_transfer_rows_become_one_station_and_far_namesakes_stay_apart():
         ("서울역", "1호선", "37.5547", "126.9707", SEOUL),
         ("서울", "인천국제공항선", "37.5545", "126.9700", SEOUL),
         ("부산역", "1호선", "35.1150", "129.0410", "부산광역시 동구 중앙대로 206"),  # 서울 아님
+        # 성남은 넣고 성남 밖 경기는 뺀다
+        ("오리역", "분당선", "37.3398", "127.1090", "경기도 성남시 분당구 성남대로 지하 55"),
+        ("수원역", "1호선", "37.2660", "127.0000", "경기도 수원시 팔달구 덕영대로 924"),
     ])
 
     assert dropped == 0
+    assert result["오리"]["lines"] == "분당선"
     assert result["교대"]["lines"] == "2호선,3호선"
     assert result["교대"]["lat"] == pytest.approx(37.49355)
     assert result["이수"]["lines"] == "4호선,7호선"  # 괄호 안 이름으로 묶인다
     assert {"신촌(2호선)", "신촌(경의중앙선)"} <= result.keys()
     assert result["서울"]["name"] == "서울역"
-    assert len(result) == 5
+    assert len(result) == 6
 
 
 def test_coordinate_outside_seoul_is_fixed_by_address_or_dropped():
