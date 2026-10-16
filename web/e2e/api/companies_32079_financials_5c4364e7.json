@@ -1,0 +1,36 @@
+{
+ "status": 200,
+ "body": {
+  "company_id": 32079,
+  "as_of": 202608,
+  "flags": [],
+  "dart": {
+   "corp_code": "01212921",
+   "corp_name": "비바리퍼블리카",
+   "match_type": "exact"
+  },
+  "rows": [
+   {
+    "year": 2025,
+    "revenue": 2698320674904,
+    "operating_income": 335975254034,
+    "net_income": 201750608769,
+    "debt_ratio": 8.0991
+   },
+   {
+    "year": 2024,
+    "revenue": 1955617789818,
+    "operating_income": 90738309847,
+    "net_income": 21310657851,
+    "debt_ratio": 5.4136
+   },
+   {
+    "year": 2023,
+    "revenue": 1370650091509,
+    "operating_income": -206474883786,
+    "net_income": -216616998076,
+    "debt_ratio": 3.628
+   }
+  ]
+ }
+}

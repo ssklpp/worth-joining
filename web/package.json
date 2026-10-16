@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "gen:api": "node scripts/gen-api.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test --project=smoke",
+    "test:e2e:record": "node scripts/e2e-record.mjs",
+    "test:e2e:map": "playwright test --project=map"
   },
   "dependencies": {
     "next": "^15.5.27",
@@ -19,6 +22,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "1.63.0",
     "@types/navermaps": "^3.9.2",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -1,0 +1,43 @@
+{
+ "status": 200,
+ "body": {
+  "company_id": 87863,
+  "name": "주식회사우아한청년들",
+  "as_of": 202608,
+  "status": "ok",
+  "flags": [
+   "salary_is_lower_bound"
+  ],
+  "last_seen_ym": null,
+  "industry": {
+   "code": "723000",
+   "name": "자료 처리업"
+  },
+  "region": {
+   "sido": "서울특별시",
+   "sigungu": "송파구"
+  },
+  "form_type": "corporation",
+  "workplace_count": 1,
+  "members": 2325,
+  "growth_12m": 0.3922,
+  "quit_rate_12m": 1.3139,
+  "avg_salary_est": 27427735,
+  "percentiles": {
+   "growth": 100,
+   "stability": 11,
+   "salary": 4
+  },
+  "dart": {
+   "corp_code": "01437636",
+   "corp_name": "우아한청년들",
+   "match_type": "exact"
+  },
+  "rep_location": {
+   "lon": 127.1020587,
+   "lat": 37.515002,
+   "accuracy": "building",
+   "basis": "dart_hq"
+  }
+ }
+}

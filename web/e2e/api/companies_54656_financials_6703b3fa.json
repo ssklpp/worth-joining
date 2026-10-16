@@ -1,0 +1,36 @@
+{
+ "status": 200,
+ "body": {
+  "company_id": 54656,
+  "as_of": 202608,
+  "flags": [],
+  "dart": {
+   "corp_code": "01137727",
+   "corp_name": "무신사",
+   "match_type": "exact"
+  },
+  "rows": [
+   {
+    "year": 2025,
+    "revenue": 1467883142523,
+    "operating_income": 140487550575,
+    "net_income": 7720184118,
+    "debt_ratio": 7.2681
+   },
+   {
+    "year": 2024,
+    "revenue": 1242727416492,
+    "operating_income": 102817604301,
+    "net_income": 13127904093,
+    "debt_ratio": 7.6615
+   },
+   {
+    "year": 2023,
+    "revenue": 993115965348,
+    "operating_income": -8615476656,
+    "net_income": 28876109633,
+    "debt_ratio": 6.9802
+   }
+  ]
+ }
+}

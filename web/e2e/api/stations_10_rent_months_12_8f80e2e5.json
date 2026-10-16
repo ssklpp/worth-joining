@@ -1,0 +1,250 @@
+{
+ "status": 200,
+ "body": {
+  "station_id": 10,
+  "name": "홍대입구",
+  "lines": [
+   "2호선",
+   "경의중앙선",
+   "인천국제공항선"
+  ],
+  "lat": 37.5573563,
+  "lon": 126.9256566,
+  "as_of": 202608,
+  "radius_m": 500,
+  "rent": {
+   "months": 12,
+   "n_monthly": 248,
+   "n_jeonse": 49,
+   "monthly_p25": 610000,
+   "monthly_median": 699583,
+   "monthly_p75": 810625,
+   "deposit_median_man": 1000,
+   "rent_median_man": 61,
+   "jeonse_p25_man": 13800,
+   "jeonse_median_man": 17000,
+   "jeonse_p75_man": 23594
+  },
+  "jeonse_share": 0.165,
+  "flags": [],
+  "trend_grain": "month",
+  "trend": [
+   {
+    "ym": 202409,
+    "n_monthly": 11,
+    "monthly_p25": 498667,
+    "monthly_median": 698333,
+    "monthly_p75": 793750,
+    "n_jeonse": 3,
+    "jeonse_median_man": 25000
+   },
+   {
+    "ym": 202410,
+    "n_monthly": 14,
+    "monthly_p25": 644583,
+    "monthly_median": 738333,
+    "monthly_p75": 824750,
+    "n_jeonse": 1,
+    "jeonse_median_man": 9480
+   },
+   {
+    "ym": 202411,
+    "n_monthly": 23,
+    "monthly_p25": 569167,
+    "monthly_median": 688333,
+    "monthly_p75": 731667,
+    "n_jeonse": 6,
+    "jeonse_median_man": 19000
+   },
+   {
+    "ym": 202412,
+    "n_monthly": 23,
+    "monthly_p25": 577917,
+    "monthly_median": 656667,
+    "monthly_p75": 779167,
+    "n_jeonse": 7,
+    "jeonse_median_man": 16000
+   },
+   {
+    "ym": 202501,
+    "n_monthly": 23,
+    "monthly_p25": 485000,
+    "monthly_median": 704333,
+    "monthly_p75": 800833,
+    "n_jeonse": 6,
+    "jeonse_median_man": 15500
+   },
+   {
+    "ym": 202502,
+    "n_monthly": 27,
+    "monthly_p25": 604167,
+    "monthly_median": 699167,
+    "monthly_p75": 858750,
+    "n_jeonse": 6,
+    "jeonse_median_man": 15750
+   },
+   {
+    "ym": 202503,
+    "n_monthly": 21,
+    "monthly_p25": 640000,
+    "monthly_median": 740000,
+    "monthly_p75": 790000,
+    "n_jeonse": 6,
+    "jeonse_median_man": 11750
+   },
+   {
+    "ym": 202504,
+    "n_monthly": 18,
+    "monthly_p25": 573958,
+    "monthly_median": 787917,
+    "monthly_p75": 810833,
+    "n_jeonse": 4,
+    "jeonse_median_man": 18750
+   },
+   {
+    "ym": 202505,
+    "n_monthly": 22,
+    "monthly_p25": 675000,
+    "monthly_median": 750000,
+    "monthly_p75": 921500,
+    "n_jeonse": 6,
+    "jeonse_median_man": 18700
+   },
+   {
+    "ym": 202506,
+    "n_monthly": 24,
+    "monthly_p25": 632500,
+    "monthly_median": 740000,
+    "monthly_p75": 825000,
+    "n_jeonse": 2,
+    "jeonse_median_man": 26500
+   },
+   {
+    "ym": 202507,
+    "n_monthly": 24,
+    "monthly_p25": 685000,
+    "monthly_median": 795000,
+    "monthly_p75": 1002500,
+    "n_jeonse": 0,
+    "jeonse_median_man": null
+   },
+   {
+    "ym": 202508,
+    "n_monthly": 19,
+    "monthly_p25": 740000,
+    "monthly_median": 800000,
+    "monthly_p75": 895000,
+    "n_jeonse": 2,
+    "jeonse_median_man": 25500
+   },
+   {
+    "ym": 202509,
+    "n_monthly": 19,
+    "monthly_p25": 520000,
+    "monthly_median": 770000,
+    "monthly_p75": 885000,
+    "n_jeonse": 0,
+    "jeonse_median_man": null
+   },
+   {
+    "ym": 202510,
+    "n_monthly": 16,
+    "monthly_p25": 656250,
+    "monthly_median": 779167,
+    "monthly_p75": 899167,
+    "n_jeonse": 2,
+    "jeonse_median_man": 12250
+   },
+   {
+    "ym": 202511,
+    "n_monthly": 12,
+    "monthly_p25": 637421,
+    "monthly_median": 668542,
+    "monthly_p75": 751667,
+    "n_jeonse": 3,
+    "jeonse_median_man": 16000
+   },
+   {
+    "ym": 202512,
+    "n_monthly": 25,
+    "monthly_p25": 659167,
+    "monthly_median": 716667,
+    "monthly_p75": 782500,
+    "n_jeonse": 2,
+    "jeonse_median_man": 20950
+   },
+   {
+    "ym": 202601,
+    "n_monthly": 39,
+    "monthly_p25": 657292,
+    "monthly_median": 728333,
+    "monthly_p75": 798125,
+    "n_jeonse": 4,
+    "jeonse_median_man": 14925
+   },
+   {
+    "ym": 202602,
+    "n_monthly": 29,
+    "monthly_p25": 620000,
+    "monthly_median": 790000,
+    "monthly_p75": 940000,
+    "n_jeonse": 8,
+    "jeonse_median_man": 19950
+   },
+   {
+    "ym": 202603,
+    "n_monthly": 14,
+    "monthly_p25": 639167,
+    "monthly_median": 686875,
+    "monthly_p75": 844271,
+    "n_jeonse": 7,
+    "jeonse_median_man": 21000
+   },
+   {
+    "ym": 202604,
+    "n_monthly": 17,
+    "monthly_p25": 579583,
+    "monthly_median": 739167,
+    "monthly_p75": 789167,
+    "n_jeonse": 7,
+    "jeonse_median_man": 28500
+   },
+   {
+    "ym": 202605,
+    "n_monthly": 14,
+    "monthly_p25": 553333,
+    "monthly_median": 634583,
+    "monthly_p75": 726667,
+    "n_jeonse": 7,
+    "jeonse_median_man": 14500
+   },
+   {
+    "ym": 202606,
+    "n_monthly": 16,
+    "monthly_p25": 538333,
+    "monthly_median": 553333,
+    "monthly_p75": 713333,
+    "n_jeonse": 3,
+    "jeonse_median_man": 32800
+   },
+   {
+    "ym": 202607,
+    "n_monthly": 18,
+    "monthly_p25": 537083,
+    "monthly_median": 622417,
+    "monthly_p75": 756667,
+    "n_jeonse": 4,
+    "jeonse_median_man": 15700
+   },
+   {
+    "ym": 202608,
+    "n_monthly": 29,
+    "monthly_p25": 630500,
+    "monthly_median": 672300,
+    "monthly_p75": 819167,
+    "n_jeonse": 2,
+    "jeonse_median_man": 16090
+   }
+  ]
+ }
+}

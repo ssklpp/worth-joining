@@ -1,0 +1,94 @@
+{
+ "status": 200,
+ "body": {
+  "company_id": 87863,
+  "as_of": 202608,
+  "rent_as_of": 202608,
+  "flags": [
+   "salary_is_lower_bound"
+  ],
+  "monthly_pay_est": 2285645,
+  "stations": [
+   {
+    "station_id": 48,
+    "name": "잠실",
+    "lines": [
+     "2호선",
+     "8호선"
+    ],
+    "distance_m": 115,
+    "rent": {
+     "months": 24,
+     "n_monthly": 0,
+     "n_jeonse": 1,
+     "monthly_p25": null,
+     "monthly_median": null,
+     "monthly_p75": null,
+     "deposit_median_man": null,
+     "rent_median_man": null,
+     "jeonse_p25_man": 25000,
+     "jeonse_median_man": 25000,
+     "jeonse_p75_man": 25000
+    },
+    "burden": null,
+    "flags": [
+     "period_extended_to_24m",
+     "small_sample"
+    ]
+   },
+   {
+    "station_id": 47,
+    "name": "잠실나루",
+    "lines": [
+     "2호선"
+    ],
+    "distance_m": 651,
+    "rent": {
+     "months": 24,
+     "n_monthly": 0,
+     "n_jeonse": 1,
+     "monthly_p25": null,
+     "monthly_median": null,
+     "monthly_p75": null,
+     "deposit_median_man": null,
+     "rent_median_man": null,
+     "jeonse_p25_man": 25000,
+     "jeonse_median_man": 25000,
+     "jeonse_p75_man": 25000
+    },
+    "burden": null,
+    "flags": [
+     "period_extended_to_24m",
+     "small_sample"
+    ]
+   },
+   {
+    "station_id": 221,
+    "name": "몽촌토성",
+    "lines": [
+     "8호선"
+    ],
+    "distance_m": 988,
+    "rent": {
+     "months": 12,
+     "n_monthly": 1616,
+     "n_jeonse": 305,
+     "monthly_p25": 817031,
+     "monthly_median": 935000,
+     "monthly_p75": 1167500,
+     "deposit_median_man": 2000,
+     "rent_median_man": 79,
+     "jeonse_p25_man": 19500,
+     "jeonse_median_man": 25900,
+     "jeonse_p75_man": 29000
+    },
+    "burden": {
+     "low": 0.3575,
+     "mid": 0.4091,
+     "high": 0.5108
+    },
+    "flags": []
+   }
+  ]
+ }
+}

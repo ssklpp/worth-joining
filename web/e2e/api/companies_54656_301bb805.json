@@ -1,0 +1,43 @@
+{
+ "status": 200,
+ "body": {
+  "company_id": 54656,
+  "name": "주식회사 무신사",
+  "as_of": 202608,
+  "status": "ok",
+  "flags": [
+   "salary_is_lower_bound"
+  ],
+  "last_seen_ym": null,
+  "industry": {
+   "code": "722000",
+   "name": "응용 소프트웨어 개발 및 공급업"
+  },
+  "region": {
+   "sido": "서울특별시",
+   "sigungu": "성동구"
+  },
+  "form_type": "corporation",
+  "workplace_count": 1,
+  "members": 2174,
+  "growth_12m": 0.1688,
+  "quit_rate_12m": 0.3536,
+  "avg_salary_est": 62156346,
+  "percentiles": {
+   "growth": 80,
+   "stability": 36,
+   "salary": 91
+  },
+  "dart": {
+   "corp_code": "01137727",
+   "corp_name": "무신사",
+   "match_type": "exact"
+  },
+  "rep_location": {
+   "lon": 127.0607199,
+   "lat": 37.5444342,
+   "accuracy": "building",
+   "basis": "dart_hq"
+  }
+ }
+}

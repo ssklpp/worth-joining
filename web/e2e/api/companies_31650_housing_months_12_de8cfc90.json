@@ -1,0 +1,95 @@
+{
+ "status": 200,
+ "body": {
+  "company_id": 31650,
+  "as_of": 202608,
+  "rent_as_of": 202608,
+  "flags": [
+   "salary_is_lower_bound"
+  ],
+  "monthly_pay_est": 5964529,
+  "stations": [
+   {
+    "station_id": 221,
+    "name": "몽촌토성",
+    "lines": [
+     "8호선"
+    ],
+    "distance_m": 85,
+    "rent": {
+     "months": 12,
+     "n_monthly": 1616,
+     "n_jeonse": 305,
+     "monthly_p25": 817031,
+     "monthly_median": 935000,
+     "monthly_p75": 1167500,
+     "deposit_median_man": 2000,
+     "rent_median_man": 79,
+     "jeonse_p25_man": 19500,
+     "jeonse_median_man": 25900,
+     "jeonse_p75_man": 29000
+    },
+    "burden": {
+     "low": 0.137,
+     "mid": 0.1568,
+     "high": 0.1957
+    },
+    "flags": []
+   },
+   {
+    "station_id": 246,
+    "name": "한성백제",
+    "lines": [
+     "9호선"
+    ],
+    "distance_m": 310,
+    "rent": {
+     "months": 12,
+     "n_monthly": 1635,
+     "n_jeonse": 316,
+     "monthly_p25": 808021,
+     "monthly_median": 929167,
+     "monthly_p75": 1168333,
+     "deposit_median_man": 2000,
+     "rent_median_man": 76,
+     "jeonse_p25_man": 19400,
+     "jeonse_median_man": 25200,
+     "jeonse_p75_man": 28900
+    },
+    "burden": {
+     "low": 0.1355,
+     "mid": 0.1558,
+     "high": 0.1959
+    },
+    "flags": []
+   },
+   {
+    "station_id": 245,
+    "name": "송파나루",
+    "lines": [
+     "9호선"
+    ],
+    "distance_m": 709,
+    "rent": {
+     "months": 12,
+     "n_monthly": 738,
+     "n_jeonse": 174,
+     "monthly_p25": 633917,
+     "monthly_median": 732629,
+     "monthly_p75": 967583,
+     "deposit_median_man": 5000,
+     "rent_median_man": 51,
+     "jeonse_p25_man": 16118,
+     "jeonse_median_man": 19240,
+     "jeonse_p75_man": 26896
+    },
+    "burden": {
+     "low": 0.1063,
+     "mid": 0.1228,
+     "high": 0.1622
+    },
+    "flags": []
+   }
+  ]
+ }
+}

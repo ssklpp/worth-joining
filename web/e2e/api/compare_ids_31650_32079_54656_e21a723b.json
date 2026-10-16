@@ -1,0 +1,269 @@
+{
+ "status": 200,
+ "body": {
+  "as_of": 202608,
+  "items": [
+   {
+    "company_id": 31650,
+    "name": "주식회사 우아한형제들",
+    "status": "ok",
+    "flags": [
+     "salary_is_lower_bound"
+    ],
+    "industry": {
+     "code": "999999",
+     "name": "BIZ_NO미존재사업장"
+    },
+    "region": {
+     "sido": "서울특별시",
+     "sigungu": "송파구"
+    },
+    "members": 2077,
+    "growth_12m": -0.0486,
+    "quit_rate_12m": 0.2625,
+    "avg_salary_est": 71574346,
+    "index_series": [
+     {
+      "ym": 202508,
+      "members": 2183,
+      "idx": 100
+     },
+     {
+      "ym": 202509,
+      "members": 2154,
+      "idx": 98.7
+     },
+     {
+      "ym": 202510,
+      "members": 2174,
+      "idx": 99.6
+     },
+     {
+      "ym": 202511,
+      "members": 2163,
+      "idx": 99.1
+     },
+     {
+      "ym": 202512,
+      "members": 2159,
+      "idx": 98.9
+     },
+     {
+      "ym": 202601,
+      "members": 2140,
+      "idx": 98
+     },
+     {
+      "ym": 202602,
+      "members": 2148,
+      "idx": 98.4
+     },
+     {
+      "ym": 202603,
+      "members": 2150,
+      "idx": 98.5
+     },
+     {
+      "ym": 202604,
+      "members": 2135,
+      "idx": 97.8
+     },
+     {
+      "ym": 202605,
+      "members": 2146,
+      "idx": 98.3
+     },
+     {
+      "ym": 202606,
+      "members": 2135,
+      "idx": 97.8
+     },
+     {
+      "ym": 202607,
+      "members": 2108,
+      "idx": 96.6
+     },
+     {
+      "ym": 202608,
+      "members": 2077,
+      "idx": 95.1
+     }
+    ]
+   },
+   {
+    "company_id": 32079,
+    "name": "（주）비바리퍼블리카",
+    "status": "ok",
+    "flags": [
+     "salary_is_lower_bound"
+    ],
+    "industry": {
+     "code": "722000",
+     "name": "응용 소프트웨어 개발 및 공급업"
+    },
+    "region": {
+     "sido": "서울특별시",
+     "sigungu": "강남구"
+    },
+    "members": 1774,
+    "growth_12m": -0.0039,
+    "quit_rate_12m": 0.5173,
+    "avg_salary_est": 69149115,
+    "index_series": [
+     {
+      "ym": 202508,
+      "members": 1781,
+      "idx": 100
+     },
+     {
+      "ym": 202509,
+      "members": 1770,
+      "idx": 99.4
+     },
+     {
+      "ym": 202510,
+      "members": 1870,
+      "idx": 105
+     },
+     {
+      "ym": 202511,
+      "members": 1880,
+      "idx": 105.6
+     },
+     {
+      "ym": 202512,
+      "members": 1995,
+      "idx": 112
+     },
+     {
+      "ym": 202601,
+      "members": 1940,
+      "idx": 108.9
+     },
+     {
+      "ym": 202602,
+      "members": 1898,
+      "idx": 106.6
+     },
+     {
+      "ym": 202603,
+      "members": 1858,
+      "idx": 104.3
+     },
+     {
+      "ym": 202604,
+      "members": 1828,
+      "idx": 102.6
+     },
+     {
+      "ym": 202605,
+      "members": 1788,
+      "idx": 100.4
+     },
+     {
+      "ym": 202606,
+      "members": 1784,
+      "idx": 100.2
+     },
+     {
+      "ym": 202607,
+      "members": 1769,
+      "idx": 99.3
+     },
+     {
+      "ym": 202608,
+      "members": 1774,
+      "idx": 99.6
+     }
+    ]
+   },
+   {
+    "company_id": 54656,
+    "name": "주식회사 무신사",
+    "status": "ok",
+    "flags": [
+     "salary_is_lower_bound"
+    ],
+    "industry": {
+     "code": "722000",
+     "name": "응용 소프트웨어 개발 및 공급업"
+    },
+    "region": {
+     "sido": "서울특별시",
+     "sigungu": "성동구"
+    },
+    "members": 2174,
+    "growth_12m": 0.1688,
+    "quit_rate_12m": 0.3536,
+    "avg_salary_est": 62156346,
+    "index_series": [
+     {
+      "ym": 202508,
+      "members": 1860,
+      "idx": 100
+     },
+     {
+      "ym": 202509,
+      "members": 1836,
+      "idx": 98.7
+     },
+     {
+      "ym": 202510,
+      "members": 1838,
+      "idx": 98.8
+     },
+     {
+      "ym": 202511,
+      "members": 1817,
+      "idx": 97.7
+     },
+     {
+      "ym": 202512,
+      "members": 1823,
+      "idx": 98
+     },
+     {
+      "ym": 202601,
+      "members": 1858,
+      "idx": 99.9
+     },
+     {
+      "ym": 202602,
+      "members": 1894,
+      "idx": 101.8
+     },
+     {
+      "ym": 202603,
+      "members": 1928,
+      "idx": 103.7
+     },
+     {
+      "ym": 202604,
+      "members": 1982,
+      "idx": 106.6
+     },
+     {
+      "ym": 202605,
+      "members": 2127,
+      "idx": 114.4
+     },
+     {
+      "ym": 202606,
+      "members": 2163,
+      "idx": 116.3
+     },
+     {
+      "ym": 202607,
+      "members": 2177,
+      "idx": 117
+     },
+     {
+      "ym": 202608,
+      "members": 2174,
+      "idx": 116.9
+     }
+    ]
+   }
+  ]
+ }
+}
