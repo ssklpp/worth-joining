@@ -20,7 +20,7 @@ npm run gen:api      # API 계약이 바뀌면: FastAPI OpenAPI → lib/api/open
 
 ```bash
 npm run test:e2e          # smoke 8개. 저장된 API 응답(e2e/api/*.json)으로 돈다. DB · API · 지도 키 필요 없음(CI와 같음)
-npm run test:e2e:map      # 지도 4개(첫 화면 목록 · 역 반경 원 · 핀 옆 역 클릭 · 20곳씩 보기). 로컬 API(:8000)와 지도 키(.env.local)가 있어야 한다
+npm run test:e2e:map      # 지도 5개(첫 화면 목록 · 역 반경 원 · 핀 옆 역 클릭 · 20곳씩 보기 · 목록 상태 유지). 로컬 API(:8000)와 지도 키(.env.local)가 있어야 한다
 npm run test:e2e:record   # 로컬 API에 붙어 e2e/api/*.json을 다시 저장한다
 npx playwright show-trace test-results/<테스트>/trace.zip   # 실패한 테스트를 한 단계씩 다시 본다
 ```
