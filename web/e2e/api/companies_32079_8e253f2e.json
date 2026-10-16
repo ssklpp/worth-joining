@@ -1,0 +1,43 @@
+{
+ "status": 200,
+ "body": {
+  "company_id": 32079,
+  "name": "（주）비바리퍼블리카",
+  "as_of": 202608,
+  "status": "ok",
+  "flags": [
+   "salary_is_lower_bound"
+  ],
+  "last_seen_ym": null,
+  "industry": {
+   "code": "722000",
+   "name": "응용 소프트웨어 개발 및 공급업"
+  },
+  "region": {
+   "sido": "서울특별시",
+   "sigungu": "강남구"
+  },
+  "form_type": "corporation",
+  "workplace_count": 1,
+  "members": 1774,
+  "growth_12m": -0.0039,
+  "quit_rate_12m": 0.5173,
+  "avg_salary_est": 69149115,
+  "percentiles": {
+   "growth": 43,
+   "stability": 20,
+   "salary": 97
+  },
+  "dart": {
+   "corp_code": "01212921",
+   "corp_name": "비바리퍼블리카",
+   "match_type": "exact"
+  },
+  "rep_location": {
+   "lon": 127.0349548,
+   "lat": 37.4997441,
+   "accuracy": "building",
+   "basis": "dart_hq"
+  }
+ }
+}

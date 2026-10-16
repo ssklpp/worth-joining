@@ -1,0 +1,3504 @@
+{
+ "status": 200,
+ "body": {
+  "as_of": 202608,
+  "items": [
+   {
+    "station_id": 268,
+    "name": "4.19민주묘지",
+    "lines": [
+     "우이신설선"
+    ],
+    "lat": 37.64954,
+    "lon": 127.01371,
+    "monthly_median": 529500,
+    "n": 101
+   },
+   {
+    "station_id": 98,
+    "name": "가락시장",
+    "lines": [
+     "3호선",
+     "8호선"
+    ],
+    "lat": 37.492661,
+    "lon": 127.1179895,
+    "monthly_median": 718333,
+    "n": 109
+   },
+   {
+    "station_id": 215,
+    "name": "가산디지털단지",
+    "lines": [
+     "7호선",
+     "경부선"
+    ],
+    "lat": 37.480972,
+    "lon": 126.882666,
+    "monthly_median": 687100,
+    "n": 16
+   },
+   {
+    "station_id": 253,
+    "name": "가양",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.561111,
+    "lon": 126.855078,
+    "monthly_median": 669542,
+    "n": 694
+   },
+   {
+    "station_id": 269,
+    "name": "가오리",
+    "lines": [
+     "우이신설선"
+    ],
+    "lat": 37.64162,
+    "lon": 127.01681,
+    "monthly_median": 382350,
+    "n": 67
+   },
+   {
+    "station_id": 298,
+    "name": "가좌",
+    "lines": [
+     "경의중앙선"
+    ],
+    "lat": 37.568611,
+    "lon": 126.914841,
+    "monthly_median": 698333,
+    "n": 101
+   },
+   {
+    "station_id": 4,
+    "name": "강남",
+    "lines": [
+     "2호선",
+     "신분당선"
+    ],
+    "lat": 37.4977177,
+    "lon": 127.0279145,
+    "monthly_median": 1060000,
+    "n": 437
+   },
+   {
+    "station_id": 204,
+    "name": "강남구청",
+    "lines": [
+     "7호선",
+     "분당선"
+    ],
+    "lat": 37.5168785,
+    "lon": 127.0413975,
+    "monthly_median": 926667,
+    "n": 131
+   },
+   {
+    "station_id": 152,
+    "name": "강동",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.53581,
+    "lon": 127.13249,
+    "monthly_median": 767500,
+    "n": 1369
+   },
+   {
+    "station_id": 220,
+    "name": "강동구청",
+    "lines": [
+     "8호선"
+    ],
+    "lat": 37.530348,
+    "lon": 127.120461,
+    "monthly_median": 550000,
+    "n": 290
+   },
+   {
+    "station_id": 46,
+    "name": "강변",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.535161,
+    "lon": 127.094684,
+    "monthly_median": 780000,
+    "n": 73
+   },
+   {
+    "station_id": 158,
+    "name": "강일",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.557521,
+    "lon": 127.176018,
+    "monthly_median": 169758,
+    "n": 14
+   },
+   {
+    "station_id": 236,
+    "name": "개롱",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.498097,
+    "lon": 127.134817,
+    "monthly_median": 693208,
+    "n": 90
+   },
+   {
+    "station_id": 303,
+    "name": "개봉",
+    "lines": [
+     "경인선"
+    ],
+    "lat": 37.494698,
+    "lon": 126.858504,
+    "monthly_median": 586667,
+    "n": 67
+   },
+   {
+    "station_id": 291,
+    "name": "개포동",
+    "lines": [
+     "분당선"
+    ],
+    "lat": 37.489112,
+    "lon": 127.066027,
+    "monthly_median": 1114583,
+    "n": 14
+   },
+   {
+    "station_id": 249,
+    "name": "개화",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.578591,
+    "lon": 126.797833,
+    "monthly_median": 806042,
+    "n": 2
+   },
+   {
+    "station_id": 123,
+    "name": "개화산",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.572458,
+    "lon": 126.806838,
+    "monthly_median": 583333,
+    "n": 92
+   },
+   {
+    "station_id": 237,
+    "name": "거여",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.493208,
+    "lon": 127.143983,
+    "monthly_median": 942583,
+    "n": 105
+   },
+   {
+    "station_id": 44,
+    "name": "건대입구",
+    "lines": [
+     "2호선",
+     "7호선"
+    ],
+    "lat": 37.540645,
+    "lon": 127.070167,
+    "monthly_median": 669583,
+    "n": 264
+   },
+   {
+    "station_id": 80,
+    "name": "경복궁",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.575844,
+    "lon": 126.973576,
+    "monthly_median": 950000,
+    "n": 86
+   },
+   {
+    "station_id": 99,
+    "name": "경찰병원",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.495754,
+    "lon": 127.124198,
+    "monthly_median": 695833,
+    "n": 364
+   },
+   {
+    "station_id": 156,
+    "name": "고덕",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.555002,
+    "lon": 127.154214,
+    "monthly_median": 761667,
+    "n": 258
+   },
+   {
+    "station_id": 179,
+    "name": "고려대",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.59034,
+    "lon": 127.03626,
+    "monthly_median": 549583,
+    "n": 90
+   },
+   {
+    "station_id": 89,
+    "name": "고속터미널",
+    "lines": [
+     "3호선",
+     "7호선",
+     "9호선"
+    ],
+    "lat": 37.5047577,
+    "lon": 127.0046717,
+    "monthly_median": 740000,
+    "n": 3
+   },
+   {
+    "station_id": 9,
+    "name": "공덕",
+    "lines": [
+     "5호선",
+     "6호선",
+     "경의중앙선",
+     "인천국제공항선"
+    ],
+    "lat": 37.5432546,
+    "lon": 126.9516214,
+    "monthly_median": 867500,
+    "n": 343
+   },
+   {
+    "station_id": 193,
+    "name": "공릉",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.625642,
+    "lon": 127.072969,
+    "monthly_median": 493958,
+    "n": 190
+   },
+   {
+    "station_id": 250,
+    "name": "공항시장",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.563726,
+    "lon": 126.810678,
+    "monthly_median": 589167,
+    "n": 430
+   },
+   {
+    "station_id": 24,
+    "name": "관악산",
+    "lines": [
+     "신림선"
+    ],
+    "lat": 37.469169,
+    "lon": 126.9449548,
+    "monthly_median": 510000,
+    "n": 42
+   },
+   {
+    "station_id": 150,
+    "name": "광나루",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.545301,
+    "lon": 127.103478,
+    "monthly_median": 665625,
+    "n": 12
+   },
+   {
+    "station_id": 286,
+    "name": "광운대",
+    "lines": [
+     "경원선",
+     "경의중앙선",
+     "경춘선"
+    ],
+    "lat": 37.6237017,
+    "lon": 127.0619283,
+    "monthly_median": 538333,
+    "n": 103
+   },
+   {
+    "station_id": 141,
+    "name": "광화문",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.571645,
+    "lon": 126.976568,
+    "monthly_median": 978333,
+    "n": 55
+   },
+   {
+    "station_id": 169,
+    "name": "광흥창",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.547464,
+    "lon": 126.931971,
+    "monthly_median": 655833,
+    "n": 119
+   },
+   {
+    "station_id": 54,
+    "name": "교대",
+    "lines": [
+     "2호선",
+     "3호선"
+    ],
+    "lat": 37.4935085,
+    "lon": 127.0141135,
+    "monthly_median": 1019167,
+    "n": 117
+   },
+   {
+    "station_id": 300,
+    "name": "구로",
+    "lines": [
+     "경부선"
+    ],
+    "lat": 37.503178,
+    "lon": 126.882037,
+    "monthly_median": 739167,
+    "n": 253
+   },
+   {
+    "station_id": 62,
+    "name": "구로디지털단지",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.4852931,
+    "lon": 126.901456,
+    "monthly_median": 709583,
+    "n": 393
+   },
+   {
+    "station_id": 290,
+    "name": "구룡",
+    "lines": [
+     "분당선"
+    ],
+    "lat": 37.486985,
+    "lon": 127.059496,
+    "monthly_median": 758750,
+    "n": 9
+   },
+   {
+    "station_id": 263,
+    "name": "구반포",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.501389,
+    "lon": 126.987222,
+    "monthly_median": 1202583,
+    "n": 34
+   },
+   {
+    "station_id": 162,
+    "name": "구산",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.611196,
+    "lon": 126.9172519,
+    "monthly_median": 790000,
+    "n": 185
+   },
+   {
+    "station_id": 45,
+    "name": "구의",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.537157,
+    "lon": 127.0862124,
+    "monthly_median": 889167,
+    "n": 803
+   },
+   {
+    "station_id": 305,
+    "name": "구일",
+    "lines": [
+     "경인선"
+    ],
+    "lat": 37.495973,
+    "lon": 126.869201,
+    "monthly_median": 679167,
+    "n": 253
+   },
+   {
+    "station_id": 73,
+    "name": "구파발",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.636612,
+    "lon": 126.918827,
+    "monthly_median": 659167,
+    "n": 1161
+   },
+   {
+    "station_id": 259,
+    "name": "국회의사당",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.528105,
+    "lon": 126.917874,
+    "monthly_median": 1020000,
+    "n": 145
+   },
+   {
+    "station_id": 148,
+    "name": "군자",
+    "lines": [
+     "5호선",
+     "7호선"
+    ],
+    "lat": 37.5571265,
+    "lon": 127.0795215,
+    "monthly_median": 860167,
+    "n": 750
+   },
+   {
+    "station_id": 154,
+    "name": "굽은다리",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.545442,
+    "lon": 127.142844,
+    "monthly_median": 783000,
+    "n": 274
+   },
+   {
+    "station_id": 301,
+    "name": "금천구청",
+    "lines": [
+     "경부선"
+    ],
+    "lat": 37.45576,
+    "lon": 126.894344,
+    "monthly_median": 772917,
+    "n": 132
+   },
+   {
+    "station_id": 85,
+    "name": "금호",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.548269,
+    "lon": 127.015785,
+    "monthly_median": 704167,
+    "n": 6
+   },
+   {
+    "station_id": 153,
+    "name": "길동",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.538022,
+    "lon": 127.140085,
+    "monthly_median": 689167,
+    "n": 630
+   },
+   {
+    "station_id": 109,
+    "name": "길음",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.603387,
+    "lon": 127.025053,
+    "monthly_median": 373750,
+    "n": 8
+   },
+   {
+    "station_id": 13,
+    "name": "김포공항",
+    "lines": [
+     "5호선",
+     "9호선",
+     "김포도시철도",
+     "서해선",
+     "인천국제공항선"
+    ],
+    "lat": 37.5621539,
+    "lon": 126.8020678,
+    "monthly_median": 620000,
+    "n": 136
+   },
+   {
+    "station_id": 129,
+    "name": "까치산",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.5322,
+    "lon": 126.84645,
+    "monthly_median": 762000,
+    "n": 576
+   },
+   {
+    "station_id": 58,
+    "name": "낙성대",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.47713,
+    "lon": 126.963583,
+    "monthly_median": 695833,
+    "n": 336
+   },
+   {
+    "station_id": 214,
+    "name": "남구로",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.486181,
+    "lon": 126.887372,
+    "monthly_median": 561500,
+    "n": 79
+   },
+   {
+    "station_id": 90,
+    "name": "남부터미널",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.48494,
+    "lon": 127.016289,
+    "monthly_median": 889167,
+    "n": 482
+   },
+   {
+    "station_id": 208,
+    "name": "남성",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.484688,
+    "lon": 126.971108,
+    "monthly_median": 673750,
+    "n": 186
+   },
+   {
+    "station_id": 276,
+    "name": "남영",
+    "lines": [
+     "경부선"
+    ],
+    "lat": 37.540597,
+    "lon": 126.971171,
+    "monthly_median": 888333,
+    "n": 369
+   },
+   {
+    "station_id": 121,
+    "name": "남태령",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.464339,
+    "lon": 126.989081,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 207,
+    "name": "내방",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.48764,
+    "lon": 126.993541,
+    "monthly_median": 779167,
+    "n": 412
+   },
+   {
+    "station_id": 261,
+    "name": "노들",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.512726,
+    "lon": 126.953096,
+    "monthly_median": 789583,
+    "n": 22
+   },
+   {
+    "station_id": 260,
+    "name": "노량진",
+    "lines": [
+     "9호선",
+     "경부선"
+    ],
+    "lat": 37.5138695,
+    "lon": 126.941294,
+    "monthly_median": 740000,
+    "n": 242
+   },
+   {
+    "station_id": 103,
+    "name": "노원",
+    "lines": [
+     "4호선",
+     "7호선"
+    ],
+    "lat": 37.655376,
+    "lon": 127.061869,
+    "monthly_median": 669583,
+    "n": 84
+   },
+   {
+    "station_id": 76,
+    "name": "녹번",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.600882,
+    "lon": 126.935758,
+    "monthly_median": 619167,
+    "n": 120
+   },
+   {
+    "station_id": 172,
+    "name": "녹사평",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.53469,
+    "lon": 126.98665,
+    "monthly_median": 764167,
+    "n": 14
+   },
+   {
+    "station_id": 288,
+    "name": "녹천",
+    "lines": [
+     "경원선"
+    ],
+    "lat": 37.644599,
+    "lon": 127.051406,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 2,
+    "name": "논현",
+    "lines": [
+     "7호선",
+     "신분당선"
+    ],
+    "lat": 37.5111117,
+    "lon": 127.0213754,
+    "monthly_median": 850625,
+    "n": 274
+   },
+   {
+    "station_id": 146,
+    "name": "답십리",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.566833,
+    "lon": 127.05266,
+    "monthly_median": 739167,
+    "n": 666
+   },
+   {
+    "station_id": 20,
+    "name": "당곡",
+    "lines": [
+     "신림선"
+    ],
+    "lat": 37.4900391,
+    "lon": 126.9275688,
+    "monthly_median": 745833,
+    "n": 662
+   },
+   {
+    "station_id": 67,
+    "name": "당산",
+    "lines": [
+     "2호선",
+     "9호선"
+    ],
+    "lat": 37.5343255,
+    "lon": 126.9024165,
+    "monthly_median": 939167,
+    "n": 905
+   },
+   {
+    "station_id": 63,
+    "name": "대림",
+    "lines": [
+     "2호선",
+     "7호선"
+    ],
+    "lat": 37.4931333,
+    "lon": 126.8959881,
+    "monthly_median": 519583,
+    "n": 189
+   },
+   {
+    "station_id": 292,
+    "name": "대모산입구",
+    "lines": [
+     "분당선"
+    ],
+    "lat": 37.491347,
+    "lon": 127.072702,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 15,
+    "name": "대방",
+    "lines": [
+     "경부선",
+     "신림선"
+    ],
+    "lat": 37.5131161,
+    "lon": 126.9258619,
+    "monthly_median": 769167,
+    "n": 184
+   },
+   {
+    "station_id": 95,
+    "name": "대청",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.493607,
+    "lon": 127.079526,
+    "monthly_median": 919167,
+    "n": 144
+   },
+   {
+    "station_id": 93,
+    "name": "대치",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.494601,
+    "lon": 127.063449,
+    "monthly_median": 1717500,
+    "n": 19
+   },
+   {
+    "station_id": 170,
+    "name": "대흥",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.547732,
+    "lon": 126.942214,
+    "monthly_median": 928333,
+    "n": 188
+   },
+   {
+    "station_id": 92,
+    "name": "도곡",
+    "lines": [
+     "3호선",
+     "분당선"
+    ],
+    "lat": 37.4910215,
+    "lon": 127.0555435,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 230,
+    "name": "도림천",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.5145589,
+    "lon": 126.882586,
+    "monthly_median": 627500,
+    "n": 124
+   },
+   {
+    "station_id": 309,
+    "name": "도봉",
+    "lines": [
+     "경원선"
+    ],
+    "lat": 37.679441,
+    "lon": 127.045521,
+    "monthly_median": 692750,
+    "n": 224
+   },
+   {
+    "station_id": 188,
+    "name": "도봉산",
+    "lines": [
+     "7호선",
+     "경원선"
+    ],
+    "lat": 37.689367,
+    "lon": 127.0462975,
+    "monthly_median": 620083,
+    "n": 2
+   },
+   {
+    "station_id": 79,
+    "name": "독립문",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.574534,
+    "lon": 126.957902,
+    "monthly_median": 1053333,
+    "n": 44
+   },
+   {
+    "station_id": 161,
+    "name": "독바위",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.618413,
+    "lon": 126.933035,
+    "monthly_median": 469167,
+    "n": 29
+   },
+   {
+    "station_id": 302,
+    "name": "독산",
+    "lines": [
+     "경부선"
+    ],
+    "lat": 37.465994,
+    "lon": 126.889508,
+    "monthly_median": 680000,
+    "n": 525
+   },
+   {
+    "station_id": 182,
+    "name": "돌곶이",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.610522,
+    "lon": 127.056419,
+    "monthly_median": 955000,
+    "n": 127
+   },
+   {
+    "station_id": 29,
+    "name": "동대문",
+    "lines": [
+     "1호선",
+     "4호선"
+    ],
+    "lat": 37.571318,
+    "lon": 127.00997,
+    "monthly_median": 889167,
+    "n": 37
+   },
+   {
+    "station_id": 37,
+    "name": "동대문역사문화공원",
+    "lines": [
+     "2호선",
+     "4호선",
+     "5호선"
+    ],
+    "lat": 37.565144,
+    "lon": 127.007407,
+    "monthly_median": 1069021,
+    "n": 142
+   },
+   {
+    "station_id": 83,
+    "name": "동대입구",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.55906,
+    "lon": 127.005273,
+    "monthly_median": 675000,
+    "n": 308
+   },
+   {
+    "station_id": 28,
+    "name": "동묘앞",
+    "lines": [
+     "1호선",
+     "6호선"
+    ],
+    "lat": 37.57277,
+    "lon": 127.0160625,
+    "monthly_median": 738333,
+    "n": 356
+   },
+   {
+    "station_id": 119,
+    "name": "동작",
+    "lines": [
+     "4호선",
+     "9호선"
+    ],
+    "lat": 37.5032225,
+    "lon": 126.9792245,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 233,
+    "name": "둔촌동",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.527787,
+    "lon": 127.136219,
+    "monthly_median": 683750,
+    "n": 126
+   },
+   {
+    "station_id": 247,
+    "name": "둔촌오륜",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.519339,
+    "lon": 127.138619,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 255,
+    "name": "등촌",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.551111,
+    "lon": 126.864722,
+    "monthly_median": 988333,
+    "n": 731
+   },
+   {
+    "station_id": 11,
+    "name": "디지털미디어시티",
+    "lines": [
+     "6호선",
+     "경의중앙선",
+     "인천국제공항선"
+    ],
+    "lat": 37.5771332,
+    "lon": 126.8999297,
+    "monthly_median": 633750,
+    "n": 74
+   },
+   {
+    "station_id": 42,
+    "name": "뚝섬",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.54718,
+    "lon": 127.047413,
+    "monthly_median": 915833,
+    "n": 134
+   },
+   {
+    "station_id": 125,
+    "name": "마곡",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.55865,
+    "lon": 126.837693,
+    "monthly_median": 749167,
+    "n": 786
+   },
+   {
+    "station_id": 12,
+    "name": "마곡나루",
+    "lines": [
+     "9호선",
+     "인천국제공항선"
+    ],
+    "lat": 37.5662681,
+    "lon": 126.8276214,
+    "monthly_median": 789167,
+    "n": 1822
+   },
+   {
+    "station_id": 190,
+    "name": "마들",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.664985,
+    "lon": 127.057701,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 145,
+    "name": "마장",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.566066,
+    "lon": 127.042921,
+    "monthly_median": 692500,
+    "n": 120
+   },
+   {
+    "station_id": 238,
+    "name": "마천",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.494972,
+    "lon": 127.152784,
+    "monthly_median": 944167,
+    "n": 22
+   },
+   {
+    "station_id": 138,
+    "name": "마포",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.539718,
+    "lon": 126.946043,
+    "monthly_median": 879167,
+    "n": 304
+   },
+   {
+    "station_id": 166,
+    "name": "마포구청",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.563529,
+    "lon": 126.903356,
+    "monthly_median": 815000,
+    "n": 2064
+   },
+   {
+    "station_id": 294,
+    "name": "망우",
+    "lines": [
+     "경의중앙선",
+     "경춘선"
+    ],
+    "lat": 37.599638,
+    "lon": 127.0921745,
+    "monthly_median": 668750,
+    "n": 248
+   },
+   {
+    "station_id": 167,
+    "name": "망원",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.556031,
+    "lon": 126.910129,
+    "monthly_median": 689167,
+    "n": 507
+   },
+   {
+    "station_id": 91,
+    "name": "매봉",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.487114,
+    "lon": 127.046907,
+    "monthly_median": 719167,
+    "n": 35
+   },
+   {
+    "station_id": 194,
+    "name": "먹골",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.610638,
+    "lon": 127.077719,
+    "monthly_median": 708333,
+    "n": 152
+   },
+   {
+    "station_id": 197,
+    "name": "면목",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.588671,
+    "lon": 127.087503,
+    "monthly_median": 760000,
+    "n": 202
+   },
+   {
+    "station_id": 113,
+    "name": "명동",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.560955,
+    "lon": 126.986271,
+    "monthly_median": 967500,
+    "n": 85
+   },
+   {
+    "station_id": 155,
+    "name": "명일",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.551317,
+    "lon": 127.144002,
+    "monthly_median": 769167,
+    "n": 75
+   },
+   {
+    "station_id": 131,
+    "name": "목동",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.526088,
+    "lon": 126.864296,
+    "monthly_median": 795057,
+    "n": 120
+   },
+   {
+    "station_id": 221,
+    "name": "몽촌토성",
+    "lines": [
+     "8호선"
+    ],
+    "lat": 37.517692,
+    "lon": 127.11274,
+    "monthly_median": 935000,
+    "n": 1616
+   },
+   {
+    "station_id": 78,
+    "name": "무악재",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.582658,
+    "lon": 126.950131,
+    "monthly_median": 825417,
+    "n": 8
+   },
+   {
+    "station_id": 65,
+    "name": "문래",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.517993,
+    "lon": 126.894766,
+    "monthly_median": 1310833,
+    "n": 107
+   },
+   {
+    "station_id": 224,
+    "name": "문정",
+    "lines": [
+     "8호선"
+    ],
+    "lat": 37.485931,
+    "lon": 127.122473,
+    "monthly_median": 939167,
+    "n": 1369
+   },
+   {
+    "station_id": 107,
+    "name": "미아",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.626435,
+    "lon": 127.026151,
+    "monthly_median": 489375,
+    "n": 66
+   },
+   {
+    "station_id": 108,
+    "name": "미아사거리",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.613276,
+    "lon": 127.030083,
+    "monthly_median": 559167,
+    "n": 49
+   },
+   {
+    "station_id": 206,
+    "name": "반포",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.508171,
+    "lon": 127.011717,
+    "monthly_median": 1089167,
+    "n": 4
+   },
+   {
+    "station_id": 126,
+    "name": "발산",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.558692,
+    "lon": 126.837633,
+    "monthly_median": 749167,
+    "n": 786
+   },
+   {
+    "station_id": 56,
+    "name": "방배",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.481469,
+    "lon": 126.997627,
+    "monthly_median": 758000,
+    "n": 167
+   },
+   {
+    "station_id": 235,
+    "name": "방이",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.508752,
+    "lon": 127.126054,
+    "monthly_median": 803333,
+    "n": 62
+   },
+   {
+    "station_id": 308,
+    "name": "방학",
+    "lines": [
+     "경원선"
+    ],
+    "lat": 37.667471,
+    "lon": 127.044295,
+    "monthly_median": 639167,
+    "n": 206
+   },
+   {
+    "station_id": 122,
+    "name": "방화",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.577669,
+    "lon": 126.812822,
+    "monthly_median": 439583,
+    "n": 286
+   },
+   {
+    "station_id": 175,
+    "name": "버티고개",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.547933,
+    "lon": 127.006948,
+    "monthly_median": 582500,
+    "n": 47
+   },
+   {
+    "station_id": 17,
+    "name": "보라매",
+    "lines": [
+     "7호선",
+     "신림선"
+    ],
+    "lat": 37.5001144,
+    "lon": 126.9202989,
+    "monthly_median": 767500,
+    "n": 175
+   },
+   {
+    "station_id": 18,
+    "name": "보라매공원",
+    "lines": [
+     "신림선"
+    ],
+    "lat": 37.4952254,
+    "lon": 126.9182588,
+    "monthly_median": 795833,
+    "n": 57
+   },
+   {
+    "station_id": 19,
+    "name": "보라매병원",
+    "lines": [
+     "신림선"
+    ],
+    "lat": 37.4929607,
+    "lon": 126.923886,
+    "monthly_median": 745833,
+    "n": 155
+   },
+   {
+    "station_id": 177,
+    "name": "보문",
+    "lines": [
+     "6호선",
+     "우이신설선"
+    ],
+    "lat": 37.585468,
+    "lon": 127.019556,
+    "monthly_median": 639167,
+    "n": 212
+   },
+   {
+    "station_id": 226,
+    "name": "복정",
+    "lines": [
+     "8호선",
+     "분당선"
+    ],
+    "lat": 37.4703845,
+    "lon": 127.1266865,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 242,
+    "name": "봉은사",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.514219,
+    "lon": 127.060245,
+    "monthly_median": 813750,
+    "n": 18
+   },
+   {
+    "station_id": 60,
+    "name": "봉천",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.482416,
+    "lon": 126.941696,
+    "monthly_median": 731667,
+    "n": 317
+   },
+   {
+    "station_id": 186,
+    "name": "봉화산",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.617429,
+    "lon": 127.0912326,
+    "monthly_median": 469583,
+    "n": 27
+   },
+   {
+    "station_id": 274,
+    "name": "북한산보국문",
+    "lines": [
+     "우이신설선"
+    ],
+    "lat": 37.61233,
+    "lon": 127.00816,
+    "monthly_median": 569167,
+    "n": 98
+   },
+   {
+    "station_id": 266,
+    "name": "북한산우이",
+    "lines": [
+     "우이신설선"
+    ],
+    "lat": 37.66284,
+    "lon": 127.01272,
+    "monthly_median": 318125,
+    "n": 23
+   },
+   {
+    "station_id": 75,
+    "name": "불광",
+    "lines": [
+     "3호선",
+     "6호선"
+    ],
+    "lat": 37.6105365,
+    "lon": 126.9298435,
+    "monthly_median": 722000,
+    "n": 212
+   },
+   {
+    "station_id": 101,
+    "name": "불암산",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.67009,
+    "lon": 127.079004,
+    "monthly_median": 389167,
+    "n": 11
+   },
+   {
+    "station_id": 198,
+    "name": "사가정",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.580912,
+    "lon": 127.088502,
+    "monthly_median": 933333,
+    "n": 245
+   },
+   {
+    "station_id": 57,
+    "name": "사당",
+    "lines": [
+     "2호선",
+     "4호선"
+    ],
+    "lat": 37.4763995,
+    "lon": 126.9816335,
+    "monthly_median": 699167,
+    "n": 403
+   },
+   {
+    "station_id": 265,
+    "name": "사평",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.504161,
+    "lon": 127.015219,
+    "monthly_median": 775583,
+    "n": 84
+   },
+   {
+    "station_id": 116,
+    "name": "삼각지",
+    "lines": [
+     "4호선",
+     "6호선"
+    ],
+    "lat": 37.53501,
+    "lon": 126.973494,
+    "monthly_median": 1030000,
+    "n": 135
+   },
+   {
+    "station_id": 51,
+    "name": "삼성",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.508827,
+    "lon": 127.063203,
+    "monthly_median": 1129167,
+    "n": 90
+   },
+   {
+    "station_id": 241,
+    "name": "삼성중앙",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.513011,
+    "lon": 127.053282,
+    "monthly_median": 977500,
+    "n": 173
+   },
+   {
+    "station_id": 271,
+    "name": "삼양",
+    "lines": [
+     "우이신설선"
+    ],
+    "lat": 37.62706,
+    "lon": 127.01817,
+    "monthly_median": 548583,
+    "n": 63
+   },
+   {
+    "station_id": 272,
+    "name": "삼양사거리",
+    "lines": [
+     "우이신설선"
+    ],
+    "lat": 37.62144,
+    "lon": 127.02049,
+    "monthly_median": 470000,
+    "n": 33
+   },
+   {
+    "station_id": 243,
+    "name": "삼전",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.504531,
+    "lon": 127.087211,
+    "monthly_median": 740833,
+    "n": 986
+   },
+   {
+    "station_id": 102,
+    "name": "상계",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.660576,
+    "lon": 127.073199,
+    "monthly_median": 519583,
+    "n": 18
+   },
+   {
+    "station_id": 210,
+    "name": "상도",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.50279,
+    "lon": 126.947949,
+    "monthly_median": 707083,
+    "n": 390
+   },
+   {
+    "station_id": 196,
+    "name": "상봉",
+    "lines": [
+     "7호선",
+     "경의중앙선",
+     "경춘선"
+    ],
+    "lat": 37.5958937,
+    "lon": 127.0857047,
+    "monthly_median": 797917,
+    "n": 574
+   },
+   {
+    "station_id": 168,
+    "name": "상수",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.547704,
+    "lon": 126.92292,
+    "monthly_median": 708000,
+    "n": 177
+   },
+   {
+    "station_id": 39,
+    "name": "상왕십리",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.564444,
+    "lon": 127.029322,
+    "monthly_median": 913750,
+    "n": 620
+   },
+   {
+    "station_id": 181,
+    "name": "상월곡",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.606392,
+    "lon": 127.048509,
+    "monthly_median": 855792,
+    "n": 46
+   },
+   {
+    "station_id": 157,
+    "name": "상일동",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.556714,
+    "lon": 127.166381,
+    "monthly_median": 622037,
+    "n": 38
+   },
+   {
+    "station_id": 163,
+    "name": "새절",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.591148,
+    "lon": 126.913613,
+    "monthly_median": 815417,
+    "n": 187
+   },
+   {
+    "station_id": 14,
+    "name": "샛강",
+    "lines": [
+     "9호선",
+     "신림선"
+    ],
+    "lat": 37.51726,
+    "lon": 126.928902,
+    "monthly_median": 970800,
+    "n": 133
+   },
+   {
+    "station_id": 297,
+    "name": "서강대",
+    "lines": [
+     "경의중앙선"
+    ],
+    "lat": 37.552132,
+    "lon": 126.935389,
+    "monthly_median": 818333,
+    "n": 407
+   },
+   {
+    "station_id": 140,
+    "name": "서대문",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.565812,
+    "lon": 126.966639,
+    "monthly_median": 858125,
+    "n": 94
+   },
+   {
+    "station_id": 280,
+    "name": "서빙고",
+    "lines": [
+     "경원선"
+    ],
+    "lat": 37.51961,
+    "lon": 126.988358,
+    "monthly_median": 704792,
+    "n": 14
+   },
+   {
+    "station_id": 23,
+    "name": "서울대벤처타운",
+    "lines": [
+     "신림선"
+    ],
+    "lat": 37.4720407,
+    "lon": 126.9339766,
+    "monthly_median": 788333,
+    "n": 87
+   },
+   {
+    "station_id": 59,
+    "name": "서울대입구",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.481233,
+    "lon": 126.952745,
+    "monthly_median": 739167,
+    "n": 1749
+   },
+   {
+    "station_id": 306,
+    "name": "서울숲",
+    "lines": [
+     "분당선"
+    ],
+    "lat": 37.543647,
+    "lon": 127.044686,
+    "monthly_median": 1083958,
+    "n": 172
+   },
+   {
+    "station_id": 8,
+    "name": "서울역",
+    "lines": [
+     "1호선",
+     "4호선",
+     "경의중앙선",
+     "인천국제공항선"
+    ],
+    "lat": 37.5546882,
+    "lon": 126.9714901,
+    "monthly_median": 1234167,
+    "n": 112
+   },
+   {
+    "station_id": 16,
+    "name": "서울지방병무청",
+    "lines": [
+     "신림선"
+    ],
+    "lat": 37.5060469,
+    "lon": 126.9227834,
+    "monthly_median": 748800,
+    "n": 74
+   },
+   {
+    "station_id": 22,
+    "name": "서원",
+    "lines": [
+     "신림선"
+    ],
+    "lat": 37.4782734,
+    "lon": 126.9332282,
+    "monthly_median": 606000,
+    "n": 135
+   },
+   {
+    "station_id": 55,
+    "name": "서초",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.49191,
+    "lon": 127.007685,
+    "monthly_median": 946500,
+    "n": 82
+   },
+   {
+    "station_id": 183,
+    "name": "석계",
+    "lines": [
+     "6호선",
+     "경원선"
+    ],
+    "lat": 37.6150715,
+    "lon": 127.065758,
+    "monthly_median": 689167,
+    "n": 77
+   },
+   {
+    "station_id": 222,
+    "name": "석촌",
+    "lines": [
+     "8호선",
+     "9호선"
+    ],
+    "lat": 37.505237,
+    "lon": 127.1069695,
+    "monthly_median": 718333,
+    "n": 965
+   },
+   {
+    "station_id": 244,
+    "name": "석촌고분",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.502439,
+    "lon": 127.096611,
+    "monthly_median": 753333,
+    "n": 1095
+   },
+   {
+    "station_id": 52,
+    "name": "선릉",
+    "lines": [
+     "2호선",
+     "분당선"
+    ],
+    "lat": 37.504368,
+    "lon": 127.0485575,
+    "monthly_median": 939167,
+    "n": 359
+   },
+   {
+    "station_id": 258,
+    "name": "선유도",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.537778,
+    "lon": 126.893889,
+    "monthly_median": 1066042,
+    "n": 572
+   },
+   {
+    "station_id": 240,
+    "name": "선정릉",
+    "lines": [
+     "9호선",
+     "분당선"
+    ],
+    "lat": 37.5105275,
+    "lon": 127.0437381,
+    "monthly_median": 1020000,
+    "n": 281
+   },
+   {
+    "station_id": 43,
+    "name": "성수",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.544628,
+    "lon": 127.055983,
+    "monthly_median": 948775,
+    "n": 126
+   },
+   {
+    "station_id": 110,
+    "name": "성신여대입구",
+    "lines": [
+     "4호선",
+     "우이신설선"
+    ],
+    "lat": 37.592676,
+    "lon": 127.016734,
+    "monthly_median": 728333,
+    "n": 542
+   },
+   {
+    "station_id": 267,
+    "name": "솔밭공원",
+    "lines": [
+     "우이신설선"
+    ],
+    "lat": 37.65607,
+    "lon": 127.01326,
+    "monthly_median": 510042,
+    "n": 34
+   },
+   {
+    "station_id": 273,
+    "name": "솔샘",
+    "lines": [
+     "우이신설선"
+    ],
+    "lat": 37.62037,
+    "lon": 127.01357,
+    "monthly_median": 358000,
+    "n": 7
+   },
+   {
+    "station_id": 124,
+    "name": "송정",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.561201,
+    "lon": 126.812052,
+    "monthly_median": 617500,
+    "n": 503
+   },
+   {
+    "station_id": 223,
+    "name": "송파",
+    "lines": [
+     "8호선"
+    ],
+    "lat": 37.49978,
+    "lon": 127.11212,
+    "monthly_median": 790000,
+    "n": 270
+   },
+   {
+    "station_id": 245,
+    "name": "송파나루",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.51055,
+    "lon": 127.112451,
+    "monthly_median": 732629,
+    "n": 738
+   },
+   {
+    "station_id": 189,
+    "name": "수락산",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.677804,
+    "lon": 127.055314,
+    "monthly_median": 519583,
+    "n": 155
+   },
+   {
+    "station_id": 299,
+    "name": "수색",
+    "lines": [
+     "경의중앙선"
+    ],
+    "lat": 37.580855,
+    "lon": 126.895681,
+    "monthly_median": 589583,
+    "n": 84
+   },
+   {
+    "station_id": 97,
+    "name": "수서",
+    "lines": [
+     "3호선",
+     "분당선"
+    ],
+    "lat": 37.4875665,
+    "lon": 127.101521,
+    "monthly_median": 783750,
+    "n": 14
+   },
+   {
+    "station_id": 106,
+    "name": "수유",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.637727,
+    "lon": 127.025371,
+    "monthly_median": 738333,
+    "n": 613
+   },
+   {
+    "station_id": 115,
+    "name": "숙대입구",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.5447834,
+    "lon": 126.9721,
+    "monthly_median": 839167,
+    "n": 174
+   },
+   {
+    "station_id": 209,
+    "name": "숭실대입구",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.496258,
+    "lon": 126.953649,
+    "monthly_median": 692917,
+    "n": 102
+   },
+   {
+    "station_id": 33,
+    "name": "시청",
+    "lines": [
+     "1호선",
+     "2호선"
+    ],
+    "lat": 37.5643725,
+    "lon": 126.976239,
+    "monthly_median": 1683333,
+    "n": 4
+   },
+   {
+    "station_id": 143,
+    "name": "신금호",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.554504,
+    "lon": 127.020403,
+    "monthly_median": 617500,
+    "n": 15
+   },
+   {
+    "station_id": 135,
+    "name": "신길",
+    "lines": [
+     "5호선",
+     "경부선"
+    ],
+    "lat": 37.517324,
+    "lon": 126.9163145,
+    "monthly_median": 778333,
+    "n": 985
+   },
+   {
+    "station_id": 187,
+    "name": "신내",
+    "lines": [
+     "6호선",
+     "경춘선"
+    ],
+    "lat": 37.612713,
+    "lon": 127.1038015,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 3,
+    "name": "신논현",
+    "lines": [
+     "9호선",
+     "신분당선"
+    ],
+    "lat": 37.5044997,
+    "lon": 127.0244738,
+    "monthly_median": 1089167,
+    "n": 410
+   },
+   {
+    "station_id": 228,
+    "name": "신답",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.569847,
+    "lon": 127.047048,
+    "monthly_median": 689167,
+    "n": 406
+   },
+   {
+    "station_id": 38,
+    "name": "신당",
+    "lines": [
+     "2호선",
+     "6호선"
+    ],
+    "lat": 37.5659245,
+    "lon": 127.017792,
+    "monthly_median": 800000,
+    "n": 500
+   },
+   {
+    "station_id": 61,
+    "name": "신대방",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.487604,
+    "lon": 126.913479,
+    "monthly_median": 630000,
+    "n": 191
+   },
+   {
+    "station_id": 212,
+    "name": "신대방삼거리",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.499717,
+    "lon": 126.928218,
+    "monthly_median": 671667,
+    "n": 412
+   },
+   {
+    "station_id": 64,
+    "name": "신도림",
+    "lines": [
+     "2호선",
+     "경부선"
+    ],
+    "lat": 37.508899,
+    "lon": 126.8913675,
+    "monthly_median": 691667,
+    "n": 105
+   },
+   {
+    "station_id": 21,
+    "name": "신림",
+    "lines": [
+     "2호선",
+     "신림선"
+    ],
+    "lat": 37.4845534,
+    "lon": 126.9295915,
+    "monthly_median": 745833,
+    "n": 1251
+   },
+   {
+    "station_id": 257,
+    "name": "신목동",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.544167,
+    "lon": 126.883056,
+    "monthly_median": 1062833,
+    "n": 127
+   },
+   {
+    "station_id": 264,
+    "name": "신반포",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.5035033,
+    "lon": 126.996044,
+    "monthly_median": 2693750,
+    "n": 4
+   },
+   {
+    "station_id": 251,
+    "name": "신방화",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.5675,
+    "lon": 126.816667,
+    "monthly_median": 679325,
+    "n": 403
+   },
+   {
+    "station_id": 1,
+    "name": "신사",
+    "lines": [
+     "3호선",
+     "신분당선"
+    ],
+    "lat": 37.5162816,
+    "lon": 127.020004,
+    "monthly_median": 857083,
+    "n": 100
+   },
+   {
+    "station_id": 27,
+    "name": "신설동",
+    "lines": [
+     "1호선",
+     "2호선",
+     "우이신설선"
+    ],
+    "lat": 37.5757867,
+    "lon": 127.024363,
+    "monthly_median": 738333,
+    "n": 1034
+   },
+   {
+    "station_id": 117,
+    "name": "신용산",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.52909,
+    "lon": 126.96788,
+    "monthly_median": 1143333,
+    "n": 121
+   },
+   {
+    "station_id": 285,
+    "name": "신이문",
+    "lines": [
+     "경원선"
+    ],
+    "lat": 37.601829,
+    "lon": 127.067347,
+    "monthly_median": 669583,
+    "n": 87
+   },
+   {
+    "station_id": 130,
+    "name": "신정",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.525001,
+    "lon": 126.856176,
+    "monthly_median": 758492,
+    "n": 348
+   },
+   {
+    "station_id": 232,
+    "name": "신정네거리",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.520218,
+    "lon": 126.852849,
+    "monthly_median": 727500,
+    "n": 164
+   },
+   {
+    "station_id": 69,
+    "name": "신촌(2호선)",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.555153,
+    "lon": 126.93689,
+    "monthly_median": 789167,
+    "n": 631
+   },
+   {
+    "station_id": 296,
+    "name": "신촌(경의중앙선)",
+    "lines": [
+     "경의중앙선"
+    ],
+    "lat": 37.559768,
+    "lon": 126.942308,
+    "monthly_median": 939167,
+    "n": 1142
+   },
+   {
+    "station_id": 213,
+    "name": "신풍",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.500107,
+    "lon": 126.909806,
+    "monthly_median": 438542,
+    "n": 44
+   },
+   {
+    "station_id": 105,
+    "name": "쌍문",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.648274,
+    "lon": 127.034381,
+    "monthly_median": 608333,
+    "n": 161
+   },
+   {
+    "station_id": 149,
+    "name": "아차산",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.552005,
+    "lon": 127.089609,
+    "monthly_median": 761750,
+    "n": 260
+   },
+   {
+    "station_id": 71,
+    "name": "아현",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.557407,
+    "lon": 126.956079,
+    "monthly_median": 1289167,
+    "n": 80
+   },
+   {
+    "station_id": 81,
+    "name": "안국",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.576562,
+    "lon": 126.98547,
+    "monthly_median": 718958,
+    "n": 32
+   },
+   {
+    "station_id": 178,
+    "name": "안암",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.586261,
+    "lon": 127.02903,
+    "monthly_median": 699167,
+    "n": 201
+   },
+   {
+    "station_id": 219,
+    "name": "암사",
+    "lines": [
+     "8호선"
+    ],
+    "lat": 37.550127,
+    "lon": 127.127521,
+    "monthly_median": 739583,
+    "n": 454
+   },
+   {
+    "station_id": 218,
+    "name": "암사역사공원",
+    "lines": [
+     "8호선"
+    ],
+    "lat": 37.557167,
+    "lon": 127.137556,
+    "monthly_median": 919875,
+    "n": 42
+   },
+   {
+    "station_id": 87,
+    "name": "압구정",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.526169,
+    "lon": 127.028502,
+    "monthly_median": 866667,
+    "n": 25
+   },
+   {
+    "station_id": 307,
+    "name": "압구정로데오",
+    "lines": [
+     "분당선"
+    ],
+    "lat": 37.527385,
+    "lon": 127.040555,
+    "monthly_median": 867917,
+    "n": 6
+   },
+   {
+    "station_id": 139,
+    "name": "애오개",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.553592,
+    "lon": 126.956733,
+    "monthly_median": 828333,
+    "n": 290
+   },
+   {
+    "station_id": 84,
+    "name": "약수",
+    "lines": [
+     "3호선",
+     "6호선"
+    ],
+    "lat": 37.5543205,
+    "lon": 127.0105475,
+    "monthly_median": 780000,
+    "n": 199
+   },
+   {
+    "station_id": 295,
+    "name": "양원",
+    "lines": [
+     "경의중앙선"
+    ],
+    "lat": 37.6065544,
+    "lon": 127.1079215,
+    "monthly_median": 578333,
+    "n": 1
+   },
+   {
+    "station_id": 5,
+    "name": "양재",
+    "lines": [
+     "3호선",
+     "신분당선"
+    ],
+    "lat": 37.4845168,
+    "lon": 127.0341647,
+    "monthly_median": 809583,
+    "n": 156
+   },
+   {
+    "station_id": 6,
+    "name": "양재시민의숲",
+    "lines": [
+     "신분당선"
+    ],
+    "lat": 37.4709639,
+    "lon": 127.0384203,
+    "monthly_median": 947917,
+    "n": 82
+   },
+   {
+    "station_id": 231,
+    "name": "양천구청",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.5123294,
+    "lon": 126.865593,
+    "monthly_median": 339167,
+    "n": 1
+   },
+   {
+    "station_id": 252,
+    "name": "양천향교",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.568333,
+    "lon": 126.841389,
+    "monthly_median": 758167,
+    "n": 1952
+   },
+   {
+    "station_id": 133,
+    "name": "양평",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.525614,
+    "lon": 126.886177,
+    "monthly_median": 988667,
+    "n": 590
+   },
+   {
+    "station_id": 201,
+    "name": "어린이대공원",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.547962,
+    "lon": 127.07465,
+    "monthly_median": 922500,
+    "n": 759
+   },
+   {
+    "station_id": 239,
+    "name": "언주",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.507287,
+    "lon": 127.033868,
+    "monthly_median": 1100833,
+    "n": 441
+   },
+   {
+    "station_id": 137,
+    "name": "여의나루",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.527045,
+    "lon": 126.932807,
+    "monthly_median": 2095833,
+    "n": 74
+   },
+   {
+    "station_id": 136,
+    "name": "여의도",
+    "lines": [
+     "5호선",
+     "9호선"
+    ],
+    "lat": 37.521711,
+    "lon": 126.9242425,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 53,
+    "name": "역삼",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.500658,
+    "lon": 127.03643,
+    "monthly_median": 948333,
+    "n": 579
+   },
+   {
+    "station_id": 160,
+    "name": "역촌",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.60605,
+    "lon": 126.922764,
+    "monthly_median": 738333,
+    "n": 221
+   },
+   {
+    "station_id": 74,
+    "name": "연신내",
+    "lines": [
+     "3호선",
+     "6호선"
+    ],
+    "lat": 37.618889,
+    "lon": 126.920681,
+    "monthly_median": 679583,
+    "n": 347
+   },
+   {
+    "station_id": 256,
+    "name": "염창",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.546944,
+    "lon": 126.874722,
+    "monthly_median": 838333,
+    "n": 673
+   },
+   {
+    "station_id": 278,
+    "name": "영등포",
+    "lines": [
+     "경부선"
+    ],
+    "lat": 37.515756,
+    "lon": 126.907411,
+    "monthly_median": 809167,
+    "n": 984
+   },
+   {
+    "station_id": 66,
+    "name": "영등포구청",
+    "lines": [
+     "2호선",
+     "5호선"
+    ],
+    "lat": 37.5249875,
+    "lon": 126.8958245,
+    "monthly_median": 1091667,
+    "n": 630
+   },
+   {
+    "station_id": 134,
+    "name": "영등포시장",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.52276,
+    "lon": 126.905143,
+    "monthly_median": 838333,
+    "n": 1325
+   },
+   {
+    "station_id": 100,
+    "name": "오금",
+    "lines": [
+     "3호선",
+     "5호선"
+    ],
+    "lat": 37.502258,
+    "lon": 127.1280225,
+    "monthly_median": 766667,
+    "n": 139
+   },
+   {
+    "station_id": 304,
+    "name": "오류동",
+    "lines": [
+     "경인선"
+    ],
+    "lat": 37.4944,
+    "lon": 126.844551,
+    "monthly_median": 639167,
+    "n": 808
+   },
+   {
+    "station_id": 132,
+    "name": "오목교",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.524557,
+    "lon": 126.875049,
+    "monthly_median": 1195833,
+    "n": 1
+   },
+   {
+    "station_id": 86,
+    "name": "옥수",
+    "lines": [
+     "3호선",
+     "경원선"
+    ],
+    "lat": 37.5410835,
+    "lon": 127.0180005,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 217,
+    "name": "온수",
+    "lines": [
+     "7호선",
+     "경인선"
+    ],
+    "lat": 37.492163,
+    "lon": 126.8233465,
+    "monthly_median": 824333,
+    "n": 8
+   },
+   {
+    "station_id": 234,
+    "name": "올림픽공원",
+    "lines": [
+     "5호선",
+     "9호선"
+    ],
+    "lat": 37.516164,
+    "lon": 127.130645,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 40,
+    "name": "왕십리",
+    "lines": [
+     "2호선",
+     "5호선",
+     "경원선",
+     "분당선"
+    ],
+    "lat": 37.5614999,
+    "lon": 127.0378589,
+    "monthly_median": 889167,
+    "n": 598
+   },
+   {
+    "station_id": 284,
+    "name": "외대앞",
+    "lines": [
+     "경원선"
+    ],
+    "lat": 37.596157,
+    "lon": 127.063572,
+    "monthly_median": 739167,
+    "n": 148
+   },
+   {
+    "station_id": 227,
+    "name": "용답",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.562066,
+    "lon": 127.0508786,
+    "monthly_median": 939167,
+    "n": 132
+   },
+   {
+    "station_id": 229,
+    "name": "용두",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.574012,
+    "lon": 127.03811,
+    "monthly_median": 739167,
+    "n": 111
+   },
+   {
+    "station_id": 199,
+    "name": "용마산",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.573752,
+    "lon": 127.086802,
+    "monthly_median": 693333,
+    "n": 60
+   },
+   {
+    "station_id": 277,
+    "name": "용산",
+    "lines": [
+     "경부선",
+     "경원선"
+    ],
+    "lat": 37.52989,
+    "lon": 126.964775,
+    "monthly_median": 1371667,
+    "n": 63
+   },
+   {
+    "station_id": 127,
+    "name": "우장산",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.548864,
+    "lon": 126.83633,
+    "monthly_median": 688333,
+    "n": 119
+   },
+   {
+    "station_id": 287,
+    "name": "월계",
+    "lines": [
+     "경원선"
+    ],
+    "lat": 37.633114,
+    "lon": 127.058835,
+    "monthly_median": 838750,
+    "n": 12
+   },
+   {
+    "station_id": 180,
+    "name": "월곡",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.60192,
+    "lon": 127.041492,
+    "monthly_median": 719167,
+    "n": 48
+   },
+   {
+    "station_id": 165,
+    "name": "월드컵경기장",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.569439,
+    "lon": 126.899077,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 35,
+    "name": "을지로3가",
+    "lines": [
+     "2호선",
+     "3호선"
+    ],
+    "lat": 37.5662955,
+    "lon": 126.9917445,
+    "monthly_median": 969167,
+    "n": 185
+   },
+   {
+    "station_id": 36,
+    "name": "을지로4가",
+    "lines": [
+     "2호선",
+     "5호선"
+    ],
+    "lat": 37.5669455,
+    "lon": 126.9978745,
+    "monthly_median": 839167,
+    "n": 63
+   },
+   {
+    "station_id": 34,
+    "name": "을지로입구",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.565998,
+    "lon": 126.982569,
+    "monthly_median": 840000,
+    "n": 5
+   },
+   {
+    "station_id": 282,
+    "name": "응봉",
+    "lines": [
+     "경원선"
+    ],
+    "lat": 37.550433,
+    "lon": 127.034824,
+    "monthly_median": 555417,
+    "n": 10
+   },
+   {
+    "station_id": 159,
+    "name": "응암",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.59859,
+    "lon": 126.915583,
+    "monthly_median": 617917,
+    "n": 432
+   },
+   {
+    "station_id": 70,
+    "name": "이대",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.556734,
+    "lon": 126.945897,
+    "monthly_median": 950000,
+    "n": 1132
+   },
+   {
+    "station_id": 118,
+    "name": "이촌(4호선)",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.52919,
+    "lon": 126.9679818,
+    "monthly_median": 1143333,
+    "n": 121
+   },
+   {
+    "station_id": 279,
+    "name": "이촌(경원선)",
+    "lines": [
+     "경원선"
+    ],
+    "lat": 37.522476,
+    "lon": 126.973816,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 173,
+    "name": "이태원",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.534485,
+    "lon": 126.994369,
+    "monthly_median": 1239167,
+    "n": 31
+   },
+   {
+    "station_id": 96,
+    "name": "일원",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.48389,
+    "lon": 127.08416,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 202,
+    "name": "자양",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.531558,
+    "lon": 127.066714,
+    "monthly_median": 991250,
+    "n": 36
+   },
+   {
+    "station_id": 48,
+    "name": "잠실",
+    "lines": [
+     "2호선",
+     "8호선"
+    ],
+    "lat": 37.513977,
+    "lon": 127.102198,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 47,
+    "name": "잠실나루",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.520688,
+    "lon": 127.103836,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 49,
+    "name": "잠실새내",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.511653,
+    "lon": 127.086224,
+    "monthly_median": 1068333,
+    "n": 179
+   },
+   {
+    "station_id": 88,
+    "name": "잠원",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.512989,
+    "lon": 127.011613,
+    "monthly_median": 788667,
+    "n": 13
+   },
+   {
+    "station_id": 211,
+    "name": "장승배기",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.504845,
+    "lon": 126.939025,
+    "monthly_median": 638333,
+    "n": 87
+   },
+   {
+    "station_id": 225,
+    "name": "장지",
+    "lines": [
+     "8호선"
+    ],
+    "lat": 37.478609,
+    "lon": 127.126229,
+    "monthly_median": 991667,
+    "n": 1048
+   },
+   {
+    "station_id": 147,
+    "name": "장한평",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.561438,
+    "lon": 127.064601,
+    "monthly_median": 669792,
+    "n": 602
+   },
+   {
+    "station_id": 275,
+    "name": "정릉",
+    "lines": [
+     "우이신설선"
+    ],
+    "lat": 37.60278,
+    "lon": 127.01345,
+    "monthly_median": 894167,
+    "n": 41
+   },
+   {
+    "station_id": 26,
+    "name": "제기동",
+    "lines": [
+     "1호선"
+    ],
+    "lat": 37.578116,
+    "lon": 127.034902,
+    "monthly_median": 839583,
+    "n": 478
+   },
+   {
+    "station_id": 32,
+    "name": "종각",
+    "lines": [
+     "1호선"
+    ],
+    "lat": 37.570203,
+    "lon": 126.983116,
+    "monthly_median": 799583,
+    "n": 8
+   },
+   {
+    "station_id": 31,
+    "name": "종로3가",
+    "lines": [
+     "1호선",
+     "3호선",
+     "5호선"
+    ],
+    "lat": 37.571504,
+    "lon": 126.9914597,
+    "monthly_median": 788333,
+    "n": 51
+   },
+   {
+    "station_id": 30,
+    "name": "종로5가",
+    "lines": [
+     "1호선"
+    ],
+    "lat": 37.570971,
+    "lon": 127.0019,
+    "monthly_median": 681667,
+    "n": 299
+   },
+   {
+    "station_id": 50,
+    "name": "종합운동장",
+    "lines": [
+     "2호선",
+     "9호선"
+    ],
+    "lat": 37.511142,
+    "lon": 127.075379,
+    "monthly_median": 946042,
+    "n": 158
+   },
+   {
+    "station_id": 191,
+    "name": "중계",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.645052,
+    "lon": 127.064084,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 200,
+    "name": "중곡",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.565877,
+    "lon": 127.084291,
+    "monthly_median": 794917,
+    "n": 218
+   },
+   {
+    "station_id": 293,
+    "name": "중랑",
+    "lines": [
+     "경의중앙선",
+     "경춘선"
+    ],
+    "lat": 37.594948,
+    "lon": 127.076152,
+    "monthly_median": 730417,
+    "n": 224
+   },
+   {
+    "station_id": 248,
+    "name": "중앙보훈병원",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.528807,
+    "lon": 127.148488,
+    "monthly_median": 577917,
+    "n": 19
+   },
+   {
+    "station_id": 195,
+    "name": "중화",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.602604,
+    "lon": 127.079254,
+    "monthly_median": 767500,
+    "n": 104
+   },
+   {
+    "station_id": 254,
+    "name": "증미",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.55785,
+    "lon": 126.861067,
+    "monthly_median": 960000,
+    "n": 564
+   },
+   {
+    "station_id": 164,
+    "name": "증산",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.583989,
+    "lon": 126.909785,
+    "monthly_median": 661667,
+    "n": 127
+   },
+   {
+    "station_id": 104,
+    "name": "창동",
+    "lines": [
+     "4호선",
+     "경원선"
+    ],
+    "lat": 37.653248,
+    "lon": 127.0479835,
+    "monthly_median": 725833,
+    "n": 226
+   },
+   {
+    "station_id": 176,
+    "name": "창신",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.579772,
+    "lon": 127.015246,
+    "monthly_median": 537083,
+    "n": 38
+   },
+   {
+    "station_id": 216,
+    "name": "천왕",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.486699,
+    "lon": 126.838684,
+    "monthly_median": 549167,
+    "n": 58
+   },
+   {
+    "station_id": 151,
+    "name": "천호",
+    "lines": [
+     "5호선",
+     "8호선"
+    ],
+    "lat": 37.538243,
+    "lon": 127.123359,
+    "monthly_median": 855100,
+    "n": 844
+   },
+   {
+    "station_id": 7,
+    "name": "청계산입구",
+    "lines": [
+     "신분당선"
+    ],
+    "lat": 37.4487148,
+    "lon": 127.0543396,
+    "monthly_median": 789167,
+    "n": 155
+   },
+   {
+    "station_id": 142,
+    "name": "청구",
+    "lines": [
+     "5호선",
+     "6호선"
+    ],
+    "lat": 37.560229,
+    "lon": 127.013783,
+    "monthly_median": 910000,
+    "n": 133
+   },
+   {
+    "station_id": 203,
+    "name": "청담",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.519097,
+    "lon": 127.051851,
+    "monthly_median": 909167,
+    "n": 95
+   },
+   {
+    "station_id": 25,
+    "name": "청량리",
+    "lines": [
+     "1호선",
+     "경원선",
+     "경의중앙선"
+    ],
+    "lat": 37.5802447,
+    "lon": 127.0469093,
+    "monthly_median": 1054375,
+    "n": 552
+   },
+   {
+    "station_id": 120,
+    "name": "총신대입구",
+    "lines": [
+     "4호선",
+     "7호선"
+    ],
+    "lat": 37.4860123,
+    "lon": 126.981947,
+    "monthly_median": 905000,
+    "n": 221
+   },
+   {
+    "station_id": 82,
+    "name": "충무로",
+    "lines": [
+     "3호선",
+     "4호선"
+    ],
+    "lat": 37.561367,
+    "lon": 126.994373,
+    "monthly_median": 990000,
+    "n": 133
+   },
+   {
+    "station_id": 72,
+    "name": "충정로",
+    "lines": [
+     "2호선",
+     "5호선"
+    ],
+    "lat": 37.5599015,
+    "lon": 126.963619,
+    "monthly_median": 992750,
+    "n": 280
+   },
+   {
+    "station_id": 184,
+    "name": "태릉입구",
+    "lines": [
+     "6호선",
+     "7호선"
+    ],
+    "lat": 37.617919,
+    "lon": 127.075051,
+    "monthly_median": 564500,
+    "n": 154
+   },
+   {
+    "station_id": 192,
+    "name": "하계",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.636363,
+    "lon": 127.067999,
+    "monthly_median": 469792,
+    "n": 16
+   },
+   {
+    "station_id": 205,
+    "name": "학동",
+    "lines": [
+     "7호선"
+    ],
+    "lat": 37.514262,
+    "lon": 127.031738,
+    "monthly_median": 908846,
+    "n": 142
+   },
+   {
+    "station_id": 94,
+    "name": "학여울",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.496787,
+    "lon": 127.0708601,
+    "monthly_median": null,
+    "n": 0
+   },
+   {
+    "station_id": 174,
+    "name": "한강진",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.53956,
+    "lon": 127.001729,
+    "monthly_median": 1001667,
+    "n": 6
+   },
+   {
+    "station_id": 281,
+    "name": "한남",
+    "lines": [
+     "경원선"
+    ],
+    "lat": 37.529361,
+    "lon": 127.008984,
+    "monthly_median": 1587083,
+    "n": 8
+   },
+   {
+    "station_id": 111,
+    "name": "한성대입구",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.58838,
+    "lon": 127.005951,
+    "monthly_median": 938333,
+    "n": 161
+   },
+   {
+    "station_id": 246,
+    "name": "한성백제",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.516369,
+    "lon": 127.116211,
+    "monthly_median": 929167,
+    "n": 1635
+   },
+   {
+    "station_id": 41,
+    "name": "한양대",
+    "lines": [
+     "2호선"
+    ],
+    "lat": 37.555758,
+    "lon": 127.0436594,
+    "monthly_median": 656667,
+    "n": 13
+   },
+   {
+    "station_id": 289,
+    "name": "한티",
+    "lines": [
+     "분당선"
+    ],
+    "lat": 37.496208,
+    "lon": 127.052883,
+    "monthly_median": 857500,
+    "n": 91
+   },
+   {
+    "station_id": 68,
+    "name": "합정",
+    "lines": [
+     "2호선",
+     "6호선"
+    ],
+    "lat": 37.549529,
+    "lon": 126.9140515,
+    "monthly_median": 970000,
+    "n": 346
+   },
+   {
+    "station_id": 144,
+    "name": "행당",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.557297,
+    "lon": 127.029482,
+    "monthly_median": 773750,
+    "n": 34
+   },
+   {
+    "station_id": 112,
+    "name": "혜화",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.582116,
+    "lon": 127.001929,
+    "monthly_median": 619583,
+    "n": 110
+   },
+   {
+    "station_id": 10,
+    "name": "홍대입구",
+    "lines": [
+     "2호선",
+     "경의중앙선",
+     "인천국제공항선"
+    ],
+    "lat": 37.5573563,
+    "lon": 126.9256566,
+    "monthly_median": 699583,
+    "n": 248
+   },
+   {
+    "station_id": 77,
+    "name": "홍제",
+    "lines": [
+     "3호선"
+    ],
+    "lat": 37.588851,
+    "lon": 126.944092,
+    "monthly_median": 928333,
+    "n": 105
+   },
+   {
+    "station_id": 270,
+    "name": "화계",
+    "lines": [
+     "우이신설선"
+    ],
+    "lat": 37.63428,
+    "lon": 127.0175,
+    "monthly_median": 675583,
+    "n": 191
+   },
+   {
+    "station_id": 128,
+    "name": "화곡",
+    "lines": [
+     "5호선"
+    ],
+    "lat": 37.541585,
+    "lon": 126.840436,
+    "monthly_median": 658333,
+    "n": 562
+   },
+   {
+    "station_id": 185,
+    "name": "화랑대",
+    "lines": [
+     "6호선"
+    ],
+    "lat": 37.619875,
+    "lon": 127.084106,
+    "monthly_median": 528333,
+    "n": 63
+   },
+   {
+    "station_id": 283,
+    "name": "회기",
+    "lines": [
+     "경원선",
+     "경의중앙선"
+    ],
+    "lat": 37.589702,
+    "lon": 127.057936,
+    "monthly_median": 787417,
+    "n": 649
+   },
+   {
+    "station_id": 114,
+    "name": "회현",
+    "lines": [
+     "4호선"
+    ],
+    "lat": 37.558698,
+    "lon": 126.978346,
+    "monthly_median": 1143333,
+    "n": 29
+   },
+   {
+    "station_id": 171,
+    "name": "효창공원앞",
+    "lines": [
+     "6호선",
+     "경의중앙선"
+    ],
+    "lat": 37.539034,
+    "lon": 126.9618435,
+    "monthly_median": 1116667,
+    "n": 348
+   },
+   {
+    "station_id": 262,
+    "name": "흑석",
+    "lines": [
+     "9호선"
+    ],
+    "lat": 37.508889,
+    "lon": 126.963611,
+    "monthly_median": 967500,
+    "n": 15
+   }
+  ]
+ }
+}

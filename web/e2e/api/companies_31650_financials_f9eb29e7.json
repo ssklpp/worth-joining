@@ -1,0 +1,14 @@
+{
+ "status": 200,
+ "body": {
+  "company_id": 31650,
+  "as_of": 202608,
+  "flags": [],
+  "dart": {
+   "corp_code": "01063273",
+   "corp_name": "우아한형제들",
+   "match_type": "exact"
+  },
+  "rows": []
+ }
+}

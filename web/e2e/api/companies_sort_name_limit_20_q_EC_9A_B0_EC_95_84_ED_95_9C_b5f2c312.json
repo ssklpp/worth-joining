@@ -1,0 +1,94 @@
+{
+ "status": 200,
+ "body": {
+  "as_of": 202608,
+  "items": [
+   {
+    "company_id": 79115,
+    "name": "우아한2어린이집",
+    "industry": {
+     "code": "999999",
+     "name": "BIZ_NO미존재사업장"
+    },
+    "region": {
+     "sido": "서울특별시",
+     "sigungu": "송파구"
+    },
+    "members": 17,
+    "growth_12m": 0.2143,
+    "quit_rate_12m": 0.383,
+    "avg_salary_est": 31164929,
+    "open_jobs": null
+   },
+   {
+    "company_id": 161416,
+    "name": "주식회사우아한스포츠",
+    "industry": {
+     "code": "809003",
+     "name": "레크리에이션 교육기관"
+    },
+    "region": {
+     "sido": "서울특별시",
+     "sigungu": "강동구"
+    },
+    "members": 3,
+    "growth_12m": null,
+    "quit_rate_12m": 0,
+    "avg_salary_est": 28563368,
+    "open_jobs": null
+   },
+   {
+    "company_id": 93521,
+    "name": "우아한어린이집",
+    "industry": {
+     "code": "851100",
+     "name": "유아 교육기관"
+    },
+    "region": {
+     "sido": "서울특별시",
+     "sigungu": "송파구"
+    },
+    "members": 22,
+    "growth_12m": 0.0476,
+    "quit_rate_12m": 0.5414,
+    "avg_salary_est": 31394871,
+    "open_jobs": null
+   },
+   {
+    "company_id": 87863,
+    "name": "주식회사우아한청년들",
+    "industry": {
+     "code": "723000",
+     "name": "자료 처리업"
+    },
+    "region": {
+     "sido": "서울특별시",
+     "sigungu": "송파구"
+    },
+    "members": 2325,
+    "growth_12m": 0.3922,
+    "quit_rate_12m": 1.3139,
+    "avg_salary_est": 27427735,
+    "open_jobs": null
+   },
+   {
+    "company_id": 31650,
+    "name": "주식회사 우아한형제들",
+    "industry": {
+     "code": "999999",
+     "name": "BIZ_NO미존재사업장"
+    },
+    "region": {
+     "sido": "서울특별시",
+     "sigungu": "송파구"
+    },
+    "members": 2077,
+    "growth_12m": -0.0486,
+    "quit_rate_12m": 0.2625,
+    "avg_salary_est": 71574346,
+    "open_jobs": null
+   }
+  ],
+  "next_cursor": null
+ }
+}

@@ -65,6 +65,15 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
+      # 화면 테스트(web/e2e, Playwright). API 응답은 e2e/api/의 저장본을 쓰고 지도 키 없이 빌드한 앱으로 돈다
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: web/playwright-report
+          retention-days: 7
 
   api-image:  # 필수 검사는 아니다. Railway가 빌드할 Dockerfile이 깨지지 않았는지 본다
     runs-on: ubuntu-24.04

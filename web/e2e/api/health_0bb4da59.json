@@ -1,0 +1,11 @@
+{
+ "status": 200,
+ "body": {
+  "status": "ok",
+  "db": "ok",
+  "latest_nps_ym": 202608,
+  "latest_rent_ym": 202608,
+  "match_rate": 0.7908,
+  "geocode_success_rate": 1
+ }
+}

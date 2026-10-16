@@ -1,0 +1,43 @@
+{
+ "status": 200,
+ "body": {
+  "company_id": 31650,
+  "name": "주식회사 우아한형제들",
+  "as_of": 202608,
+  "status": "ok",
+  "flags": [
+   "salary_is_lower_bound"
+  ],
+  "last_seen_ym": null,
+  "industry": {
+   "code": "999999",
+   "name": "BIZ_NO미존재사업장"
+  },
+  "region": {
+   "sido": "서울특별시",
+   "sigungu": "송파구"
+  },
+  "form_type": "corporation",
+  "workplace_count": 1,
+  "members": 2077,
+  "growth_12m": -0.0486,
+  "quit_rate_12m": 0.2625,
+  "avg_salary_est": 71574346,
+  "percentiles": {
+   "growth": 33,
+   "stability": 65,
+   "salary": 99
+  },
+  "dart": {
+   "corp_code": "01063273",
+   "corp_name": "우아한형제들",
+   "match_type": "exact"
+  },
+  "rep_location": {
+   "lon": 127.1127666,
+   "lat": 37.5169245,
+   "accuracy": "building",
+   "basis": "dart_hq"
+  }
+ }
+}

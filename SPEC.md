@@ -31,7 +31,7 @@
 | 마이그레이션 | Alembic |
 | 백엔드 | FastAPI, uvicorn, Pydantic v2, SQLAlchemy 2.0 async + asyncmy |
 | 프론트엔드 | Next.js (App Router), Recharts, 네이버 지도 Web Dynamic Map (`react-naver-maps`) |
-| 테스트 | pytest, pytest-asyncio, httpx AsyncClient, locust. DB 테스트는 로컬 테스트 DB(`worth_joining_test`), CI는 GitHub Actions 서비스 컨테이너(`mariadb:11.4`) |
+| 테스트 | pytest, pytest-asyncio, httpx AsyncClient, locust. DB 테스트는 로컬 테스트 DB(`worth_joining_test`), CI는 GitHub Actions 서비스 컨테이너(`mariadb:11.4`). 화면은 Playwright(`web/e2e`, 저장된 API 응답으로 smoke, 2026-10-16) |
 | 배포 | Railway(api, pipeline cron, mariadb), Vercel(web), GitHub Actions(CI) |
 
 ---

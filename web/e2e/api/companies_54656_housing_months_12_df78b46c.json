@@ -1,0 +1,69 @@
+{
+ "status": 200,
+ "body": {
+  "company_id": 54656,
+  "as_of": 202608,
+  "rent_as_of": 202608,
+  "flags": [
+   "salary_is_lower_bound"
+  ],
+  "monthly_pay_est": 5179696,
+  "stations": [
+   {
+    "station_id": 43,
+    "name": "성수",
+    "lines": [
+     "2호선"
+    ],
+    "distance_m": 418,
+    "rent": {
+     "months": 12,
+     "n_monthly": 126,
+     "n_jeonse": 85,
+     "monthly_p25": 692083,
+     "monthly_median": 948775,
+     "monthly_p75": 1189167,
+     "deposit_median_man": 1100,
+     "rent_median_man": 66,
+     "jeonse_p25_man": 21000,
+     "jeonse_median_man": 24000,
+     "jeonse_p75_man": 25900
+    },
+    "burden": {
+     "low": 0.1336,
+     "mid": 0.1832,
+     "high": 0.2296
+    },
+    "flags": []
+   },
+   {
+    "station_id": 44,
+    "name": "건대입구",
+    "lines": [
+     "2호선",
+     "7호선"
+    ],
+    "distance_m": 933,
+    "rent": {
+     "months": 12,
+     "n_monthly": 264,
+     "n_jeonse": 94,
+     "monthly_p25": 586042,
+     "monthly_median": 669583,
+     "monthly_p75": 968542,
+     "deposit_median_man": 1000,
+     "rent_median_man": 60,
+     "jeonse_p25_man": 15500,
+     "jeonse_median_man": 24500,
+     "jeonse_p75_man": 28375
+    },
+    "burden": {
+     "low": 0.1131,
+     "mid": 0.1293,
+     "high": 0.187
+    },
+    "flags": []
+   }
+  ]
+ }
+}

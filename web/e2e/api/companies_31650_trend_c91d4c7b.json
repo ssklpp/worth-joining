@@ -1,0 +1,129 @@
+{
+ "status": 200,
+ "body": {
+  "company_id": 31650,
+  "as_of": 202608,
+  "flags": [
+   "salary_is_lower_bound"
+  ],
+  "points": [
+   {
+    "ym": 202508,
+    "members": 2183,
+    "new": 47,
+    "lost": 62,
+    "hire_rate": null,
+    "quit_rate": null,
+    "avg_salary_est": 70350882
+   },
+   {
+    "ym": 202509,
+    "members": 2154,
+    "new": 33,
+    "lost": 32,
+    "hire_rate": 0.0151,
+    "quit_rate": 0.0147,
+    "avg_salary_est": 70424417
+   },
+   {
+    "ym": 202510,
+    "members": 2174,
+    "new": 52,
+    "lost": 43,
+    "hire_rate": 0.0241,
+    "quit_rate": 0.02,
+    "avg_salary_est": 70223324
+   },
+   {
+    "ym": 202511,
+    "members": 2163,
+    "new": 32,
+    "lost": 33,
+    "hire_rate": 0.0147,
+    "quit_rate": 0.0152,
+    "avg_salary_est": 70015279
+   },
+   {
+    "ym": 202512,
+    "members": 2159,
+    "new": 29,
+    "lost": 42,
+    "hire_rate": 0.0134,
+    "quit_rate": 0.0194,
+    "avg_salary_est": 69800324
+   },
+   {
+    "ym": 202601,
+    "members": 2140,
+    "new": 23,
+    "lost": 41,
+    "hire_rate": 0.0107,
+    "quit_rate": 0.019,
+    "avg_salary_est": 69833319
+   },
+   {
+    "ym": 202602,
+    "members": 2148,
+    "new": 49,
+    "lost": 34,
+    "hire_rate": 0.0229,
+    "quit_rate": 0.0159,
+    "avg_salary_est": 69779741
+   },
+   {
+    "ym": 202603,
+    "members": 2150,
+    "new": 36,
+    "lost": 66,
+    "hire_rate": 0.0168,
+    "quit_rate": 0.0307,
+    "avg_salary_est": 69686429
+   },
+   {
+    "ym": 202604,
+    "members": 2135,
+    "new": 51,
+    "lost": 53,
+    "hire_rate": 0.0237,
+    "quit_rate": 0.0247,
+    "avg_salary_est": 69127413
+   },
+   {
+    "ym": 202605,
+    "members": 2146,
+    "new": 64,
+    "lost": 55,
+    "hire_rate": 0.03,
+    "quit_rate": 0.0258,
+    "avg_salary_est": 68574731
+   },
+   {
+    "ym": 202606,
+    "members": 2135,
+    "new": 44,
+    "lost": 70,
+    "hire_rate": 0.0205,
+    "quit_rate": 0.0326,
+    "avg_salary_est": 68168337
+   },
+   {
+    "ym": 202607,
+    "members": 2108,
+    "new": 43,
+    "lost": 56,
+    "hire_rate": 0.0201,
+    "quit_rate": 0.0262,
+    "avg_salary_est": 71588498
+   },
+   {
+    "ym": 202608,
+    "members": 2077,
+    "new": 25,
+    "lost": 37,
+    "hire_rate": 0.0119,
+    "quit_rate": 0.0176,
+    "avg_salary_est": 71574346
+   }
+  ]
+ }
+}

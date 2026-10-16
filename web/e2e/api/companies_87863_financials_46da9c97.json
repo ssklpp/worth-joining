@@ -1,0 +1,14 @@
+{
+ "status": 200,
+ "body": {
+  "company_id": 87863,
+  "as_of": 202608,
+  "flags": [],
+  "dart": {
+   "corp_code": "01437636",
+   "corp_name": "우아한청년들",
+   "match_type": "exact"
+  },
+  "rows": []
+ }
+}
