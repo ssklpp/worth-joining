@@ -324,7 +324,7 @@ export interface components {
             quit_rate_12m?: number | null;
             /** Avg Salary Est */
             avg_salary_est?: number | null;
-            /** @description 서울 사업장 중 대표 업종 안 백분위. 표본 부족이면 모두 null */
+            /** @description 서울 · 성남 사업장 중 대표 업종 안 백분위. 표본 부족이면 모두 null */
             percentiles?: components["schemas"]["Percentiles"] | null;
             /** @description DART 연결. 연결되지 않았으면 null */
             dart?: components["schemas"]["DartLink"] | null;

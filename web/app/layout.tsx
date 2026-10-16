@@ -21,7 +21,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000"
 
 export const metadata: Metadata = {
   title: { default: "다닐만한가", template: "%s | 다닐만한가" },
-  description: "국민연금 공개 자료로 보는 서울 회사의 인원 추이, 입퇴사율, 추정 연봉",
+  description: "국민연금 공개 자료로 보는 서울 · 성남 회사의 인원 추이, 입퇴사율, 추정 연봉",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

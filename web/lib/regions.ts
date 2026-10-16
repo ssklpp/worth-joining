@@ -1,5 +1,5 @@
-// 서울 자치구(법정동코드 앞 5자리, region 테이블과 같다)와 지도를 옮길 중심점.
-// 중심점은 주소정보누리집 서울 건물 출입구 좌표(data/raw/juso)의 구별 중앙값이다(2026-10 파일, 구마다 1.1만 ~ 3.2만 건물).
+// 서울 자치구와 성남시의 구(법정동코드 앞 5자리, region 테이블과 같다)와 지도를 옮길 중심점(decisions/010).
+// 중심점은 주소정보누리집 건물 출입구 좌표(data/raw/juso)의 구별 중앙값이다(2026-10 파일, 구마다 0.8만 ~ 3.2만 건물).
 // 구 경계가 바뀌지 않는 한 다시 계산할 필요가 없다
 export type Gu = { code: string; name: string; lat: number; lon: number };
 
@@ -29,8 +29,18 @@ export const GU: Gu[] = [
   { code: "11680", name: "강남구", lat: 37.5067, lon: 127.0419 },
   { code: "11710", name: "송파구", lat: 37.5025, lon: 127.1188 },
   { code: "11740", name: "강동구", lat: 37.5428, lon: 127.1351 },
+  { code: "41131", name: "성남시 수정구", lat: 37.4432, lon: 127.1361 },
+  { code: "41133", name: "성남시 중원구", lat: 37.439, lon: 127.1611 },
+  { code: "41135", name: "성남시 분당구", lat: 37.3812, lon: 127.1136 },
+];
+
+/** 지역 선택의 묶음(시도 코드 앞 2자리) */
+export const CITIES = [
+  { prefix: "11", label: "서울특별시" },
+  { prefix: "41", label: "경기도 성남시" },
 ];
 
 export const CITY_HALL = { lat: 37.5665, lon: 126.978 };
 export const GU_ZOOM = 14; // 13은 도심 구에서 화면 안 역(자동완성)이 너무 많아 한 단계 더 확대한다
-export const CITY_ZOOM = 11; // "서울 전체"를 고르면 서울이 한눈에 들어오게
+export const CITY_ZOOM = 11; // "전체"를 고르면 서울과 성남이 한눈에 들어오게
+export const ALL_CENTER = { lat: 37.51, lon: 127.03 }; // 시청과 분당 사이(시청 중심이면 분당이 화면 끝에 걸린다)

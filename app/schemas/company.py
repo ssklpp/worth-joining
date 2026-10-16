@@ -72,7 +72,7 @@ class CompanyDetail(BaseModel):
     quit_rate_12m: float | None = None
     avg_salary_est: int | None = None
     percentiles: Percentiles | None = Field(
-        None, description="서울 사업장 중 대표 업종 안 백분위. 표본 부족이면 모두 null"
+        None, description="서울 · 성남 사업장 중 대표 업종 안 백분위. 표본 부족이면 모두 null"
     )
     dart: DartLink | None = Field(None, description="DART 연결. 연결되지 않았으면 null")
     rep_location: Location | None = Field(
