@@ -5,7 +5,7 @@
 | 대상 | 팀 전원. 트랙 간 경계와 배포 구성을 맞추는 문서 |
 | 기준 | SPEC 1~4장, 10장(Phase 7 배포), 12장(팀 운영) |
 | 관련 문서 | [03_ui_design.md](./03_ui_design.md) · [04_database_design.md](./04_database_design.md) · [05_api_spec.md](./05_api_spec.md) |
-| 상태 | 최종 수정 2026-10-15 (실제 운영 방식 반영: 적재 cron 없음, 채용 연계 없음) |
+| 상태 | 최종 수정 2026-10-16 (실제 운영 방식 반영: 적재 cron 없음, 채용 연계 없음. 화면 테스트 · CSP · 리전) |
 
 ---
 
@@ -86,7 +86,7 @@ SPEC 1장을 확정안으로 삼는다. 아래 "확정 사항"은 SPEC에서 둘
 | DB 드라이버 | API: SQLAlchemy 2.0 async + asyncmy (`DATABASE_URL`). 파이프라인 · Alembic: pymysql (`DATABASE_URL_SYNC`, `local_infile=True`) |
 | 백엔드 | FastAPI, uvicorn, Pydantic v2, pydantic-settings |
 | 프론트엔드 | Next.js 15(App Router), Recharts, 네이버 지도 Web Dynamic Map(`react-naver-maps`) |
-| 테스트 | pytest, pytest-asyncio, httpx AsyncClient, locust. 로컬 테스트 DB + CI 서비스 컨테이너 `mariadb:11.4` |
+| 테스트 | pytest, pytest-asyncio, httpx AsyncClient, locust. 로컬 테스트 DB + CI 서비스 컨테이너 `mariadb:11.4`. 화면은 Playwright(저장된 API 응답 `web/e2e/api/`, CSP 위반이 있으면 실패) |
 | 품질 | ruff |
 | 배포 | Railway(mariadb, api), Vercel(web), GitHub Actions(CI). 적재는 로컬에서 하고 덤프 · 테이블로 반영한다(cron 없음) |
 
@@ -100,12 +100,12 @@ SPEC 1장을 확정안으로 삼는다. 아래 "확정 사항"은 SPEC에서 둘
 
 ```
 GitHub (main 보호, PR + 리뷰 1 + CI)
-  ├─ GitHub Actions: test(ruff + pytest, mariadb:11.4 서비스 컨테이너) · web(lint · typecheck · build · API 타입 생성 비교) · api-image(Docker 빌드)
-  ├─ Railway (팀 계정)
+  ├─ GitHub Actions: test(ruff + pytest, mariadb:11.4 서비스 컨테이너) · web(lint · typecheck · build · API 타입 생성 비교 · Playwright 화면 테스트) · api-image(Docker 빌드)
+  ├─ Railway (팀 계정, 리전 us-west(캘리포니아). api · mariadb 같은 리전)
   │    ├─ mariadb   : mariadb:11.4 이미지 + 볼륨. 초기 데이터는 로컬 백필 DB를 mariadb-dump로 복원
   │    ├─ api       : Dockerfile(uvicorn app.main:app). 환경 변수: DATABASE_URL, DB_SSL_VERIFY=false(사설망), CORS_ORIGINS
   │    └─ (pipeline 서비스는 두지 않는다. 로컬 적재 → 덤프 복원 · 테이블 업로드, runbook 4 · 6장. DB는 TCP Proxy를 반영할 때만 켠다)
-  └─ Vercel: web. 환경 변수: NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_NAVER_MAP_CLIENT_ID
+  └─ Vercel: web. 환경 변수: NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_NAVER_MAP_CLIENT_ID. 보안 헤더 · CSP는 web/next.config.ts
 ```
 
 GitHub 보호 규칙은 목표 상태다. 지금 적용된 단계는 [decisions/001](./decisions/001-저장소-설정과-main-보호.md)을 따른다.
