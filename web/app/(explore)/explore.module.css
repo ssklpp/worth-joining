@@ -22,6 +22,7 @@
 .back { align-self: flex-start; border: 0; background: none; padding: 0; color: var(--muted); font-size: var(--fs-s); cursor: pointer; text-decoration: underline; }
 
 .listHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; }
+.listOpts { display: flex; gap: 6px; }
 .listHead select { font-size: var(--fs-s); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 4px 6px; }
 .items { list-style: none; margin: 0; padding: 0; }
 .pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }

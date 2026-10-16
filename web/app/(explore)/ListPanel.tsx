@@ -2,7 +2,7 @@
 
 // 목록 패널(docs/03 5장). 검색어가 있으면 전체 회사 검색 결과(위치 없는 회사도 나온다),
 // 없으면 지금 지도 범위 안의 회사. 지도를 옮기거나 확대하면 바로 바뀐다.
-// 지도 안의 회사는 10곳씩 페이지로 나누고, 지도도 그 페이지의 회사 핀만 그린다
+// 지도 안의 회사는 10곳 또는 20곳씩 페이지로 나누고, 지도도 그 페이지의 회사 핀만 그린다
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -13,7 +13,9 @@ import { PIN_LIMIT, pointKey, useExplore, type Pin } from "./ExploreContext";
 import { SearchResults } from "./SearchResults";
 import styles from "./explore.module.css";
 
-const PAGE_SIZE = PIN_LIMIT; // 지도 핀 수와 같게
+// 한 페이지의 회사 수 = 지도에 그리는 핀 수. 기본은 PIN_LIMIT(10)
+const PAGE_SIZES = [PIN_LIMIT, 20] as const;
+type PageSize = (typeof PAGE_SIZES)[number];
 
 type Sort = "members" | "growth" | "quit" | "salary";
 
@@ -36,6 +38,7 @@ function PinList() {
   const { pins, pinPath, pinState, point, setPoint, hover, setHover, setPageIds } = useExplore();
   const [sort, setSort] = useState<Sort>("members");
   const [page, setPage] = useState(1);
+  const [size, setSize] = useState<PageSize>(PIN_LIMIT);
   const top = useRef<HTMLDivElement>(null);
 
   const items = useMemo(() => {
@@ -43,16 +46,16 @@ function PinList() {
     const atPoint = point ? pins.items.filter((p) => pointKey(p) === point) : [];
     return [...(atPoint.length ? atPoint : pins.items)].sort(SORTS[sort].fn);
   }, [pins, point, sort]);
-  const pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const pages = Math.max(1, Math.ceil(items.length / size));
   const current = Math.min(page, pages);
-  const shown = items.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const shown = items.slice((current - 1) * size, current * size);
 
   // 지도를 옮겨 같은 위치 회사가 범위 밖으로 나가면 위치 보기를 푼다
   useEffect(() => {
     if (pins && point && !pins.items.some((p) => pointKey(p) === point)) setPoint(null);
   }, [pins, point, setPoint]);
-  // 지도를 옮기거나(pins) 정렬 · 같은 위치 보기를 바꾸면 첫 페이지로
-  useEffect(() => setPage(1), [pins, sort, point]);
+  // 지도를 옮기거나(pins) 정렬 · 같은 위치 보기 · 페이지 크기를 바꾸면 첫 페이지로
+  useEffect(() => setPage(1), [pins, sort, point, size]);
   // 지도는 이 페이지의 회사만. 목록을 떠나면(상세 · 비교 · 검색) 다시 모든 핀
   const shownKey = shown.map((p) => p.company_id).join(",");
   useEffect(() => {
@@ -78,12 +81,20 @@ function PinList() {
         <h2>
           {atPoint.length ? "같은 위치의 회사" : "지도 안의 회사"} <span className="num">{items.length}</span>곳
         </h2>
-        <label>
-          <span className="sr-only">정렬</span>
-          <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
-            {(Object.keys(SORTS) as Sort[]).map((k) => <option key={k} value={k}>{SORTS[k].label}</option>)}
-          </select>
-        </label>
+        <div className={styles.listOpts}>
+          <label>
+            <span className="sr-only">정렬</span>
+            <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
+              {(Object.keys(SORTS) as Sort[]).map((k) => <option key={k} value={k}>{SORTS[k].label}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="sr-only">한 페이지에 보일 회사 수</span>
+            <select value={size} onChange={(e) => setSize(Number(e.target.value) as PageSize)}>
+              {PAGE_SIZES.map((n) => <option key={n} value={n}>{n}곳씩</option>)}
+            </select>
+          </label>
+        </div>
       </div>
       {atPoint.length > 0 && (
         <button type="button" className={styles.back} onClick={() => setPoint(null)}>지도 안의 회사 모두 보기</button>
@@ -120,7 +131,7 @@ function PinList() {
       ) : (
         <p>이 범위에는 조건에 맞는 회사가 없습니다. 지도를 넓히거나 업종 · 지역 필터를 줄여 보세요.</p>
       )}
-      {pages > 1 && <Pager page={current} pages={pages} onGo={go} total={items.length} />}
+      {pages > 1 && <Pager page={current} pages={pages} size={size} onGo={go} total={items.length} />}
       {pins.ungeocoded_count > 0 && (
         <p className="small muted">
           조건에 맞는 회사 중 {pins.ungeocoded_count.toLocaleString("ko-KR")}곳은 위치 정보가 없어 지도에 없습니다.
@@ -133,10 +144,12 @@ function PinList() {
 }
 
 /** 페이지 번호: 처음 · 끝과 지금 페이지 앞뒤 2개, 사이가 비면 "…" */
-function Pager({ page, pages, total, onGo }: { page: number; pages: number; total: number; onGo: (n: number) => void }) {
+function Pager({ page, pages, size, total, onGo }: {
+  page: number; pages: number; size: number; total: number; onGo: (n: number) => void;
+}) {
   const nums = [...new Set([1, page - 2, page - 1, page, page + 1, page + 2, pages])]
     .filter((n) => n >= 1 && n <= pages).sort((a, b) => a - b);
-  const from = (page - 1) * PAGE_SIZE + 1, to = Math.min(page * PAGE_SIZE, total);
+  const from = (page - 1) * size + 1, to = Math.min(page * size, total);
   return (
     <nav className={styles.pager} aria-label="목록 페이지">
       <span className="small muted num">{from}–{to} / {total}</span>
