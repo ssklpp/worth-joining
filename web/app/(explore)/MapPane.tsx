@@ -203,7 +203,7 @@ function StationSearch({ stations, inView }: {
         {inView.map((s) => <option key={s.station_id} value={stationLabel(s.name)} />)}
       </datalist>
       <button type="submit" className="button quiet">이동</button>
-      {missing && <p id="station-missing" className="small" role="status">서울 역 목록에 없는 이름입니다.</p>}
+      {missing && <p id="station-missing" className="small" role="status">서울 · 성남 역 목록에 없는 이름입니다.</p>}
     </form>
   );
 }

@@ -81,7 +81,7 @@ function HousingBody({ h, months }: { h: Schemas["CompanyHousing"]; months: Mont
         <p className="small">회사에서 1km 안에 지하철역이 없습니다.</p>
       )}
       <p className="small muted">
-        환산 월세는 월세에 보증금을 전월세전환율(한국부동산원, 서울 연립다세대)로 바꾼 금액을 더한 값입니다. 신고된 계약
+        환산 월세는 월세에 보증금을 전월세전환율(한국부동산원 연립다세대, 서울 · 경기 중 건물이 있는 시도 값)로 바꾼 금액을 더한 값입니다. 신고된 계약
         기준({formatYm(h.rent_as_of)}까지)이라 지금 매물 가격과 다를 수 있습니다.
       </p>
     </>
