@@ -1,10 +1,12 @@
-"""주소정보누리집 서울 건물 파일 → 건물마다 주소 · 출입구 좌표
-(decisions/004 3 · 4단계, decisions/007).
+"""주소정보누리집 건물 파일 → 건물마다 주소 · 출입구 좌표
+(decisions/004 3 · 4단계, decisions/007 · 010).
 
-두 파일을 건물관리번호(첫 열)로 붙인다. 둘 다 CP949, '|' 구분, 머리글 없음.
-- 도로명주소 한글(rnaddrkor_seoul.txt, 24열): 1 건물관리번호, 2 법정동코드, 7 산여부,
-  8 · 9 지번 본번 · 부번, 11 도로명
-- 도로명주소 출입구(RNENTDATA_YYMM_11000.txt, 19열): 1 건물관리번호, 18 · 19 출입구 X · Y(EPSG:5179)
+지역마다 두 파일을 건물관리번호(첫 열)로 붙인다. 둘 다 CP949, '|' 구분, 머리글 없음.
+- 도로명주소 한글(rnaddrkor_seoul.txt · rnaddrkor_gyunggi.txt, 24열): 1 건물관리번호,
+  2 법정동코드, 7 산여부, 8 · 9 지번 본번 · 부번, 11 도로명
+- 도로명주소 출입구(RNENTDATA_YYMM_11000.txt · _41000.txt, 19열): 1 건물관리번호,
+  18 · 19 출입구 X · Y(EPSG:5179)
+경기 두 파일은 성남시 행만 남긴 것이다(decisions/010, 원본은 경기 전체 약 100만 행).
 좌표는 출입구 파일에서만 얻는다(juso 제공 좌표, SPEC 4장). 좌표가 빈 건물은 뺀다.
 """
 
@@ -14,8 +16,11 @@ from pathlib import Path
 
 from pipeline.geocode.projection import utmk_to_wgs84
 
-ADDRESS_PATH = Path("data/raw/juso/rnaddrkor_seoul.txt")
-ENTRANCE_GLOB = "RNENTDATA_*_11000.txt"
+JUSO_DIR = Path("data/raw/juso")
+ADDRESS_PATH = JUSO_DIR / "rnaddrkor_seoul.txt"
+# 지역별 (주소 파일 이름, 출입구 파일 이름의 시도 코드)
+REGION_FILES = (("rnaddrkor_seoul.txt", "11000"), ("rnaddrkor_gyunggi.txt", "41000"))
+ENTRANCE_GLOB = "RNENTDATA_*_{}.txt"
 ADDRESS_COLUMNS, ENTRANCE_COLUMNS = 24, 19
 
 
@@ -36,10 +41,25 @@ class Building:
         return self.adm_cd[:5]
 
 
-def entrance_path(folder: Path = ADDRESS_PATH.parent) -> Path | None:
-    """가장 최근 출입구 파일(이름의 YYMM이 큰 것)."""
-    found = sorted(folder.glob(ENTRANCE_GLOB))
+def entrance_path(folder: Path = JUSO_DIR, sido: str = "11000") -> Path | None:
+    """그 시도의 가장 최근 출입구 파일(이름의 YYMM이 큰 것)."""
+    found = sorted(folder.glob(ENTRANCE_GLOB.format(sido)))
     return found[-1] if found else None
+
+
+def sido_of(address: Path) -> str:
+    """주소 파일 이름에 맞는 출입구 파일의 시도 코드. 모르는 이름(시험 파일 등)은 서울."""
+    return dict(REGION_FILES).get(address.name, "11000")
+
+
+def region_pairs(folder: Path = JUSO_DIR) -> list[tuple[Path, Path]]:
+    """주소 · 출입구 파일이 둘 다 있는 지역의 (주소 파일, 출입구 파일)."""
+    pairs = []
+    for name, sido in REGION_FILES:
+        entrance = entrance_path(folder, sido)
+        if (folder / name).exists() and entrance:
+            pairs.append((folder / name, entrance))
+    return pairs
 
 
 def read_entrances(lines: Iterable[str]) -> dict[str, tuple[float, float]]:
@@ -66,13 +86,20 @@ def read(address_lines: Iterable[str], points: dict[str, tuple[float, float]]
 
 
 def read_files(address: Path = ADDRESS_PATH, entrance: Path | None = None) -> Iterator[Building]:
-    """주소 파일과 가장 최근 출입구 파일을 읽어 좌표가 있는 건물을 하나씩 낸다.
+    """주소 파일과 같은 지역의 가장 최근 출입구 파일을 읽어 좌표가 있는 건물을 하나씩 낸다.
     출입구 파일이 없으면 FileNotFoundError.
     """
-    entrance = entrance or entrance_path(address.parent)
+    pattern = ENTRANCE_GLOB.format(sido_of(address))
+    entrance = entrance or entrance_path(address.parent, sido_of(address))
     if entrance is None:
-        raise FileNotFoundError(f"{address.parent}/{ENTRANCE_GLOB}이 없다(docs/runbook.md)")
+        raise FileNotFoundError(f"{address.parent}/{pattern}이 없다(docs/runbook.md)")
     with entrance.open(encoding="cp949", errors="replace") as fh:
         points = read_entrances(fh)
     with address.open(encoding="cp949", errors="replace") as fh:
         yield from read(fh, points)
+
+
+def read_all(folder: Path = JUSO_DIR) -> Iterator[Building]:
+    """파일이 있는 모든 지역(서울 · 성남)의 건물."""
+    for address, entrance in region_pairs(folder):
+        yield from read_files(address, entrance)

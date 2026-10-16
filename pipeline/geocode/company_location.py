@@ -1,7 +1,7 @@
 """회사 지도 좌표 → company_location (SPEC Phase 8-2, decisions/004).
 
 python -m pipeline.geocode.company_location [--steps dart,name,road,dong] [--name-limit 300]
-                                            [--address data/raw/juso/rnaddrkor_seoul.txt]
+                                            [--juso-dir data/raw/juso]
 
 회사마다 아래 순서로 정하고, 앞 단계에서 얻은 회사는 뒤 단계에서 건너뛴다.
 좌표는 모두 juso에서 얻는다.
@@ -10,7 +10,7 @@ python -m pipeline.geocode.company_location [--steps dart,name,road,dong] [--nam
            같은 도로에 1건 → name_search
   3 road : 대표 사업장 자치구 · 도로명에 있는 모든 건물 출입구 좌표의 중앙값 → road
   4 dong : 그 밖은 대표 사업장 법정동의 모든 건물 출입구 좌표 중앙값 → dong
-           건물 좌표는 주소정보누리집 서울 파일 두 개(도로명주소 한글 + 출입구,
+           건물 좌표는 주소정보누리집 지역별 파일 두 개(도로명주소 한글 + 출입구, 서울 · 성남,
            pipeline/geocode/rnaddr.py)에서 읽는다. API를 부르지 않는다. 파일이 없으면 건너뛴다
 대상은 최신 월에 가입자가 있는 회사(mart_company_summary)다. 1 · 2는 geocode_cache를 쓰므로
 다시 실행해도 juso 호출은 새 주소만큼만 든다. juso 키가 없으면 1 · 2만 건너뛴다.
@@ -93,21 +93,25 @@ ORDER BY s.members DESC, s.company_id
 
 # 도로명 주소: 시도 자치구 도로명 건물번호(-부번). 지번 주소: 시도 자치구 동 본번(-부번)
 # 도로명과 건물번호 사이에는 공백이 있어야 한다. "남대문로2가"처럼 동 이름의 숫자를 번호로 읽지 않게
-ROAD = re.compile(r"^(서울(?:특별시)?)\s+(\S+구)\s+(\S+(?:로|길))\s+(\d+(?:-\d+)?)")
-JIBUN = re.compile(r"^(서울(?:특별시)?)\s+(\S+구)\s+(\S+(?:동|가))\s*(?:산\s*)?(\d+(?:-\d+)?)")
+# 서비스 범위(decisions/010)라 서울 자치구와 성남시의 구만 읽는다.
+# 성남은 "성남시 분당구"처럼 시와 구를 함께 잡는다(region · juso sggNm과 같다)
+SIDO = r"(서울(?:특별시)?|경기(?:도)?)\s+((?:성남시\s+)?\S+구)"
+ROAD = re.compile(SIDO + r"\s+(\S+(?:로|길))\s+(\d+(?:-\d+)?)")
+JIBUN = re.compile(SIDO + r"\s+(\S+(?:동|가))\s*(?:산\s*)?(\d+(?:-\d+)?)")
+SIDO_NAME = {"서울": "서울특별시", "경기": "경기도"}
 CORP_WORDS = re.compile(r"\(주\)|（주）|㈜|주식회사|\(유\)|유한회사|\(사\)|사단법인")
 
 
 def hq_query(adres: str) -> tuple[str, str, str, str] | None:
     """DART 주소 → (검색어, 자치구, 도로명 또는 동, 번호 "본번-부번").
-    층 · 호 · 괄호 설명은 뺀다. 서울 주소가 아니면 None."""
+    층 · 호 · 괄호 설명은 뺀다. 서울 · 성남 주소가 아니면 None."""
     adres = " ".join(adres.split())
     m = ROAD.match(adres) or JIBUN.match(adres)
     if not m:
         return None
-    _, sgg, street, number = m.groups()
+    sido, sgg, street, number = m.groups()
     number = number if "-" in number else f"{number}-0"
-    return f"서울특별시 {sgg} {street} {m.group(4)}", sgg, street, number
+    return f"{SIDO_NAME[sido[:2]]} {sgg} {street} {m.group(4)}", sgg, street, number
 
 
 def workplace_query(sgg: str, road_address: str, name: str) -> tuple[str, str] | None:
@@ -165,7 +169,7 @@ def step_dart(engine: Engine, juso: Juso, limit: int) -> Counter:
     for i, (company_id, sgg, adres) in enumerate(rows, 1):
         q = hq_query(adres)
         if q is None:
-            counts["dart_not_seoul_or_unparsed"] += 1
+            counts["dart_out_of_scope_or_unparsed"] += 1
             continue
         keyword, hq_sgg, street, number = q
         if hq_sgg != sgg:  # 본사와 대표 사업장이 다른 자치구면 쓰지 않는다(decisions/004)
@@ -268,7 +272,7 @@ def step_area(engine: Engine, steps: set[str], buildings) -> Counter:
 
 
 def run(engine: Engine, juso: Juso | None, steps: set[str], name_limit: int,
-        dart_limit: int = 1_000_000, address_path=rnaddr.ADDRESS_PATH) -> Counter:
+        dart_limit: int = 1_000_000, juso_dir=rnaddr.JUSO_DIR) -> Counter:
     """steps(dart · name · road · dong)를 순서대로 실행한다.
     juso 키가 없으면 1 · 2단계는 건너뛰고 파일만 쓰는 3 · 4단계(도로 · 동 중심)만 한다.
     """
@@ -283,11 +287,11 @@ def run(engine: Engine, juso: Juso | None, steps: set[str], name_limit: int,
         if juso is not None and "name" in steps:
             counts += step_name(engine, juso, name_limit)
         if steps & {"road", "dong"}:
-            if address_path.exists() and rnaddr.entrance_path(address_path.parent):
-                counts += step_area(engine, steps, rnaddr.read_files(address_path))
+            if rnaddr.region_pairs(juso_dir):
+                counts += step_area(engine, steps, rnaddr.read_all(juso_dir))
             else:
-                log.warning("%s · 출입구 파일이 없어 도로 · 동 중심을 건너뛴다(docs/runbook.md)",
-                            address_path)
+                log.warning("%s에 주소 · 출입구 파일이 없어 도로 · 동 중심을 건너뛴다"
+                            "(docs/runbook.md)", juso_dir)
         status = "success"
     finally:
         with engine.begin() as conn:
@@ -305,8 +309,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="DART 본사 주소를 볼 상위 회사 수(시험용)")
     parser.add_argument("--name-limit", type=int, default=300,
                         help="상호 검색을 해 볼 상위 회사 수")
-    parser.add_argument("--address", type=Path, default=rnaddr.ADDRESS_PATH,
-                        help="도로명주소 한글 파일(서울). 같은 폴더의 출입구 파일을 함께 쓴다")
+    parser.add_argument("--juso-dir", type=Path, default=rnaddr.JUSO_DIR,
+                        help="지역별 도로명주소 한글 · 출입구 파일 폴더(rnaddr.REGION_FILES)")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     engine = sync_engine()
@@ -314,7 +318,7 @@ def main(argv: list[str] | None = None) -> int:
             if settings.juso_search_key and settings.juso_coord_key else None)
     try:
         run(engine, juso, set(args.steps.split(",")), args.name_limit, args.dart_limit,
-            args.address)
+            args.juso_dir)
     finally:
         if juso is not None:
             juso.close()

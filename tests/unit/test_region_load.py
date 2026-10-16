@@ -10,6 +10,13 @@ SAMPLE = [
     "1111010100\t서울특별시 종로구 청운동\t존재",
     "1199000000\t서울특별시 옛구\t폐지",
     "1199000000\t서울특별시 새구\t존재",
+    "4100000000\t경기도\t존재",
+    "4111000000\t경기도 수원시\t존재",
+    "4111100000\t경기도 수원시 장안구\t존재",
+    "4113000000\t경기도 성남시\t존재",
+    "4113500000\t경기도 성남시 분당구\t존재",
+    "4113510900\t경기도 성남시 분당구 삼평동\t존재",
+    "2611000000\t부산광역시 중구\t존재",
 ]
 
 
@@ -18,10 +25,11 @@ def write(path, lines):
     return path
 
 
-def test_parse_keeps_only_sigungu_and_prefers_existing(tmp_path):
+def test_parse_keeps_only_sigungu_in_scope_and_prefers_existing(tmp_path):
     regions = parse_sigungu(write(tmp_path / "r.txt", SAMPLE))
 
-    assert regions == {"11110": ("서울특별시", "종로구"), "11990": ("서울특별시", "새구")}
+    assert regions == {"11110": ("서울특별시", "종로구"), "11990": ("서울특별시", "새구"),
+                       "41135": ("경기도", "성남시 분당구")}
 
 
 def test_parse_rejects_changed_header(tmp_path):
@@ -37,4 +45,5 @@ def test_run_loads_and_skips_same_file(tmp_path, clean_tables):
     with clean_tables.connect() as conn:
         rows = conn.execute(text("SELECT * FROM region ORDER BY region_code")).all()
     assert [tuple(r) for r in rows] == [("11110", "서울특별시", "종로구"),
-                                        ("11990", "서울특별시", "새구")]
+                                        ("11990", "서울특별시", "새구"),
+                                        ("41135", "경기도", "성남시 분당구")]
