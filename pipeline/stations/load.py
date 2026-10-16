@@ -7,7 +7,10 @@ python -m pipeline.stations.load [--file data/raw/station/railway_stations_20260
   400m 안에 있는 행을 물리적 역 하나로 묶는다. 좌표는 묶인 행의 평균, 노선은 이름순으로 잇는다.
 - 서비스 범위 밖 좌표(예: 양원역이 다른 지역 같은 이름 역의 좌표)는 역 주소를 juso로 바꿔 쓴다.
   juso 키가 없거나 찾지 못하면 그 행을 빼고 경고한다.
-- station_key(정규화한 이름)로 upsert하므로 다시 넣어도 station_id가 바뀌지 않는다.
+- 이름이 다른 역이 150m 안에 겹치면 한쪽 좌표가 다른 역 값으로 잘못 들어간 것이다(마곡 ← 발산,
+  이촌 4호선 ← 신용산, 2026-10-16 확인). 둘 다 주소로 찾아 300m 넘게 다른 쪽을 주소 좌표로 고친다.
+- station_key(정규화한 이름)로 upsert하므로 다시 넣어도 station_id가 바뀌지 않는다. 이번 파일에
+  없는 역(묶음이 바뀐 옛 키 등)은 지운다. company_station · 역 시세는 refresh_mart가 다시 만든다.
   같은 파일을 범위만 바꿔 다시 넣을 때는 --force로 체크섬 건너뛰기를 끈다.
 """
 
@@ -21,7 +24,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import pandas as pd
-from sqlalchemy import Connection, Engine, text
+from sqlalchemy import Connection, Engine, bindparam, text
 
 from app.core.config import settings
 from pipeline.common.db import sync_engine
@@ -37,6 +40,8 @@ COLUMNS = {"역사명": "name", "노선명": "line", "역위도": "lat", "역경
 SCOPE = {"lat": (37.33, 37.72), "lon": (126.73, 127.27)}
 ADDRESS = r"^(서울|경기도 성남시)"
 SAME_STATION_M = 400
+TWIN_M = 150  # 이름이 다른데 이보다 가까우면 좌표가 잘못 복사된 것으로 본다
+FIX_M = 300  # 주소 좌표가 이보다 멀면 파일 좌표 대신 쓴다
 
 Locate = Callable[[str], tuple[float, float] | None]  # 주소 → (경도, 위도)
 
@@ -49,6 +54,7 @@ class Row:
     lon: float
     lat: float
     names: set[str] = field(default_factory=set)
+    address: str = ""
 
 
 def base_name(name: str) -> str:
@@ -94,7 +100,7 @@ def read_rows(frame: pd.DataFrame, locate: Locate | None) -> tuple[list[Row], in
                 continue
             log.info("역 좌표를 주소로 고쳤다: %s %s (%.5f, %.5f)", r.name, r.line, *point)
             lon, lat = point
-        rows.append(Row(r.name, line_label(r.line), lon, lat, aliases(r.name)))
+        rows.append(Row(r.name, line_label(r.line), lon, lat, aliases(r.name), r.address))
     return rows, dropped
 
 
@@ -150,8 +156,29 @@ def distinguish(stations: list[dict]) -> list[dict]:
     return stations
 
 
+def fix_twins(rows: list[Row], locate: Locate | None) -> int:
+    """이름이 다른 두 행이 TWIN_M 안에 있으면 둘 다 주소로 찾아, 파일 좌표와 FIX_M 넘게 다른
+    행만 주소 좌표로 고친다. 고친 행 수. juso 키가 없으면 고치지 않는다."""
+    if locate is None:
+        return 0
+    suspects = {id(r): r for i, a in enumerate(rows) for b in rows[i + 1:]
+                if not (a.names & b.names) and distance_m(a, b) < TWIN_M for r in (a, b)}
+    fixed = 0
+    for r in suspects.values():
+        point = locate(address_keyword(r.address)) if r.address else None
+        if point is None or not in_scope(*point):
+            continue
+        moved = distance_m(r, Row(r.name, r.line, point[0], point[1]))
+        if moved > FIX_M:
+            log.info("역 좌표가 다른 역과 겹쳐 주소로 고쳤다: %s %s (%.0fm 이동)",
+                     r.name, r.line, moved)
+            r.lon, r.lat = point
+            fixed += 1
+    return fixed
+
+
 def load(conn: Connection, stations: list[dict]) -> int:
-    """station_key로 upsert. 다시 적재해도 역 id가 바뀌지 않는다."""
+    """station_key로 upsert. 다시 적재해도 역 id가 바뀌지 않는다. 이번에 없는 키의 역은 지운다."""
     for s in stations:
         conn.execute(text("""
             INSERT INTO station (station_key, station_name, line_names, pt)
@@ -159,6 +186,14 @@ def load(conn: Connection, stations: list[dict]) -> int:
             ON DUPLICATE KEY UPDATE station_name = VALUES(station_name),
               line_names = VALUES(line_names), pt = VALUES(pt)
         """), s)
+    keys = [s["key"] for s in stations]
+    sql = text("SELECT station_key FROM station WHERE station_key NOT IN :keys")
+    gone = conn.execute(sql.bindparams(bindparam("keys", expanding=True)),
+                        {"keys": keys}).scalars().all()
+    if gone:
+        conn.execute(text("DELETE FROM station WHERE station_key IN :gone")
+                     .bindparams(bindparam("gone", expanding=True)), {"gone": gone})
+        log.info("파일에 없는 역을 지웠다: %s", ", ".join(gone))
     return len(stations)
 
 
@@ -175,6 +210,7 @@ def run(engine: Engine, path: Path, locate: Locate | None, force: bool = False) 
         run_id = start_run(conn, SOURCE, path.name, checksum)
     try:
         rows, dropped = read_rows(pd.read_excel(path, dtype=str), locate)
+        fix_twins(rows, locate)
         stations = distinguish([station_of(g) for g in cluster(rows)])
         with engine.begin() as conn:
             n = load(conn, stations)

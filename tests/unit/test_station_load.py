@@ -104,3 +104,44 @@ def test_run_loads_skips_same_file_and_keeps_ids(engine, tmp_path):
             "SELECT station_id, station_name, line_names, ST_X(pt), ST_Y(pt) FROM station")).one()
     assert row[:3] == (first_id, "교대", "2호선,3호선")
     assert (round(row[3], 5), round(row[4], 5)) == (127.0143, 37.49355)
+
+
+def test_twin_coordinates_are_fixed_by_address_only_for_the_wrong_one():
+    # 마곡(5호선)에 발산 좌표가 들어간 원본 오류(2026-10-16).
+    # 두 역 모두 주소로 찾되, 많이 다른 쪽만 고친다
+    rows, _ = st.read_rows(frame([
+        ("마곡", "5호선", "37.55865", "126.837693", "서울특별시 강서구 공항대로 지하163(마곡동)"),
+        ("발산", "5호선", "37.558692", "126.837633", "서울특별시 강서구 공항대로 지하267(마곡동)"),
+        ("교대", "2호선", "37.4934", "127.0140", SEOUL),
+    ]), None)
+    points = {"서울특별시 강서구 공항대로 지하163": (126.825548, 37.5601985),
+              "서울특별시 강서구 공항대로 지하267": (126.8373108, 37.5590293)}
+    asked = []
+
+    def locate(keyword):
+        asked.append(keyword)
+        return points.get(keyword)
+
+    assert st.fix_twins(rows, locate) == 1
+    assert sorted(asked) == sorted(points)  # 겹치지 않은 교대는 찾지 않는다
+    by_name = {r.name: (r.lon, r.lat) for r in rows}
+    assert by_name["마곡"] == (126.825548, 37.5601985)
+    assert by_name["발산"] == (126.837633, 37.558692)  # 40m 차이라 파일 좌표 그대로
+    assert st.fix_twins(rows, None) == 0
+
+
+def test_run_deletes_stations_no_longer_in_file(engine, tmp_path):
+    path = tmp_path / "stations.xlsx"
+    frame([("교대", "2호선", "37.4934", "127.0140", SEOUL),
+           ("이촌(국립중앙박물관)", "4호선", "37.52919", "126.96799", SEOUL),
+           ("이촌역", "경원선", "37.522476", "126.973816", SEOUL)]).to_excel(path, index=False)
+    st.run(engine, path, None)
+    # 4호선 이촌 좌표를 고치면 경원선 이촌과 한 역으로 묶여 옛 키 둘이 빠진다
+    frame([("교대", "2호선", "37.4934", "127.0140", SEOUL),
+           ("이촌(국립중앙박물관)", "4호선", "37.5225", "126.97368", SEOUL),
+           ("이촌역", "경원선", "37.522476", "126.973816", SEOUL)]).to_excel(path, index=False)
+    st.run(engine, path, None)
+
+    with engine.connect() as conn:
+        keys = conn.execute(text("SELECT station_key, line_names FROM station ORDER BY 1")).all()
+    assert [tuple(k) for k in keys] == [("교대", "2호선"), ("이촌", "4호선,경원선")]
