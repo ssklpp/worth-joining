@@ -6,7 +6,7 @@
 | 기준 | SPEC Phase 11-5: 문제 → 데이터 → 설계 → 핵심 SQL → 결과 → 트러블슈팅 → 한계 |
 | 슬라이드 | 웹 슬라이드 두 벌(팀장 계정, Share 메뉴로 공유 · PPTX · PDF 받기). 슬라이드마다 발표 노트(대본)가 있다 |
 | 분량 | 기본판 12장 · 10 ~ 12분, 확장판 19장 · 15 ~ 20분 |
-| 숫자 기준 | 국민연금 2026-08, 전월세 2026-08, 2026-10-16 측정(v1.3.0, 성남 역 · 전월세까지) |
+| 숫자 기준 | 국민연금 2026-08, 전월세 2026-08, 2026-10-19 측정(v1.4.0, 업종 분류 없는 회사 백분위 수정까지) |
 
 ---
 
@@ -145,7 +145,7 @@ FROM station st STRAIGHT_JOIN building b
 
 단계마다 화면에 나와야 할 값, 전날 점검, 비상 계획(로컬 서버 · 녹화 영상 · PDF)은 [demo.md](./demo.md).
 
-## 10. 확장판 ★: 트러블슈팅 (troubleshooting.md TS-001 ~ 032)
+## 10. 확장판 ★: 트러블슈팅 (troubleshooting.md TS-001 ~ 034)
 
 | 주제 | 무엇이 문제였나 | 어떻게 풀었나 |
 |---|---|---|
@@ -172,10 +172,10 @@ FROM station st STRAIGHT_JOIN building b
 
 ## 12. 테스트 · 보안 · 일한 방식
 
-- **테스트:** pytest 230개(SQL 계산 규칙 · API, 실제 키 없이 `tests/fixtures/`, CI는 MariaDB 11.4 컨테이너). Playwright 화면 테스트 12개(smoke 8개는 저장된 API 응답으로 CI에서, 지도 4개는 로컬). 고친 버그는 되돌리면 실패하는 테스트로 남겼다.
+- **테스트:** pytest 234개(SQL 계산 규칙 · API, 실제 키 없이 `tests/fixtures/`, CI는 MariaDB 11.4 컨테이너). Playwright 화면 테스트 15개(smoke 8개는 저장된 API 응답으로 CI에서, 지도 7개는 로컬). 고친 버그는 되돌리면 실패하는 테스트로 남겼다.
 - **보안:** CSP(허용 목록 밖 스크립트 · 연결 차단, 위반이 있으면 화면 테스트 실패), CORS는 웹 도메인 · GET만, 입력 길이 · 범위 검증, SQL은 모두 바인딩(정렬 열은 정해 둔 목록), DB는 사설망, API 키는 저장소에 없음.
-- **CI 세 작업:** 테스트 · 웹(lint · 타입 · 빌드 · 화면) · API 이미지. 릴리스 `v1.0.0` ~ `v1.3.0`.
-- **확장판 ★ 일한 방식:** 병합한 PR 103개(10/16), 트랙 4개, 결정 기록 10건, 트러블슈팅 32건. main 보호 · PR · squash 병합, Conventional Commits. SPEC이 기준이고 결정이 바뀌면 SPEC부터 고친다.
+- **CI 세 작업:** 테스트 · 웹(lint · 타입 · 빌드 · 화면) · API 이미지. 릴리스 `v1.0.0` ~ `v1.4.0`.
+- **확장판 ★ 일한 방식:** 병합한 PR 113개(10/19), 트랙 4개, 결정 기록 10건, 트러블슈팅 34건. main 보호 · PR · squash 병합, Conventional Commits. SPEC이 기준이고 결정이 바뀌면 SPEC부터 고친다.
 
 | 결정 | 왜 |
 |---|---|
@@ -194,4 +194,4 @@ FROM station st STRAIGHT_JOIN building b
 - 채용공고는 API를 개인에게 주지 않아(사람인, 고용24) 모으지 않고 사람인 · 잡코리아 검색으로 연결한다. 크롤링은 하지 않았다(decisions/008).
 - **확장판 ★ 다음 할 일:** 월 갱신을 명령 하나로(`pipeline.monthly`), 경기 다른 시로 확장, API 서버를 아시아 리전으로(응답 약 70ms 단축 예상).
 - 배운 것: 공공데이터는 "있다"와 "쓸 수 있다" 사이가 멀다. 그 사이를 SQL과 검증 숫자로 메웠다.
-- 문서: SPEC, decisions 001 ~ 010, profiling · matching · validation · explain · performance · runbook · troubleshooting(TS-001 ~ 032)
+- 문서: SPEC, decisions 001 ~ 010, profiling · matching · validation · explain · performance · runbook · troubleshooting(TS-001 ~ 034)
