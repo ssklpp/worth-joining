@@ -78,3 +78,10 @@ test("map-station-norent 원룸 계약이 없는 역은 이유를 보여 준다(
   await expect(page.getByText(/역 500m 안에 최근 12개월 원룸 계약이 없어/)).toBeVisible();
   await expect(page.getByText(/아파트와 단독 · 다가구는\s*세지 않아/)).toBeVisible();
 });
+
+test("map-unclassified 업종 분류가 없는 회사는 업종 판정을 보이지 않는다(I-01)", async ({ page }) => {
+  await page.goto("/companies/31650"); // 우아한형제들, 국민연금 업종 코드 999999
+  const sheet = page.locator("section[aria-labelledby='sheet-title']");
+  await expect(sheet.getByText("업종 분류가 없어 업종과 비교하지 않았습니다.")).toBeVisible();
+  await expect(sheet.getByText(/업종 중간보다|퇴사 적은 순|업종 평균 수준|업종 중간값/)).toHaveCount(0);
+});
