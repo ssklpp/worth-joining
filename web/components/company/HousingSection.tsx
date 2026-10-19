@@ -107,7 +107,9 @@ function StationRow({ s, months }: { s: Station; months: Months }) {
           </span>
         </div>
       ) : (
-        <div className={styles.stRent}><span>역 500m 안 원룸 월세 계약이 없습니다</span></div>
+        <div className={styles.stRent}>
+          <span>역 500m 안 원룸 월세 계약이 없습니다(33㎡ 이하 연립다세대 · 오피스텔만 셈, 아파트 제외)</span>
+        </div>
       )}
       {b && b.low !== null && b.mid !== null && b.high !== null && (
         <div className={styles.stBurden} role="img"
