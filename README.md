@@ -368,6 +368,7 @@ Railway(api · mariadb)와 Vercel(web) 배포, DB 복원, 월 갱신 절차는 [
 | [docs/validation.md](./docs/validation.md) | 좌표 성공률, 회사 5곳 대조, 데이터 품질 지표 |
 | [docs/explain.md](./docs/explain.md) · [docs/performance.md](./docs/performance.md) | 실행 계획, 부하 측정, 개선 전후 |
 | [docs/runbook.md](./docs/runbook.md) | 배포 · 복원 · 월 갱신 |
+| [docs/07](./docs/07_test_plan.md) · [08](./docs/08_issue_log.md) · [09](./docs/09_test_result.md) | 통합 테스트 계획, 이슈 기록 · 우선순위, 테스트 결과 |
 | [docs/presentation.md](./docs/presentation.md) · [docs/demo.md](./docs/demo.md) | 발표 개요, 시연 점검표 · 비상 계획 |
 | [docs/troubleshooting.md](./docs/troubleshooting.md) | 겪은 문제와 해결 (TS-001 ~ 031) |
 
