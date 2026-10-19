@@ -159,7 +159,7 @@ flowchart LR
 | | rapidfuzz | 국민연금 · DART 회사명 유사도 매칭 |
 | | pyproj (DLL이 막힌 PC는 같은 공식의 순수 Python 대체) | 좌표계 변환 (UTM-K → WGS84 경위도) |
 | DB | MariaDB 11.4 LTS (InnoDB) | 윈도 함수 · CTE, `PERCENTILE_CONT`, 월 파티션, 생성 컬럼, SPATIAL 인덱스 |
-| | Alembic | 스키마 마이그레이션 (`0001` ~ `0010`) |
+| | Alembic | 스키마 마이그레이션 (`0001` ~ `0011`) |
 | 백엔드 | FastAPI, uvicorn, Pydantic v2 | REST API, 파라미터 검증, 자동 문서 |
 | | SQLAlchemy 2.0 (async) + asyncmy | DB 연결. 통계 쿼리는 `sql/`에 SQL로 작성 |
 | 프론트엔드 | Next.js 15 (App Router), React 19, Recharts | 지도 메인 · 상세 · 비교 화면, 그래프 |
@@ -276,7 +276,7 @@ worth-joining/
 │  ├─ stations/          # 역 (환승역 묶기)
 │  ├─ rent/              # 전월세 적재 · 월 파티션 · 전환율
 │  └─ refresh_mart.py    # sql/q1 → q2 → q6 → q5 → q5t
-├─ migrations/           # Alembic 0001 ~ 0010
+├─ migrations/           # Alembic 0001 ~ 0011
 ├─ sql/                  # mart · 지도 · 비교 · 역세권 SQL
 ├─ web/                  # Next.js (app/(explore): 지도 메인 + 패널), e2e/: 화면 테스트
 ├─ tests/                # pytest (unit, sql, api, fixtures), perf/locustfile.py

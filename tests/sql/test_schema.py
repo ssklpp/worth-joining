@@ -34,3 +34,12 @@ async def test_workplace_monthly_is_partitioned_by_year(db):
     ))
 
     assert [r[0] for r in rows] == ["p2025", "p2026", "pmax"]
+
+
+async def test_monthly_mart_has_month_index(db):
+    # 계산 방법 API의 데이터 기간 MIN(snapshot_ym). PK(company_id, snapshot_ym)만 있으면 표 전체를
+    # 읽었다(docs/08 I-02). 월이 맨 앞인 인덱스가 있으면 끝값만 읽는다
+    rows = (await db.execute(text("SHOW INDEX FROM mart_company_monthly"))).mappings().all()
+
+    assert any(r["Key_name"] != "PRIMARY" and r["Seq_in_index"] == 1
+               and r["Column_name"] == "snapshot_ym" for r in rows)

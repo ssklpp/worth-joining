@@ -253,7 +253,8 @@ CREATE TABLE mart_company_monthly (
   hire_rate      DECIMAL(6,4),
   quit_rate      DECIMAL(6,4),
   avg_salary_est INT,
-  PRIMARY KEY (company_id, snapshot_ym)
+  PRIMARY KEY (company_id, snapshot_ym),
+  KEY ix_snapshot_ym (snapshot_ym)  -- 0011: 데이터 기간 MIN(snapshot_ym)
 );
 
 CREATE TABLE mart_company_summary (

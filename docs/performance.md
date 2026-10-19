@@ -60,6 +60,7 @@ Railway(api · mariadb 사설망), 국내에서 `curl` 한 번씩(새 TLS 연결
 | 회사 좌표 3 · 4단계 | 표본 건물 좌표 API 2.6만 회(분당 약 95회) | 주소정보누리집 출입구 파일로 계산 | 약 4.5시간 예상 | 16초 | validation.md 1장 |
 | 전월세 건물 좌표 | 지번 → 검색 → 좌표 API | 지번 → 도로명주소 파일 → 출입구 좌표, 부속 지번만 검색 | 약 5시간 예상 | 수 분(부속 지번 검색 약 1,200회, 실패 캐시를 지우고 한 번 더 돌린 것 포함) | validation.md 2장 |
 | 웹 첫 화면 글꼴(2026-10-16, #92) | `next/font`가 한글 글꼴 조각 280개(굵기 4종)를 모두 `<link rel=preload>`로 받음. 배포 HTML 77KB의 대부분이 이 링크 | `preload: false`로 화면에 쓰인 글자 조각만 받음 | Lighthouse(모바일 · 느린 4G) 첫 화면 65점 · LCP 20.6초 · 전송 4.0MB, 상세 53점 · LCP 16.9초 · CLS 0.231 | 첫 화면 67 ~ 72점 · LCP 8.2초 · 1.5MB, 상세 81점 · LCP 4.8초 · CLS 0 ~ 0.001. 글꼴 2.6MB → 234 ~ 334KB | 이 문서 |
+| 계산 방법 `/meta/methodology`(2026-10-19, docs/08 I-02) | 데이터 기간 `MIN(snapshot_ym)`을 PK(company_id, snapshot_ym)로 182만 행 전체 스캔. 배포 응답 약 2초 | `mart_company_monthly`에 `snapshot_ym` 인덱스(0011), 끝값만 읽음 | 로컬 쿼리 150ms | 0.2ms | 마이그레이션 0011 |
 
 ## 4. 개선 여지 (지금은 하지 않음)
 
