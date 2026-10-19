@@ -92,9 +92,24 @@ export function StationPage({ id }: { id: number | null }) {
   );
 }
 
+/** 원룸 계약이 없는 역(예: 이촌역). 시세는 33㎡ 이하 연립다세대 · 오피스텔만 세므로, 아파트 단지나
+ * 공원 · 시설이 대부분인 역은 비게 된다. 데이터가 빠진 것이 아니라는 것을 이유와 함께 알린다 */
+function NoRent({ radius, months }: { radius: number; months: Months }) {
+  return (
+    <div className="note">
+      <p>역 {radius}m 안에 최근 {months}개월 원룸 계약이 없어 시세를 낼 수 없습니다.</p>
+      <p className="small">
+        원룸 시세는 전용 33㎡ 이하 연립다세대 · 오피스텔의 신고된 계약으로만 계산합니다. 아파트와 단독 · 다가구는
+        세지 않아, 주변이 아파트 단지나 공원 · 시설인 역은 계약이 없을 수 있습니다.
+        {radius === 500 ? " 반경 750m나 최근 24개월로 넓혀 보세요." : months < 24 ? " 최근 24개월로 넓혀 보세요." : ""}
+      </p>
+    </div>
+  );
+}
+
 function Distribution({ d, months, radius }: { d: Detail; months: Months; radius: number }) {
   const r = d.rent;
-  if (!r) return <p className="small">역 {radius}m 안 원룸 계약이 없습니다.</p>;
+  if (!r) return <NoRent radius={radius} months={months} />;
   return (
     <>
       <dl className={styles.facts}>

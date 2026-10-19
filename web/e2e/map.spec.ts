@@ -71,3 +71,10 @@ test("map-list-keep 상세에 갔다 '목록으로' 돌아와도 정렬 · 20곳
   await expect(size).toHaveValue("20");
   await expect(items).toHaveCount(20);
 });
+
+test("map-station-norent 원룸 계약이 없는 역은 이유를 보여 준다(이촌역)", async ({ page }) => {
+  await page.goto("/stations/757");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("이촌역");
+  await expect(page.getByText(/역 500m 안에 최근 12개월 원룸 계약이 없어/)).toBeVisible();
+  await expect(page.getByText(/아파트와 단독 · 다가구는\s*세지 않아/)).toBeVisible();
+});
