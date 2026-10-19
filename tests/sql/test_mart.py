@@ -129,6 +129,21 @@ def test_percentiles_are_per_industry(conn):
     assert summary(conn, 2)["pct_salary"] == 100
 
 
+def test_unclassified_industry_has_no_percentiles(conn):
+    # 999999는 국민연금 원본에 업종 분류가 없는 회사 묶음이다.
+    # 서로 다른 업종끼리라 백분위가 뜻이 없다(I-01)
+    seed(conn, 1, months(202508, 13, billed=10_000_000), industry="999999")
+    seed(conn, 2, months(202508, 13, billed=20_000_000), industry="999999")
+    seed(conn, 3, months(202508, 13, billed=15_000_000), industry="620100")
+    refresh(conn)
+
+    for company_id in (1, 2):
+        s = summary(conn, company_id)
+        assert (s["pct_growth"], s["pct_stability"], s["pct_salary"]) == (None, None, None)
+        assert s["avg_salary_est"] is not None and s["small_sample"] == 0  # 지표 자체는 그대로
+    assert summary(conn, 3)["pct_salary"] == 0  # 다른 업종 분포에는 영향 없음
+
+
 def test_refresh_twice_gives_same_rows(conn):
     seed(conn, 1, months(202508, 13))
     seed(conn, 2, months(202510, 11, members=9))

@@ -63,8 +63,8 @@ export function HealthSheet({ c }: { c: Detail }) {
         </p>
       </div>
       <div className={styles.legend} aria-hidden="true">
-        <span><i className={styles.swBand} />업종 중간 50%</span>
-        <span><i className={styles.swMedian} />업종 중간값</span>
+        {code && <span><i className={styles.swBand} />업종 중간 50%</span>}
+        {code && <span><i className={styles.swMedian} />업종 중간값</span>}
         <span><i className={styles.swPen} />이 회사</span>
         {lowerBound && <span><i className={styles.swTail} />더 높을 수 있음</span>}
       </div>
