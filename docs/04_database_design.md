@@ -4,7 +4,7 @@
 |---|---|
 | 대상 | T2(스키마 · SQL 담당), DB를 읽고 쓰는 T1 · T3 |
 | 기준 | SPEC 5장(DDL), 6장(계산 규칙), 7장(핵심 SQL). 충돌하면 SPEC을 따르고, 이 문서의 "제안"은 SPEC에 반영되기 전까지 확정이 아니다 |
-| 상태 | 최종 수정 2026-10-16 (마이그레이션 `0010`까지 반영) |
+| 상태 | 최종 수정 2026-10-19 (마이그레이션 `0011`까지 반영) |
 
 ---
 
@@ -22,7 +22,7 @@
 | 멱등 | 자연키 UNIQUE + `INSERT … ON DUPLICATE KEY UPDATE`, 전월세는 `row_hash` | 같은 입력을 다시 넣어도 결과가 같아야 한다 |
 | 파티션 | `workplace_monthly`(연 단위), `rent_contract`(월 단위, 24개월 보관) | 가장 큰 두 테이블. 오래된 전월세는 `DROP PARTITION`으로 지운다. 자동 순환은 없고 갱신할 때 `pipeline.rent.partitions --drop-before`를 실행한다 |
 
-## 2. ERD (2026-10-16, 마이그레이션 0010)
+## 2. ERD (2026-10-19, 마이그레이션 0011)
 
 SPEC 5.2에 DDL이 있는 테이블은 그대로 옮겼고, DDL이 없던 테이블은 **제안**으로 표시했다(3장). 채용 테이블(`saramin_company_link`, `job_posting`, `mart_company_jobs`)은 만들지 않아 그림에서 뺐다([decisions/008](./decisions/008-채용-연계를-바로가기로-대체.md)).
 
