@@ -1,6 +1,6 @@
 [project]
 name = "worth-joining"
-version = "0.1.0"
+version = "1.4.0"
 description = "다닐만한가: 공공데이터로 보는 회사 체력"
 readme = "README.md"
 license = { file = "LICENSE" }
