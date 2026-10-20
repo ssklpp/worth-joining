@@ -175,7 +175,7 @@ FROM station st STRAIGHT_JOIN building b
 - **테스트:** pytest 234개(SQL 계산 규칙 · API, 실제 키 없이 `tests/fixtures/`, CI는 MariaDB 11.4 컨테이너). Playwright 화면 테스트 15개(smoke 8개는 저장된 API 응답으로 CI에서, 지도 7개는 로컬). 고친 버그는 되돌리면 실패하는 테스트로 남겼다.
 - **보안:** CSP(허용 목록 밖 스크립트 · 연결 차단, 위반이 있으면 화면 테스트 실패), CORS는 웹 도메인 · GET만, 입력 길이 · 범위 검증, SQL은 모두 바인딩(정렬 열은 정해 둔 목록), DB는 사설망, API 키는 저장소에 없음.
 - **CI 세 작업:** 테스트 · 웹(lint · 타입 · 빌드 · 화면) · API 이미지. 릴리스 `v1.0.0` ~ `v1.4.0`.
-- **확장판 ★ 일한 방식:** 병합한 PR 113개(10/19), 트랙 4개, 결정 기록 10건, 트러블슈팅 34건. main 보호 · PR · squash 병합, Conventional Commits. SPEC이 기준이고 결정이 바뀌면 SPEC부터 고친다.
+- **확장판 ★ 일한 방식:** 병합한 PR 120개 이상(10/20), 트랙 4개, 결정 기록 10건, 트러블슈팅 34건. main 보호 · PR · squash 병합, Conventional Commits. SPEC이 기준이고 결정이 바뀌면 SPEC부터 고친다.
 
 | 결정 | 왜 |
 |---|---|
