@@ -109,7 +109,7 @@ LLM · RAG 같은 AI 기능 없이 **데이터 수집 → 정제 → DB 모델�
 | 회사 지도 좌표 | 137,128 / 137,129곳 (건물 13,030 · 도로 중심 122,334 · 동 중심 1,764) | [validation.md](./docs/validation.md) 1장 |
 | 전월세 | 연립다세대 · 오피스텔 계약 471,419건(서울 443,227 · 성남 28,192), 건물 좌표 99.9% | validation.md 2장 |
 | 응답 시간 (로컬 부하 20명) | 상세 p95 8ms, 검색 p95 6ms, 지도 p95 270ms | [performance.md](./docs/performance.md) |
-| mart 갱신 | 회사 지표 · 회사 근처 역 · 역세권 시세 한 트랜잭션 35초 | 〃 |
+| mart 갱신 | 회사 지표 · 회사 근처 역 · 역세권 시세 한 트랜잭션 약 50초 | 〃 |
 
 ---
 
@@ -369,8 +369,9 @@ Railway(api · mariadb)와 Vercel(web) 배포, DB 복원, 월 갱신 절차는 [
 | [docs/explain.md](./docs/explain.md) · [docs/performance.md](./docs/performance.md) | 실행 계획, 부하 측정, 개선 전후 |
 | [docs/runbook.md](./docs/runbook.md) | 배포 · 복원 · 월 갱신 |
 | [docs/07](./docs/07_test_plan.md) · [08](./docs/08_issue_log.md) · [09](./docs/09_test_result.md) | 통합 테스트 계획, 이슈 기록 · 우선순위, 테스트 결과 |
-| [docs/presentation.md](./docs/presentation.md) · [docs/demo.md](./docs/demo.md) | 발표 개요, 시연 점검표 · 비상 계획 |
-| [docs/troubleshooting.md](./docs/troubleshooting.md) | 겪은 문제와 해결 (TS-001 ~ 031) |
+| [docs/10](./docs/10_deployment.md) · [11](./docs/11_final_report.md) | 배포 현황 · 최종 확인 · API 요약, 최종 보고서(결과 · 회고 · 개선점) |
+| [docs/presentation.md](./docs/presentation.md) · [docs/demo.md](./docs/demo.md) · [speaker_guide_14.md](./docs/speaker_guide_14.md) | 발표 개요, 시연 점검표 · 비상 계획, 발표 분담과 대본 |
+| [docs/troubleshooting.md](./docs/troubleshooting.md) | 겪은 문제와 해결 (TS-001 ~ 034) |
 
 ---
 
