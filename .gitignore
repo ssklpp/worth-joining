@@ -22,3 +22,6 @@ data/
 
 # Claude Code 개인 설정
 .claude/settings.local.json
+
+# 제출물 폴더 안의 저장소 클론(저장소 자체가 2번 산출물)
+submission/2_풀스택_서비스_코드_저장소/worth-joining/
